@@ -4,8 +4,6 @@
 #include <cassert>
 #include <cmath>
 
-#define forN(I, N) for (size_t I = 0; I < N; ++I)
-
 // TODO make rollover defined behavior
 using SignalValue = int32_t;
 
@@ -185,9 +183,9 @@ class Port
 public:
     Port()
     {
-        forN(i, num_wire_colors)
+        for (WireColor w = 0; w < num_wire_colors; ++w)
         {
-            disconnect(i);
+            disconnect(w);
         }
     }
 
@@ -207,7 +205,7 @@ public:
     {
         CircuitValues values;
 
-        forN(w, num_wire_colors)
+        for (WireColor w = 0; w < num_wire_colors; ++w)
         {
             CircuitId const c = _wires[w];
             if (c == invalid_circuit_id)
@@ -223,7 +221,7 @@ public:
 
     void write(CircuitManager & circuits, CircuitValues const & values) const
     {
-        forN(w, num_wire_colors)
+        for (WireColor w = 0; w < num_wire_colors; ++w)
         {
             CircuitId const c = _wires[w];
             if (c == invalid_circuit_id)
