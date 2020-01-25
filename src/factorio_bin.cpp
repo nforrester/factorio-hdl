@@ -1,5 +1,3 @@
-#include <cmath>
-
 #include "signals.h"
 #include "CircuitValues.h"
 #include "Circuit.h"

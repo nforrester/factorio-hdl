@@ -15,46 +15,11 @@ public:
         _values.clear();
     }
 
-    SignalValue get(SignalId signal) const
-    {
-        auto i = _values.find(signal);
-        if (i == _values.end())
-        {
-            return 0;
-        }
-        assert(i->second != 0);
-        return i->second;
-    }
+    SignalValue get(SignalId signal) const;
 
-    void add(SignalId signal, SignalValue value)
-    {
-        if (value == 0)
-        {
-            return;
-        }
+    void add(SignalId signal, SignalValue value);
 
-        auto i = _values.find(signal);
-        if (i != _values.end())
-        {
-            i->second += value;
-            if (i->second == 0)
-            {
-                _values.erase(i);
-            }
-        }
-        else
-        {
-            _values.emplace(signal, value);
-        }
-    }
-
-    void add(CircuitValues const & additional)
-    {
-        for (auto const & p : additional)
-        {
-            add(p.first, p.second);
-        }
-    }
+    void add(CircuitValues const & additional);
 
     Map::const_iterator begin() const
     {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 
 // TODO make rollover defined behavior
 using SignalValue = int32_t;
