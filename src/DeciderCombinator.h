@@ -20,6 +20,7 @@ public:
 
     DeciderCombinator(SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count);
     DeciderCombinator(SignalId lhs, Op op, SignalValue rhs_const, SignalId out, bool write_input_count);
+    DeciderCombinator(DeciderCombinator const &) = delete;
 
     void tick(CircuitManager & circuits) const override;
 

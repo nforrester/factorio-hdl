@@ -13,6 +13,8 @@ public:
     void build(CircuitManager & circuits);
 
 private:
+    bool _built = false;
+
     struct Plan
     {
         WireColor color;

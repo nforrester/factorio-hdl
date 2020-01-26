@@ -1,5 +1,7 @@
 #include "CircuitValues.h"
 
+#include <vector>
+
 SignalValue CircuitValues::get(SignalId signal) const
 {
     auto i = _values.find(signal);
@@ -39,4 +41,27 @@ void CircuitValues::add(CircuitValues const & additional)
     {
         add(p.first, p.second);
     }
+}
+
+std::ostream & operator<<(std::ostream & out, CircuitValues const & values)
+{
+    std::vector<std::pair<SignalId, SignalValue>> sorted;
+    sorted.insert(sorted.end(), values.begin(), values.end());
+    std::sort(sorted.begin(), sorted.end());
+
+    out << "[";
+    bool first = true;
+    for (auto const & v : sorted)
+    {
+        if (!first)
+        {
+            out << ", ";
+        }
+        first = false;
+
+        out << v.first << " = " << v.second;
+    }
+    out << "]";
+
+    return out;
 }

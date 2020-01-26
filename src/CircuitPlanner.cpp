@@ -22,10 +22,12 @@ void CircuitPlanner::connect(WireColor color, Port & a, Port & b)
     }
     else if (!plan_for_a && !plan_for_b)
     {
-        auto plan = _plans.emplace_front();
+        Plan & plan = _plans.emplace_front();
         plan.color = color;
         plan.ports.push_back(&a);
         plan.ports.push_back(&b);
+        plans_for_a->second.plans.at(color) = &plan;
+        plans_for_b->second.plans.at(color) = &plan;
     }
     else
     {
@@ -36,8 +38,16 @@ void CircuitPlanner::connect(WireColor color, Port & a, Port & b)
 
 void CircuitPlanner::build(CircuitManager & circuits)
 {
+    assert(!_built);
+    _built = true;
+
     for (Plan const & plan : _plans)
     {
+        if (plan.ports.size() == 0)
+        {
+            continue;
+        }
+
         CircuitId c = circuits.make();
         for (Port * port : plan.ports)
         {

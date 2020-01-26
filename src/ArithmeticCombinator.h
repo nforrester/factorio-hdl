@@ -25,6 +25,7 @@ public:
 
     ArithmeticCombinator(SignalId lhs, Op op, SignalId rhs, SignalId out);
     ArithmeticCombinator(SignalId lhs, Op op, SignalValue rhs_const, SignalId out);
+    ArithmeticCombinator(ArithmeticCombinator const &) = delete;
 
     void tick(CircuitManager & circuits) const override;
 

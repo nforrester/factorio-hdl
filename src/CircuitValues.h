@@ -1,9 +1,10 @@
 #pragma once
 
+#include "signals.h"
+
 #include <unordered_map>
 #include <cassert>
-
-#include "signals.h"
+#include <ostream>
 
 class CircuitValues
 {
@@ -34,3 +35,5 @@ public:
 private:
     Map _values;
 };
+
+std::ostream & operator<<(std::ostream & out, CircuitValues const & values);

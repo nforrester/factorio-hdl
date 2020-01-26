@@ -1,4 +1,4 @@
-common_copts = ["-Wall", "-Werror", "-std=c++2a"]
+common_copts = ["-g", "-Wall", "-Werror", "-std=c++2a"]
 
 cc_library(
     name = "factorio_lib",
