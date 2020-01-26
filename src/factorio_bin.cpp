@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "Factorio.h"
 #include "entities/ArithmeticCombinator.h"
 #include "entities/DeciderCombinator.h"
@@ -8,6 +6,7 @@
 #include "entities/Counter.h"
 #include "entities/Hysteresis.h"
 
+#include <iostream>
 #include <unistd.h>
 
 int main()
