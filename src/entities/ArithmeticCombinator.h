@@ -17,7 +17,7 @@ public:
         RSH,
         AND,
         OR,
-        XOR
+        XOR,
     };
 
     static_assert(!std::same_as<SignalId, SignalValue>); // permit overload of constructor on these types

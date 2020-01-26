@@ -2,11 +2,22 @@
 
 void CircuitPlanner::connect(WireColor color, Port & a, Port & b)
 {
+    assert(&a != &b);
+
     auto plans_for_a = _get_plans(a);
     auto plans_for_b = _get_plans(b);
 
     Plan * plan_for_a = plans_for_a->second.plans.at(color);
     Plan * plan_for_b = plans_for_b->second.plans.at(color);
+
+    if (plan_for_a)
+    {
+        assert(!plan_for_a->locked);
+    }
+    if (plan_for_b)
+    {
+        assert(!plan_for_b->locked);
+    }
 
     if (plan_for_a && !plan_for_b)
     {
@@ -32,8 +43,27 @@ void CircuitPlanner::connect(WireColor color, Port & a, Port & b)
     else
     {
         assert(plan_for_a && plan_for_b);
-        _merge_plans(*plan_for_a, *plan_for_b);
+        if (plan_for_a != plan_for_b)
+        {
+            _merge_plans(*plan_for_a, *plan_for_b);
+        }
     }
+}
+
+void CircuitPlanner::lock(WireColor color, Port & p)
+{
+    auto plans = _get_plans(p);
+    Plan * plan = plans->second.plans.at(color);
+
+    if (!plan)
+    {
+        plan = &_plans.emplace_front();
+        plan->color = color;
+        plan->ports.push_back(&p);
+        plans->second.plans.at(color) = plan;
+    }
+
+    plan->locked = true;
 }
 
 void CircuitPlanner::build(CircuitManager & circuits)

@@ -20,12 +20,10 @@ public:
     Port()
     {
         _wires.fill(invalid_circuit_id);
-        _lockouts.fill(false);
     }
 
     void connect(WireColor wire, CircuitId id)
     {
-        assert(!_lockouts[wire]);
         CircuitId & w = _wires[wire];
         assert(w == invalid_circuit_id);
         w = id;
@@ -33,13 +31,7 @@ public:
 
     void disconnect(WireColor wire)
     {
-        assert(!_lockouts[wire]);
         _wires[wire] = invalid_circuit_id;
-    }
-
-    void lockout(WireColor wire)
-    {
-        _lockouts[wire] = true;
     }
 
     CircuitValues read(CircuitManager const & circuits) const;
@@ -49,5 +41,4 @@ public:
 
 private:
     std::array<CircuitId, num_wire_colors> _wires;
-    std::array<bool, num_wire_colors> _lockouts;
 };

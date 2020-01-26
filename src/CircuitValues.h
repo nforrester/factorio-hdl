@@ -32,6 +32,11 @@ public:
         return _values.cend();
     }
 
+    bool operator==(CircuitValues const & other) const
+    {
+        return _values == other._values;
+    }
+
 private:
     Map _values;
 };

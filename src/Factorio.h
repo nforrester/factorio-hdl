@@ -21,31 +21,11 @@ public:
         return ref;
     }
 
-    void connect(WireColor color, Port & a, Port & b)
-    {
-        assert(!_built);
-
-        _planner.connect(color, a, b);
-    }
-
-    void build()
-    {
-        assert(!_built);
-        _built = true;
-
-        _planner.build(_circuits);
-    }
-
-    void tick()
-    {
-        assert(_built);
-
-        for (auto & entity : _entities)
-        {
-            entity->tick(_circuits);
-        }
-        _circuits.finish_tick();
-    }
+    void connect(WireColor color, Port & a, Port & b);
+    void lock(WireColor color, Port & p);
+    void build();
+    bool tick();
+    bool run_until_stable(size_t timeout);
 
     CircuitValues read(Port const & port) const
     {

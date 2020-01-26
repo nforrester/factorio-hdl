@@ -10,6 +10,8 @@ class CircuitPlanner
 public:
     void connect(WireColor color, Port & a, Port & b);
 
+    void lock(WireColor color, Port & p);
+
     void build(CircuitManager & circuits);
 
 private:
@@ -17,6 +19,7 @@ private:
 
     struct Plan
     {
+        bool locked = false;
         WireColor color;
         std::vector<Port*> ports;
     };

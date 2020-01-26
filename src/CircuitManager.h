@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "CircuitValues.h"
-#include "Circuit.h"
 
 using CircuitId = size_t;
 CircuitId constexpr invalid_circuit_id = std::numeric_limits<CircuitId>::max();
@@ -25,7 +24,7 @@ public:
 
     CircuitValues const & read(CircuitId id) const
     {
-        return _circuits.at(id).state();
+        return _circuits.at(id);
     }
 
     void write(CircuitId id, CircuitValues const & values)
@@ -33,10 +32,15 @@ public:
         _next.at(id).add(values);
     }
 
+    bool stable()
+    {
+        return _circuits == _next;
+    }
+
     void finish_tick()
     {
         _circuits = _next;
-        for (Circuit & c : _next)
+        for (CircuitValues & c : _next)
         {
             c.clear();
         }
@@ -49,6 +53,6 @@ public:
     }
 
 private:
-    std::vector<Circuit> _circuits;
-    std::vector<Circuit> _next;
+    std::vector<CircuitValues> _circuits;
+    std::vector<CircuitValues> _next;
 };

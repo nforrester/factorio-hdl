@@ -72,6 +72,17 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
     out_port.write(circuits, out);
 }
 
+namespace
+{
+    SignalValue factorio_pow(SignalValue lhs, SignalValue rhs)
+    {
+        static double constexpr modulus = pow(2.0, 32.0);
+
+        static_assert(std::same_as<SignalValue, int32_t>); // ensure precision preserved
+        return static_cast<SignalValue>(fmod(pow(static_cast<double>(lhs), static_cast<double>(rhs)), modulus));
+    }
+}
+
 SignalValue ArithmeticCombinator::_operate(SignalValue lhs, SignalValue rhs) const
 {
     switch (_op)
@@ -83,13 +94,11 @@ SignalValue ArithmeticCombinator::_operate(SignalValue lhs, SignalValue rhs) con
     case Op::MUL:
         return lhs * rhs;
     case Op::DIV:
-        assert(rhs != 0); // TODO find out what actually happens
-        return lhs / rhs;
+        return rhs == 0 ? 0 : lhs / rhs;
     case Op::MOD:
-        return lhs % rhs;
+        return rhs == 0 ? 0 : lhs % rhs;
     case Op::POW:
-        static_assert(std::same_as<SignalValue, int32_t>); // ensure precision preserved
-        return static_cast<SignalValue>(pow(static_cast<double>(lhs), static_cast<double>(rhs)));
+        return factorio_pow(lhs, rhs);
     case Op::LSH:
         return lhs << rhs;
     case Op::RSH:

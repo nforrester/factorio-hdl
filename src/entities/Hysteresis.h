@@ -5,38 +5,13 @@
 class Hysteresis: public Composite
 {
 public:
+    /* Actual dead band width is (dead_band_half_width * 2 - 1) */
     Hysteresis(Factorio & factorio,
                SignalId in,
                SignalId out,
-               SignalValue set_point,
-               SignalValue dead_band,
-               WireColor interface_color):
-        Composite(factorio)
-    {
-        auto & c = _new_entity<ConstantCombinator>();
-        c.constants.add(in, -set_point);
-
-        auto & a = _new_entity<ArithmeticCombinator>(
-            in,
-            ArithmeticCombinator::Op::DIV,
-            SignalValue(dead_band / 2),
-            out);
-
-        auto & d = _new_entity<DeciderCombinator>(
-            out,
-            DeciderCombinator::Op::GT,
-            SignalValue(0),
-            out,
-            false);
-
-        WireColor color = other_color(interface_color);
-        _connect(color, c.port, a.in_port);
-        _connect(color, a.out_port, d.in_port);
-        _connect(color, d.in_port, d.out_port);
-
-        _in_port = &a.in_port;
-        _out_port = &d.out_port;
-    }
+               SignalValue dead_band_center_point,
+               SignalValue dead_band_half_width,
+               WireColor interface_color);
 
     Port & in_port() { return *_in_port; }
     Port & out_port() { return *_out_port; }

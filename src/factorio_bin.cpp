@@ -16,18 +16,22 @@ int main()
 
     Factorio fac;
 
-    SignalId iron = 0;
-    SignalId copper = 1;
-    SignalId sig_a = 2;
-    SignalId sig_b = 3;
-
     auto & input = fac.new_entity<ConstantCombinator>();
-    auto & adder = fac.new_entity<ArithmeticCombinator>(iron, ArithmeticCombinator::Op::ADD, copper, sig_a);
-    auto & lesser = fac.new_entity<DeciderCombinator>(copper, DeciderCombinator::Op::LT, iron, sig_b, false);
+    auto & adder = fac.new_entity<ArithmeticCombinator>(
+        Signal::iron_plate,
+        ArithmeticCombinator::Op::ADD,
+        Signal::copper_plate,
+        Signal::letter_a);
+    auto & lesser = fac.new_entity<DeciderCombinator>(
+        Signal::copper_plate,
+        DeciderCombinator::Op::LT,
+        Signal::iron_plate,
+        Signal::letter_b,
+        false);
     auto & output = fac.new_entity<Machine>();
 
-    input.constants.add(iron, 10);
-    input.constants.add(copper, 3);
+    input.constants.add(Signal::iron_plate, 10);
+    input.constants.add(Signal::copper_plate, 3);
 
     fac.connect(Wire::green, input.port, adder.in_port);
     fac.connect(Wire::red, output.port, adder.out_port);
@@ -35,17 +39,35 @@ int main()
     fac.connect(Wire::green, lesser.in_port, adder.in_port);
     fac.connect(Wire::red, lesser.out_port, adder.out_port);
 
-    auto & tick_counter = fac.new_entity<ArithmeticCombinator>(sig_a, ArithmeticCombinator::Op::ADD, SignalValue(1), sig_a);
+    auto & tick_counter = fac.new_entity<ArithmeticCombinator>(
+        Signal::letter_a,
+        ArithmeticCombinator::Op::ADD,
+        SignalValue(1),
+        Signal::letter_a);
     fac.connect(Wire::green, tick_counter.in_port, tick_counter.out_port);
 
-    auto & doubler = fac.new_entity<ArithmeticCombinator>(sig_a, ArithmeticCombinator::Op::MUL, SignalValue(2), sig_a);
+    auto & doubler = fac.new_entity<ArithmeticCombinator>(
+        Signal::letter_a,
+        ArithmeticCombinator::Op::MUL,
+        SignalValue(2),
+        Signal::letter_a);
     auto & dout = fac.new_entity<Machine>();
     fac.connect(Wire::green, tick_counter.out_port, doubler.in_port);
     fac.connect(Wire::green, doubler.out_port, dout.port);
 
-    auto & c1 = fac.new_entity<Counter>(fac, sig_a, 1, Wire::green);
-    auto & offset = fac.new_entity<ArithmeticCombinator>(sig_a, ArithmeticCombinator::Op::ADD, SignalValue(0), sig_a);
-    auto & hyst = fac.new_entity<Hysteresis>(fac, sig_a, sig_b, 50, 10, Wire::green);
+    auto & c1 = fac.new_entity<Counter>(fac, Signal::letter_a, 1, Wire::green);
+    auto & offset = fac.new_entity<ArithmeticCombinator>(
+        Signal::letter_a,
+        ArithmeticCombinator::Op::ADD,
+        SignalValue(0),
+        Signal::letter_a);
+    auto & hyst = fac.new_entity<Hysteresis>(
+        fac,
+        Signal::letter_a,
+        Signal::letter_b,
+        50,
+        10,
+        Wire::green);
     auto & hout = fac.new_entity<Machine>();
 
     fac.connect(Wire::green, c1.port(), offset.in_port);

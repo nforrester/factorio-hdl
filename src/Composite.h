@@ -29,6 +29,11 @@ protected:
         _factorio.connect(color, a, b);
     }
 
+    void _lock(WireColor color, Port & p)
+    {
+        _factorio.lock(color, p);
+    }
+
 private:
     Factorio & _factorio;
 };

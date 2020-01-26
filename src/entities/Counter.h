@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/Composite.h"
+#include "ArithmeticCombinator.h"
 
 class Counter: public Composite
 {
@@ -21,6 +22,8 @@ public:
         _connect(color, a.in_port, a.out_port);
 
         _port = &a.out_port;
+
+        _lock(color, port());
     }
 
     Port & port() { return *_port; }
