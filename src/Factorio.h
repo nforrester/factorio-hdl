@@ -47,9 +47,14 @@ public:
         _circuits.finish_tick();
     }
 
-    CircuitValues read(Port const & port)
+    CircuitValues read(Port const & port) const
     {
         return port.read(_circuits);
+    }
+
+    CircuitValues const & read(Port const & port, WireColor color) const
+    {
+        return port.read(_circuits, color);
     }
 
 private:

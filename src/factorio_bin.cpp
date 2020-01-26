@@ -5,6 +5,8 @@
 #include "DeciderCombinator.h"
 #include "ConstantCombinator.h"
 #include "Machine.h"
+#include "Counter.h"
+#include "Hysteresis.h"
 
 #include <unistd.h>
 
@@ -41,6 +43,15 @@ int main()
     fac.connect(Wire::green, tick_counter.out_port, doubler.in_port);
     fac.connect(Wire::green, doubler.out_port, dout.port);
 
+    auto & c1 = fac.new_entity<Counter>(fac, sig_a, 1, Wire::green);
+    auto & offset = fac.new_entity<ArithmeticCombinator>(sig_a, ArithmeticCombinator::Op::ADD, SignalValue(0), sig_a);
+    auto & hyst = fac.new_entity<Hysteresis>(fac, sig_a, sig_b, 50, 10, Wire::green);
+    auto & hout = fac.new_entity<Machine>();
+
+    fac.connect(Wire::green, c1.port(), offset.in_port);
+    fac.connect(Wire::green, offset.out_port, hyst.in_port());
+    fac.connect(Wire::green, hout.port, hyst.out_port());
+
     fac.build();
 
     std::cout << "Begin\n";
@@ -49,6 +60,10 @@ int main()
     std::cout << "Output: " << fac.read(output.port) << "\n";
     std::cout << "Count:  " << fac.read(tick_counter.out_port) << "\n";
     std::cout << "Double: " << fac.read(dout.port) << "\n";
+
+    std::cout << "Hyst in:  " << fac.read(hyst.in_port(), Wire::green) << "\n";
+    std::cout << "Hyst out: " << fac.read(hout.port) << "\n";
+
     for (int i = 0; i < 5; ++i)
     {
         fac.tick();
@@ -57,6 +72,17 @@ int main()
         std::cout << "Output: " << fac.read(output.port) << "\n";
         std::cout << "Count:  " << fac.read(tick_counter.out_port) << "\n";
         std::cout << "Double: " << fac.read(dout.port) << "\n";
+
+        std::cout << "Hyst in:  " << fac.read(hyst.in_port(), Wire::green) << "\n";
+        std::cout << "Hyst out: " << fac.read(hout.port) << "\n";
+    }
+
+    for (int i = 0; i < 100; ++i)
+    {
+        fac.tick();
+        std::cout << "\nTick.\n";
+        std::cout << "Hyst in:  " << fac.read(hyst.in_port(), Wire::green) << "\n";
+        std::cout << "Hyst out: " << fac.read(hout.port) << "\n";
     }
 
     std::cout << "End\n";

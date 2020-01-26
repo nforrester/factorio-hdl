@@ -83,6 +83,7 @@ SignalValue ArithmeticCombinator::_operate(SignalValue lhs, SignalValue rhs) con
     case Op::MUL:
         return lhs * rhs;
     case Op::DIV:
+        assert(rhs != 0); // TODO find out what actually happens
         return lhs / rhs;
     case Op::MOD:
         return lhs % rhs;
