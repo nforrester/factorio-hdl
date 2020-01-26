@@ -1,12 +1,12 @@
 #include <iostream>
 
 #include "Factorio.h"
-#include "ArithmeticCombinator.h"
-#include "DeciderCombinator.h"
-#include "ConstantCombinator.h"
-#include "Machine.h"
-#include "Counter.h"
-#include "Hysteresis.h"
+#include "entities/ArithmeticCombinator.h"
+#include "entities/DeciderCombinator.h"
+#include "entities/ConstantCombinator.h"
+#include "entities/Machine.h"
+#include "entities/Counter.h"
+#include "entities/Hysteresis.h"
 
 #include <unistd.h>
 

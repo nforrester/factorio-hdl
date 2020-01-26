@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CircuitManager.h"
+#include "Port.h"
 
 class Entity
 {

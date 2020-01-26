@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Entity.h"
+#include "src/Entity.h"
 
 class ConstantCombinator: public Entity
 {

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Entity.h"
-#include "Port.h"
+#include "src/Entity.h"
 
 class ArithmeticCombinator: public Entity
 {
