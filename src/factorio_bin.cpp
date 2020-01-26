@@ -33,18 +33,30 @@ int main()
     fac.connect(Wire::green, lesser.in_port, adder.in_port);
     fac.connect(Wire::red, lesser.out_port, adder.out_port);
 
+    auto & tick_counter = fac.new_entity<ArithmeticCombinator>(sig_a, ArithmeticCombinator::Op::ADD, SignalValue(1), sig_a);
+    fac.connect(Wire::green, tick_counter.in_port, tick_counter.out_port);
+
+    auto & doubler = fac.new_entity<ArithmeticCombinator>(sig_a, ArithmeticCombinator::Op::MUL, SignalValue(2), sig_a);
+    auto & dout = fac.new_entity<Machine>();
+    fac.connect(Wire::green, tick_counter.out_port, doubler.in_port);
+    fac.connect(Wire::green, doubler.out_port, dout.port);
+
     fac.build();
 
     std::cout << "Begin\n";
 
     std::cout << "Input:  " << fac.read(input.port) << "\n";
     std::cout << "Output: " << fac.read(output.port) << "\n";
+    std::cout << "Count:  " << fac.read(tick_counter.out_port) << "\n";
+    std::cout << "Double: " << fac.read(dout.port) << "\n";
     for (int i = 0; i < 5; ++i)
     {
         fac.tick();
         std::cout << "\nTick.\n";
         std::cout << "Input:  " << fac.read(input.port) << "\n";
         std::cout << "Output: " << fac.read(output.port) << "\n";
+        std::cout << "Count:  " << fac.read(tick_counter.out_port) << "\n";
+        std::cout << "Double: " << fac.read(dout.port) << "\n";
     }
 
     std::cout << "End\n";
