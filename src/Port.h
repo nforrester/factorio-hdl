@@ -2,8 +2,13 @@
 
 #include "CircuitManager.h"
 
-using WireColor = size_t;
-WireColor constexpr num_wire_colors = 2;
+using WireColor = int_fast8_t;
+namespace Wire
+{
+    WireColor constexpr red = 0;
+    WireColor constexpr green = red + 1;
+}
+WireColor constexpr num_wire_colors = Wire::green + 1;
 
 class Port
 {
