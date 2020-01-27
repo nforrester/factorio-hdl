@@ -8,6 +8,7 @@
 #include "blueprint/Blueprint.h"
 
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 
 // TODO DEDUP
@@ -184,13 +185,18 @@ int main(int argc, char ** argv)
     {
         for (auto const & eps : ports_for_entities)
         {
-            std::cout << "E" << eps.first << " (green): ";
+            std::ostringstream entity_label;
+            entity_label << "E" << eps.first;
+            std::string entity_space;
+            entity_space.insert(0, entity_label.str().size(), ' ');
+
+            std::cout << entity_label.str() << " (green): ";
             for (Port const * p : eps.second)
             {
                 std::cout << fac.read(*p, Wire::green) << " ";
             }
             std::cout << "\n";
-            std::cout << "E" << eps.first << " (red):   ";
+            std::cout << entity_space << "   (red): ";
             for (Port const * p : eps.second)
             {
                 std::cout << fac.read(*p, Wire::red) << " ";
@@ -207,7 +213,16 @@ int main(int argc, char ** argv)
         std::cout << "\nTick.\n";
     }
 
-    std::cout << "\nEnd\n";
+    std::cout << "\n";
+    if (stable)
+    {
+        std::cout << "Stable.";
+    }
+    else
+    {
+        std::cout << "Did not stabilize before timeout.";
+    }
+    std::cout << "\n";
 
     return 0;
 }
