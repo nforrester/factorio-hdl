@@ -5,6 +5,7 @@ cc_library(
     hdrs = glob(["**/*.h"]),
     srcs = glob(["**/*.cpp"], exclude = ["**/*_bin.cpp", "**/*_gtest.cpp"]),
     copts = common_copts,
+    linkopts = ['-lz'],
 )
 
 bins(deps=[":factorio_lib"])
