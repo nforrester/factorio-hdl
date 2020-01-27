@@ -1,0 +1,47 @@
+#pragma once
+
+#include "JsonDigester.h"
+
+#include <unordered_set>
+
+template <typename T>
+T JsonDigester<T>::digest(json const & j) const
+{
+    T x;
+    digest(j, x);
+    return x;
+}
+
+template <typename T>
+void JsonDigester<T>::digest(json const & j, T & x) const
+{
+    _used = true;
+
+    assert(j.is_object());
+
+    std::unordered_set<std::string> observed_keys;
+    for (auto & [key, value] : j.items())
+    {
+        assert(observed_keys.count(key) == 0);
+        observed_keys.insert(key);
+
+        KeyHandler handler;
+        try
+        {
+            handler = _handlers.at(key).second;
+        }
+        catch (std::out_of_range & e)
+        {
+            throw std::runtime_error("Unhandled key \"" + key + "\"");
+        }
+        handler(value, x);
+    }
+
+    for (auto & [key, h] : _handlers)
+    {
+        if (std::get<bool>(h))
+        {
+            assert(observed_keys.count(key) == 1);
+        }
+    }
+}
