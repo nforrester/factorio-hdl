@@ -21,7 +21,7 @@ struct Blueprint
     {
         Signal(json const & j);
 
-        std::string name; // TODO change to SignalId
+        SignalId name;
 
         enum class Type
         {
@@ -113,7 +113,7 @@ struct Blueprint
 
         int direction = 0;
 
-        std::string name; // TODO change to SignalId? type_id?
+        SignalId name;
 
         struct Position
         {
