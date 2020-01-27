@@ -99,7 +99,7 @@ struct Blueprint
                 {
                     Filter(json const & j);
 
-                    int count;
+                    SignalValue count;
                     int index;
                     std::optional<Signal> signal; // TODO TRY TO UNOPTION
                 };
