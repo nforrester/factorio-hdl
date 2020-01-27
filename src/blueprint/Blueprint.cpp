@@ -375,7 +375,29 @@ Blueprint::Entity::Entity(json const & j)
 
     d.optional("control_behavior", [](json const & j, Entity & e)
     {
-        e.control_behavior = std::make_optional(j);
+        JsonDigester<Entity> d;
+
+        d.optional("arithmetic_conditions", [](json const & j, Entity & e)
+        {
+            assert(!e.control_behavior.has_value());
+            e.control_behavior = std::make_optional(ArithmeticConditions(j));
+        });
+
+        d.optional("decider_conditions", [](json const & j, Entity & e)
+        {
+            assert(!e.control_behavior.has_value());
+            e.control_behavior = std::make_optional(DeciderConditions(j));
+        });
+
+        d.optional("filters", [](json const & j, Entity & e)
+        {
+            assert(!e.control_behavior.has_value());
+            e.control_behavior = std::make_optional(Filters(j));
+        });
+
+        d.digest(j, e);
+
+        assert(e.control_behavior.has_value());
     });
 
     d.optional("direction", [](json const & j, Entity & e) { e.direction = j; });
@@ -424,34 +446,7 @@ Blueprint::Entity::Port::Wire::Wire(json const & j)
     d.digest(j, *this);
 }
 
-Blueprint::Entity::ControlBehavior::ControlBehavior(json const & j)
-{
-    JsonDigester<ControlBehavior> d;
-
-    d.optional("arithmetic_conditions", [](json const & j, ControlBehavior & c)
-    {
-        assert(!c.behavior.has_value());
-        c.behavior = std::make_optional(ArithmeticConditions(j));
-    });
-
-    d.optional("decider_conditions", [](json const & j, ControlBehavior & c)
-    {
-        assert(!c.behavior.has_value());
-        c.behavior = std::make_optional(DeciderConditions(j));
-    });
-
-    d.optional("filters", [](json const & j, ControlBehavior & c)
-    {
-        assert(!c.behavior.has_value());
-        c.behavior = std::make_optional(Filters(j));
-    });
-
-    d.digest(j, *this);
-
-    assert(behavior.has_value());
-}
-
-Blueprint::Entity::ControlBehavior::ArithmeticConditions::ArithmeticConditions(json const & j)
+Blueprint::Entity::ArithmeticConditions::ArithmeticConditions(json const & j)
 {
     JsonDigester<ArithmeticConditions> d;
 
@@ -505,7 +500,7 @@ Blueprint::Entity::ControlBehavior::ArithmeticConditions::ArithmeticConditions(j
     assert(rhs_signal.has_value() || rhs_const.has_value());
 }
 
-Blueprint::Entity::ControlBehavior::DeciderConditions::DeciderConditions(json const & j)
+Blueprint::Entity::DeciderConditions::DeciderConditions(json const & j)
 {
     JsonDigester<DeciderConditions> d;
 
@@ -559,7 +554,7 @@ Blueprint::Entity::ControlBehavior::DeciderConditions::DeciderConditions(json co
     assert(rhs_signal.has_value() || rhs_const.has_value());
 }
 
-Blueprint::Entity::ControlBehavior::Filters::Filters(json const & j)
+Blueprint::Entity::Filters::Filters(json const & j)
 {
     assert(j.is_array());
 
@@ -569,7 +564,7 @@ Blueprint::Entity::ControlBehavior::Filters::Filters(json const & j)
     }
 }
 
-Blueprint::Entity::ControlBehavior::Filters::Filter::Filter(json const & j)
+Blueprint::Entity::Filters::Filter::Filter(json const & j)
 {
     JsonDigester<Filter> d;
 

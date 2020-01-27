@@ -64,52 +64,46 @@ struct Blueprint
 
         std::map<int, Port> ports;
 
-        struct ControlBehavior
+        struct DeciderConditions
         {
-            ControlBehavior(json const & j);
+            DeciderConditions(json const & j);
 
-            struct DeciderConditions
-            {
-                DeciderConditions(json const & j);
-
-                std::optional<Signal> lhs; // TODO TRY TO UNOPTION
-                std::optional<Signal> rhs_signal; // TODO TRY TO UNOPTION
-                std::optional<SignalValue> rhs_const; // TODO TRY TO UNOPTION
-                std::optional<Signal> out; // TODO TRY TO UNOPTION
-                DeciderCombinator::Op op;
-                bool copy_count_from_input;
-            };
-
-            struct ArithmeticConditions
-            {
-                ArithmeticConditions(json const & j);
-
-                std::optional<Signal> lhs; // TODO TRY TO UNOPTION
-                std::optional<Signal> rhs_signal; // TODO TRY TO UNOPTION
-                std::optional<SignalValue> rhs_const; // TODO TRY TO UNOPTION
-                std::optional<Signal> out; // TODO TRY TO UNOPTION
-                ArithmeticCombinator::Op op;
-            };
-
-            struct Filters
-            {
-                Filters(json const & j);
-
-                struct Filter
-                {
-                    Filter(json const & j);
-
-                    SignalValue count;
-                    int index;
-                    std::optional<Signal> signal; // TODO TRY TO UNOPTION
-                };
-
-                std::vector<Filter> filters;
-            };
-
-            std::optional<std::variant<DeciderConditions, ArithmeticConditions, Filters>> behavior; // TODO TRY TO UNOPTION
+            std::optional<Signal> lhs; // TODO TRY TO UNOPTION
+            std::optional<Signal> rhs_signal; // TODO TRY TO UNOPTION
+            std::optional<SignalValue> rhs_const; // TODO TRY TO UNOPTION
+            std::optional<Signal> out; // TODO TRY TO UNOPTION
+            DeciderCombinator::Op op;
+            bool copy_count_from_input;
         };
-        std::optional<ControlBehavior> control_behavior; // TODO TRY TO UNOPTION
+
+        struct ArithmeticConditions
+        {
+            ArithmeticConditions(json const & j);
+
+            std::optional<Signal> lhs; // TODO TRY TO UNOPTION
+            std::optional<Signal> rhs_signal; // TODO TRY TO UNOPTION
+            std::optional<SignalValue> rhs_const; // TODO TRY TO UNOPTION
+            std::optional<Signal> out; // TODO TRY TO UNOPTION
+            ArithmeticCombinator::Op op;
+        };
+
+        struct Filters
+        {
+            Filters(json const & j);
+
+            struct Filter
+            {
+                Filter(json const & j);
+
+                SignalValue count;
+                int index;
+                std::optional<Signal> signal; // TODO TRY TO UNOPTION
+            };
+
+            std::vector<Filter> filters;
+        };
+
+        std::optional<std::variant<DeciderConditions, ArithmeticConditions, Filters>> control_behavior; // TODO TRY TO UNOPTION
 
         int direction = 0;
 
