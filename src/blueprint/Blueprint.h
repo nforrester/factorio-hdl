@@ -35,7 +35,7 @@ struct Blueprint
         Icon(json const & j);
 
         int index;
-        std::optional<Signal> signal; // TODO TRY TO UNOPTION
+        std::optional<Signal> signal;
     };
 
     std::vector<Icon> icons;
@@ -68,10 +68,10 @@ struct Blueprint
         {
             DeciderConditions(json const & j);
 
-            std::optional<Signal> lhs; // TODO TRY TO UNOPTION
-            std::optional<Signal> rhs_signal; // TODO TRY TO UNOPTION
-            std::optional<SignalValue> rhs_const; // TODO TRY TO UNOPTION
-            std::optional<Signal> out; // TODO TRY TO UNOPTION
+            std::optional<Signal> lhs;
+            std::optional<Signal> rhs_signal;
+            std::optional<SignalValue> rhs_const;
+            std::optional<Signal> out;
             DeciderCombinator::Op op;
             bool copy_count_from_input;
         };
@@ -80,10 +80,10 @@ struct Blueprint
         {
             ArithmeticConditions(json const & j);
 
-            std::optional<Signal> lhs; // TODO TRY TO UNOPTION
-            std::optional<Signal> rhs_signal; // TODO TRY TO UNOPTION
-            std::optional<SignalValue> rhs_const; // TODO TRY TO UNOPTION
-            std::optional<Signal> out; // TODO TRY TO UNOPTION
+            std::optional<Signal> lhs;
+            std::optional<Signal> rhs_signal;
+            std::optional<SignalValue> rhs_const;
+            std::optional<Signal> out;
             ArithmeticCombinator::Op op;
         };
 
@@ -97,13 +97,13 @@ struct Blueprint
 
                 SignalValue count;
                 int index;
-                std::optional<Signal> signal; // TODO TRY TO UNOPTION
+                std::optional<Signal> signal;
             };
 
             std::vector<Filter> filters;
         };
 
-        std::optional<std::variant<DeciderConditions, ArithmeticConditions, Filters>> control_behavior; // TODO TRY TO UNOPTION
+        std::optional<std::variant<DeciderConditions, ArithmeticConditions, Filters>> control_behavior;
 
         int direction = 0;
 
@@ -117,7 +117,7 @@ struct Blueprint
             double y;
         };
 
-        std::optional<Position> position; // TODO TRY TO UNOPTION
+        std::optional<Position> position;
     };
     std::map<int, Entity> entities;
 
