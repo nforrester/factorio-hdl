@@ -282,6 +282,115 @@ namespace {
             throw std::runtime_error(FILE_LINE + ": " + name);
         }
     }
+
+    std::string get_signal_name(SignalId id)
+    {
+        // TODO don't remake this every time
+        std::map<SignalId, std::string> signal_id_to_name_map;
+        for (auto const & kv : name_to_signal_id_map)
+        {
+            assert(signal_id_to_name_map.count(kv.second) == 0);
+            signal_id_to_name_map[kv.second] = kv.first;
+        }
+
+        try
+        {
+            return signal_id_to_name_map.at(id);
+        }
+        catch (std::out_of_range & e)
+        {
+            throw std::runtime_error(FILE_LINE + ": " + std::to_string(id));
+        }
+    }
+
+    std::map<std::string, DeciderCombinator::Op> decider_op_map =
+    {
+        {"<", DeciderCombinator::Op::LT},
+        {">", DeciderCombinator::Op::GT},
+        {"<=", DeciderCombinator::Op::LE},
+        {">=", DeciderCombinator::Op::GE},
+        {"==", DeciderCombinator::Op::EQ},
+        {"!=", DeciderCombinator::Op::NE},
+    };
+
+    DeciderCombinator::Op get_decider_op(std::string const & name)
+    {
+        try
+        {
+            return decider_op_map.at(name);
+        }
+        catch (std::out_of_range & e)
+        {
+            throw std::runtime_error(FILE_LINE + ": " + name);
+        }
+    }
+
+    std::string get_decider_op_name(DeciderCombinator::Op op)
+    {
+        // TODO don't remake this every time
+        std::map<DeciderCombinator::Op, std::string> rev_map;
+        for (auto const & kv : decider_op_map)
+        {
+            assert(rev_map.count(kv.second) == 0);
+            rev_map[kv.second] = kv.first;
+        }
+
+        try
+        {
+            return rev_map.at(op);
+        }
+        catch (std::out_of_range & e)
+        {
+            throw std::runtime_error(FILE_LINE + ": " + std::to_string(static_cast<int>(op)));
+        }
+    }
+
+    std::map<std::string, ArithmeticCombinator::Op> arithmetic_op_map =
+    {
+        {"+", ArithmeticCombinator::Op::ADD},
+        {"-", ArithmeticCombinator::Op::SUB},
+        {"*", ArithmeticCombinator::Op::MUL},
+        {"/", ArithmeticCombinator::Op::DIV},
+        {"%", ArithmeticCombinator::Op::MOD},
+        {"^", ArithmeticCombinator::Op::POW},
+        {"<<", ArithmeticCombinator::Op::LSH},
+        {">>", ArithmeticCombinator::Op::RSH},
+        {"AND", ArithmeticCombinator::Op::AND},
+        {"OR", ArithmeticCombinator::Op::OR},
+        {"XOR", ArithmeticCombinator::Op::XOR},
+    };
+
+    ArithmeticCombinator::Op get_arithmetic_op(std::string const & name)
+    {
+        try
+        {
+            return arithmetic_op_map.at(name);
+        }
+        catch (std::out_of_range & e)
+        {
+            throw std::runtime_error(FILE_LINE + ": " + name);
+        }
+    }
+
+    std::string get_arithmetic_op_name(ArithmeticCombinator::Op op)
+    {
+        // TODO don't remake this every time
+        std::map<ArithmeticCombinator::Op, std::string> rev_map;
+        for (auto const & kv : arithmetic_op_map)
+        {
+            assert(rev_map.count(kv.second) == 0);
+            rev_map[kv.second] = kv.first;
+        }
+
+        try
+        {
+            return rev_map.at(op);
+        }
+        catch (std::out_of_range & e)
+        {
+            throw std::runtime_error(FILE_LINE + ": " + std::to_string(static_cast<int>(op)));
+        }
+    }
 }
 
 std::string blueprint_string_to_raw_json(std::string const & blueprint_string)
@@ -305,6 +414,13 @@ std::string raw_json_to_blueprint_string(std::string const & raw_json)
     std::string const blueprint_string = "0" + base64_encoded; // Version byte
 
     return blueprint_string;
+}
+
+std::string Blueprint::to_blueprint_string() const
+{
+    std::string bs = raw_json_to_blueprint_string(to_json().dump());
+    Blueprint check(bs); // Check that it can be read back in.
+    return bs;
 }
 
 Blueprint::Blueprint(std::string const & blueprint_string)
@@ -348,6 +464,22 @@ Blueprint::Blueprint(std::string const & blueprint_string)
     d.digest(json::parse(blueprint_string_to_raw_json(blueprint_string)), *this);
 }
 
+json Blueprint::to_json() const
+{
+    json j;
+    for (auto const & x : icons)
+    {
+        j["blueprint"]["icons"].push_back(x.to_json());
+    }
+    for (auto const & x : entities)
+    {
+        j["blueprint"]["entities"].push_back(x.second.to_json());
+    }
+    j["blueprint"]["item"] = item;
+    j["blueprint"]["version"] = version;
+    return j;
+}
+
 Blueprint::Icon::Icon(json const & j)
 {
     JsonDigester<Icon> d;
@@ -356,6 +488,16 @@ Blueprint::Icon::Icon(json const & j)
     d.require("signal", [](json const & j, Icon & i){ i.signal = std::make_optional(j); });
 
     d.digest(j, *this);
+}
+
+json Blueprint::Icon::to_json() const
+{
+    assert(signal.has_value());
+
+    json j;
+    j["index"] = index;
+    j["signal"] = signal->to_json();
+    return j;
 }
 
 Blueprint::Entity::Entity(json const & j)
@@ -411,6 +553,36 @@ Blueprint::Entity::Entity(json const & j)
     d.digest(j, *this);
 }
 
+json Blueprint::Entity::to_json() const
+{
+    assert(position.has_value());
+
+    json j;
+
+    j["entity_number"] = id;
+
+    for (auto const & kv : ports)
+    {
+        j["connections"][std::to_string(kv.first)] = kv.second.to_json();
+    }
+
+    if (control_behavior.has_value())
+    {
+        j["control_behavior"] = std::visit([](auto && b) -> json { return b.to_json(); },
+                                           *control_behavior);
+    }
+
+    if (direction != 0)
+    {
+        j["direction"] = direction;
+    }
+
+    j["name"] = get_signal_name(name);
+    j["position"] = position->to_json();
+
+    return j;
+}
+
 Blueprint::Entity::Port::Port(json const & j)
 {
     JsonDigester<Port> d;
@@ -436,6 +608,22 @@ Blueprint::Entity::Port::Port(json const & j)
     d.digest(j, *this);
 }
 
+json Blueprint::Entity::Port::to_json() const
+{
+    json j;
+
+    for (Wire const & w : green)
+    {
+        j["green"].push_back(w.to_json());
+    }
+    for (Wire const & w : red)
+    {
+        j["red"].push_back(w.to_json());
+    }
+
+    return j;
+}
+
 Blueprint::Entity::Port::Wire::Wire(json const & j)
 {
     JsonDigester<Wire> d;
@@ -444,6 +632,14 @@ Blueprint::Entity::Port::Wire::Wire(json const & j)
     d.optional("circuit_id", [](json const & j, Wire & w){ w.port_num = j; });
 
     d.digest(j, *this);
+}
+
+json Blueprint::Entity::Port::Wire::to_json() const
+{
+    json j;
+    j["entity_id"] = entity_id;
+    j["circuit_id"] = port_num;
+    return j;
 }
 
 Blueprint::Entity::ArithmeticConditions::ArithmeticConditions(json const & j)
@@ -472,32 +668,33 @@ Blueprint::Entity::ArithmeticConditions::ArithmeticConditions(json const & j)
 
     d.require("operation", [](json const & j, ArithmeticConditions & a)
     {
-        // TODO make common with serialization
-        std::map<std::string, ArithmeticCombinator::Op> ops;
-        ops["+"] = ArithmeticCombinator::Op::ADD;
-        ops["-"] = ArithmeticCombinator::Op::SUB;
-        ops["*"] = ArithmeticCombinator::Op::MUL;
-        ops["/"] = ArithmeticCombinator::Op::DIV;
-        ops["%"] = ArithmeticCombinator::Op::MOD;
-        ops["^"] = ArithmeticCombinator::Op::POW;
-        ops["<<"] = ArithmeticCombinator::Op::LSH;
-        ops[">>"] = ArithmeticCombinator::Op::RSH;
-        ops["AND"] = ArithmeticCombinator::Op::AND;
-        ops["OR"] = ArithmeticCombinator::Op::OR;
-        ops["XOR"] = ArithmeticCombinator::Op::XOR;
-        try
-        {
-            a.op = ops.at(j);
-        }
-        catch (std::out_of_range & e)
-        {
-            throw std::runtime_error(FILE_LINE + ": " + j.dump());
-        }
+        a.op = get_arithmetic_op(j);
     });
 
     d.digest(j, *this);
 
     assert(rhs_signal.has_value() || rhs_const.has_value());
+}
+
+json Blueprint::Entity::ArithmeticConditions::to_json() const
+{
+    assert(lhs.has_value());
+    assert(out.has_value());
+
+    json j;
+    j["arithmetic_conditions"]["first_signal"] = lhs->to_json();
+    if (rhs_signal.has_value())
+    {
+        j["arithmetic_conditions"]["second_signal"] = rhs_signal->to_json();
+    }
+    else
+    {
+        assert(rhs_const.has_value());
+        j["arithmetic_conditions"]["constant"] = *rhs_const;
+    }
+    j["arithmetic_conditions"]["output_signal"] = out->to_json();
+    j["arithmetic_conditions"]["operation"] = get_arithmetic_op_name(op);
+    return j;
 }
 
 Blueprint::Entity::DeciderConditions::DeciderConditions(json const & j)
@@ -531,27 +728,34 @@ Blueprint::Entity::DeciderConditions::DeciderConditions(json const & j)
 
     d.require("comparator", [](json const & j, DeciderConditions & a)
     {
-        // TODO make common with serialization
-        std::map<std::string, DeciderCombinator::Op> ops;
-        ops["<"] = DeciderCombinator::Op::LT;
-        ops[">"] = DeciderCombinator::Op::GT;
-        ops["<="] = DeciderCombinator::Op::LE;
-        ops[">="] = DeciderCombinator::Op::GE;
-        ops["=="] = DeciderCombinator::Op::EQ;
-        ops["!="] = DeciderCombinator::Op::NE;
-        try
-        {
-            a.op = ops.at(j);
-        }
-        catch (std::out_of_range & e)
-        {
-            throw std::runtime_error(FILE_LINE + ": " + j.dump());
-        }
+        a.op = get_decider_op(j);
     });
 
     d.digest(j, *this);
 
     assert(rhs_signal.has_value() || rhs_const.has_value());
+}
+
+json Blueprint::Entity::DeciderConditions::to_json() const
+{
+    assert(lhs.has_value());
+    assert(out.has_value());
+
+    json j;
+    j["decider_conditions"]["first_signal"] = lhs->to_json();
+    if (rhs_signal.has_value())
+    {
+        j["decider_conditions"]["second_signal"] = rhs_signal->to_json();
+    }
+    else
+    {
+        assert(rhs_const.has_value());
+        j["decider_conditions"]["constant"] = *rhs_const;
+    }
+    j["decider_conditions"]["output_signal"] = out->to_json();
+    j["decider_conditions"]["copy_count_from_input"] = copy_count_from_input;
+    j["decider_conditions"]["comparator"] = get_decider_op_name(op);
+    return j;
 }
 
 Blueprint::Entity::Filters::Filters(json const & j)
@@ -564,6 +768,16 @@ Blueprint::Entity::Filters::Filters(json const & j)
     }
 }
 
+json Blueprint::Entity::Filters::to_json() const
+{
+    json j;
+    for (auto const & f : filters)
+    {
+        j["filters"].push_back(f.to_json());
+    }
+    return j;
+}
+
 Blueprint::Entity::Filters::Filter::Filter(json const & j)
 {
     JsonDigester<Filter> d;
@@ -573,6 +787,15 @@ Blueprint::Entity::Filters::Filter::Filter(json const & j)
     d.require("signal", [](json const & j, Filter & f){ f.signal = std::make_optional(j); });
 
     d.digest(j, *this);
+}
+
+json Blueprint::Entity::Filters::Filter::to_json() const
+{
+    json j;
+    j["count"] = count;
+    j["index"] = index;
+    j["signal"] = signal->to_json();
+    return j;
 }
 
 Blueprint::Signal::Signal(json const & j)
@@ -598,6 +821,22 @@ Blueprint::Signal::Signal(json const & j)
     d.digest(j, *this);
 }
 
+json Blueprint::Signal::to_json() const
+{
+    json j;
+    j["name"] = get_signal_name(name);
+    if (type == Type::virt)
+    {
+        j["type"] = "virtual";
+    }
+    else
+    {
+        assert(type == Type::item);
+        j["type"] = "item";
+    }
+    return j;
+}
+
 Blueprint::Entity::Position::Position(json const & j)
 {
     JsonDigester<Position> d;
@@ -606,4 +845,12 @@ Blueprint::Entity::Position::Position(json const & j)
     d.require("y", [](json const & j, Position & p) { p.y = j; });
 
     d.digest(j, *this);
+}
+
+json Blueprint::Entity::Position::to_json() const
+{
+    json j;
+    j["x"] = x;
+    j["y"] = y;
+    return j;
 }

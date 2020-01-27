@@ -15,11 +15,15 @@ std::string raw_json_to_blueprint_string(std::string const & raw_json);
 
 struct Blueprint
 {
+    std::string to_blueprint_string() const;
+
     Blueprint(std::string const & blueprint_string);
+    json to_json() const;
 
     struct Signal
     {
         Signal(json const & j);
+        json to_json() const;
 
         SignalId name;
 
@@ -33,6 +37,7 @@ struct Blueprint
     struct Icon
     {
         Icon(json const & j);
+        json to_json() const;
 
         int index;
         std::optional<Signal> signal;
@@ -43,16 +48,19 @@ struct Blueprint
     struct Entity
     {
         Entity(json const & j);
+        json to_json() const;
 
         int id;
 
         struct Port
         {
             Port(json const & j);
+            json to_json() const;
 
             struct Wire
             {
                 Wire(json const & j);
+                json to_json() const;
 
                 int entity_id;
                 int port_num = 1;
@@ -67,6 +75,7 @@ struct Blueprint
         struct DeciderConditions
         {
             DeciderConditions(json const & j);
+            json to_json() const;
 
             std::optional<Signal> lhs;
             std::optional<Signal> rhs_signal;
@@ -79,6 +88,7 @@ struct Blueprint
         struct ArithmeticConditions
         {
             ArithmeticConditions(json const & j);
+            json to_json() const;
 
             std::optional<Signal> lhs;
             std::optional<Signal> rhs_signal;
@@ -90,10 +100,12 @@ struct Blueprint
         struct Filters
         {
             Filters(json const & j);
+            json to_json() const;
 
             struct Filter
             {
                 Filter(json const & j);
+                json to_json() const;
 
                 SignalValue count;
                 int index;
@@ -112,6 +124,7 @@ struct Blueprint
         struct Position
         {
             Position(json const & j);
+            json to_json() const;
 
             double x;
             double y;
