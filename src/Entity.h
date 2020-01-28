@@ -4,6 +4,7 @@
 #include "Port.h"
 
 #include <map>
+#include <set>
 
 class Factorio;
 
@@ -15,6 +16,11 @@ public:
     Port & port(std::string const & name) const
     {
         return *_ports.at(name);
+    }
+
+    std::set<WireColor> const & port_interface_colors(Port & port) const
+    {
+        return _port_interface_colors.at(&port);
     }
 
     std::map<std::string, Port *> const & ports() const
@@ -43,4 +49,5 @@ protected:
 private:
     Factorio & _factorio;
     std::map<std::string, Port *> _ports;
+    std::map<Port *, std::set<WireColor>> _port_interface_colors;
 };
