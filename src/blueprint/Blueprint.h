@@ -47,6 +47,7 @@ struct Blueprint
 
     struct Entity
     {
+        Entity() {}
         Entity(json const & j);
         json to_json() const;
 
@@ -123,8 +124,14 @@ struct Blueprint
 
         struct Position
         {
+            Position(double x_, double y_): x(x_), y(y_) {}
             Position(json const & j);
             json to_json() const;
+
+            bool operator==(Position const & other) const
+            {
+                return x == other.x && y == other.y;
+            }
 
             double x;
             double y;
