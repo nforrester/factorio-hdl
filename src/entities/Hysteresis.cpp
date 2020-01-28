@@ -28,13 +28,13 @@ Hysteresis::Hysteresis(Factorio & factorio,
         false);
 
     WireColor color = other_color(interface_color);
-    _connect(color, c.port, a.in_port);
-    _connect(color, a.out_port, d.in_port);
-    _connect(color, d.in_port, d.out_port);
+    _connect(color, c.port("out"), a.port("in"));
+    _connect(color, a.port("out"), d.port("in"));
+    _connect(color, d.port("in"), d.port("out"));
 
-    _in_port = &a.in_port;
-    _out_port = &d.out_port;
+    _lock(color, a.port("in"));
+    _lock(color, d.port("out"));
 
-    _lock(color, in_port());
-    _lock(color, out_port());
+    _set_port("in", &a.port("in"));
+    _set_port("out", &d.port("out"));
 }

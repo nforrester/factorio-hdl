@@ -22,16 +22,18 @@ public:
 
     static_assert(!std::same_as<SignalId, SignalValue>); // permit overload of constructor on these types
 
-    ArithmeticCombinator(SignalId lhs, Op op, SignalId rhs, SignalId out);
-    ArithmeticCombinator(SignalId lhs, Op op, SignalValue rhs_const, SignalId out);
+    ArithmeticCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out);
+    ArithmeticCombinator(Factorio & factorio, SignalId lhs, Op op, SignalValue rhs_const, SignalId out);
     ArithmeticCombinator(ArithmeticCombinator const &) = delete;
 
     void tick(CircuitManager & circuits) const override;
 
-    Port in_port;
-    Port out_port;
-
 private:
+    Port _in_port;
+    Port _out_port;
+
+    void _common_init();
+
     SignalId const _lhs;
     Op const _op;
     SignalId const _rhs;

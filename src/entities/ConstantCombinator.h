@@ -5,14 +5,20 @@
 class ConstantCombinator: public Entity
 {
 public:
-    ConstantCombinator() {}
+    ConstantCombinator(Factorio & factorio): Entity(factorio)
+    {
+        _set_port("out", &_port);
+    }
+
     ConstantCombinator(ConstantCombinator const &) = delete;
 
     void tick(CircuitManager & circuits) const override
     {
-        port.write(circuits, constants);
+        _port.write(circuits, constants);
     }
 
-    Port port;
     CircuitValues constants;
+
+private:
+    Port _port;
 };

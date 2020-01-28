@@ -19,15 +19,10 @@ public:
             out);
 
         WireColor color = other_color(interface_color);
-        _connect(color, a.in_port, a.out_port);
+        _connect(color, a.port("in"), a.port("out"));
 
-        _port = &a.out_port;
+        _lock(color, a.port("out"));
 
-        _lock(color, port());
+        _set_port("out", &a.port("out"));
     }
-
-    Port & port() { return *_port; }
-
-private:
-    Port * _port;
 };

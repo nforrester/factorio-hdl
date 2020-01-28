@@ -15,7 +15,7 @@ public:
     {
         assert(!_built);
 
-        std::unique_ptr<T> ptr = std::make_unique<T>(std::forward<Args>(args)...);
+        std::unique_ptr<T> ptr = std::make_unique<T>(*this, std::forward<Args>(args)...);
         T & ref = *ptr;
         _entities.push_back(std::move(ptr));
         return ref;
@@ -23,6 +23,7 @@ public:
 
     void connect(WireColor color, Port & a, Port & b);
     void lock(WireColor color, Port & p);
+    bool locked(WireColor color, Port & p) const;
     void build();
     bool tick();
     bool run_until_stable(size_t timeout);

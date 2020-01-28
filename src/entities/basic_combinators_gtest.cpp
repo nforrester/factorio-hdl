@@ -1,25 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "src/Factorio.h"
-#include "Machine.h"
 #include "ConstantCombinator.h"
 #include "DeciderCombinator.h"
 #include "ArithmeticCombinator.h"
-
-TEST(CircuitTest, Machine)
-{
-    Factorio fac;
-
-    auto & m = fac.new_entity<Machine>();
-
-    fac.lock(Wire::green, m.port);
-
-    fac.build();
-
-    EXPECT_TRUE(fac.run_until_stable(1));
-
-    EXPECT_EQ(fac.read(m.port).begin(), fac.read(m.port).end());
-}
 
 TEST(CircuitTest, ConstantCombinator)
 {
@@ -31,23 +15,23 @@ TEST(CircuitTest, ConstantCombinator)
     c.constants.add(Signal::copper_plate, 3);
     c.constants.add(Signal::underground_belt, -9);
 
-    fac.lock(Wire::green, c.port);
+    fac.lock(Wire::green, c.port("out"));
 
     fac.build();
 
     EXPECT_TRUE(fac.run_until_stable(2));
 
-    EXPECT_EQ(10, fac.read(c.port).get(Signal::iron_plate));
-    EXPECT_EQ(3, fac.read(c.port).get(Signal::copper_plate));
-    EXPECT_EQ(-9, fac.read(c.port).get(Signal::underground_belt));
+    EXPECT_EQ(10, fac.read(c.port("out")).get(Signal::iron_plate));
+    EXPECT_EQ(3, fac.read(c.port("out")).get(Signal::copper_plate));
+    EXPECT_EQ(-9, fac.read(c.port("out")).get(Signal::underground_belt));
 
     c.constants.add(Signal::copper_plate, -3);
 
     EXPECT_TRUE(fac.run_until_stable(2));
 
-    EXPECT_EQ(10, fac.read(c.port).get(Signal::iron_plate));
-    EXPECT_EQ(0, fac.read(c.port).get(Signal::copper_plate));
-    EXPECT_EQ(-9, fac.read(c.port).get(Signal::underground_belt));
+    EXPECT_EQ(10, fac.read(c.port("out")).get(Signal::iron_plate));
+    EXPECT_EQ(0, fac.read(c.port("out")).get(Signal::copper_plate));
+    EXPECT_EQ(-9, fac.read(c.port("out")).get(Signal::underground_belt));
 }
 
 TEST(CircuitTest, DeciderCombinator)
@@ -93,14 +77,14 @@ TEST(CircuitTest, DeciderCombinator)
                     Signal::iron_plate,
                     write_input_value);
 
-                fac.connect(Wire::green, c.port, d.in_port);
-                fac.lock(Wire::green, d.out_port);
+                fac.connect(Wire::green, c.port("out"), d.port("in"));
+                fac.lock(Wire::green, d.port("out"));
 
                 fac.build();
 
                 EXPECT_TRUE(fac.run_until_stable(3));
 
-                EXPECT_EQ(!results.at(i) ? 0 : write_input_value ? lhs : 1, fac.read(d.out_port).get(Signal::iron_plate));
+                EXPECT_EQ(!results.at(i) ? 0 : write_input_value ? lhs : 1, fac.read(d.port("out")).get(Signal::iron_plate));
             }
         }
     }
@@ -152,14 +136,14 @@ TEST(CircuitTest, ArithmeticCombinator)
                 Signal::copper_plate,
                 Signal::iron_plate);
 
-            fac.connect(Wire::green, c.port, d.in_port);
-            fac.lock(Wire::green, d.out_port);
+            fac.connect(Wire::green, c.port("out"), d.port("in"));
+            fac.lock(Wire::green, d.port("out"));
 
             fac.build();
 
             EXPECT_TRUE(fac.run_until_stable(3));
 
-            EXPECT_EQ(results.at(i), fac.read(d.out_port).get(Signal::iron_plate))
+            EXPECT_EQ(results.at(i), fac.read(d.port("out")).get(Signal::iron_plate))
                 << lhs << " " << i << " " << rhs << " " << results.at(i);
         }
     }

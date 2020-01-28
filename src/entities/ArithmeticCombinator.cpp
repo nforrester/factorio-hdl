@@ -2,21 +2,20 @@
 
 #include <cmath>
 
-ArithmeticCombinator::ArithmeticCombinator(SignalId lhs, Op op, SignalId rhs, SignalId out):
-    _lhs(lhs), _op(op), _rhs(rhs), _out(out), _rhs_const(0)
+ArithmeticCombinator::ArithmeticCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out):
+    Entity(factorio), _lhs(lhs), _op(op), _rhs(rhs), _out(out), _rhs_const(0)
 {
-    assert(_lhs < num_signals || _lhs == LogicSignal::each);
     assert(_rhs < num_signals);
-    assert(_out < num_signals || _out == LogicSignal::each);
-
-    if (_lhs != LogicSignal::each)
-    {
-        assert(_out != LogicSignal::each);
-    }
+    _common_init();
 }
 
-ArithmeticCombinator::ArithmeticCombinator(SignalId lhs, Op op, SignalValue rhs_const, SignalId out):
-    _lhs(lhs), _op(op), _rhs(LogicSignal::constant), _out(out), _rhs_const(rhs_const)
+ArithmeticCombinator::ArithmeticCombinator(Factorio & factorio, SignalId lhs, Op op, SignalValue rhs_const, SignalId out):
+    Entity(factorio), _lhs(lhs), _op(op), _rhs(LogicSignal::constant), _out(out), _rhs_const(rhs_const)
+{
+    _common_init();
+}
+
+void ArithmeticCombinator::_common_init()
 {
     assert(_lhs < num_signals || _lhs == LogicSignal::each);
     assert(_out < num_signals || _out == LogicSignal::each);
@@ -25,11 +24,14 @@ ArithmeticCombinator::ArithmeticCombinator(SignalId lhs, Op op, SignalValue rhs_
     {
         assert(_out != LogicSignal::each);
     }
+
+    _set_port("in", &_in_port);
+    _set_port("out", &_out_port);
 }
 
 void ArithmeticCombinator::tick(CircuitManager & circuits) const
 {
-    CircuitValues const in = in_port.read(circuits);
+    CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
     SignalValue rhs;
@@ -69,7 +71,7 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
         }
     }
 
-    out_port.write(circuits, out);
+    _out_port.write(circuits, out);
 }
 
 namespace

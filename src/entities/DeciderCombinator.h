@@ -17,16 +17,18 @@ public:
 
     static_assert(!std::same_as<SignalId, SignalValue>); // permit overload of constructor on these types
 
-    DeciderCombinator(SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count);
-    DeciderCombinator(SignalId lhs, Op op, SignalValue rhs_const, SignalId out, bool write_input_count);
+    DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count);
+    DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalValue rhs_const, SignalId out, bool write_input_count);
     DeciderCombinator(DeciderCombinator const &) = delete;
 
     void tick(CircuitManager & circuits) const override;
 
-    Port in_port;
-    Port out_port;
-
 private:
+    Port _in_port;
+    Port _out_port;
+
+    void _common_init();
+
     SignalId const _lhs;
     Op const _op;
     SignalId const _rhs;

@@ -11,6 +11,16 @@ public:
     void connect(WireColor color, Port & a, Port & b);
 
     void lock(WireColor color, Port & p);
+    bool locked(WireColor color, Port const & p) const
+    {
+        auto plans = _plans_for_ports.find(const_cast<Port*>(&p)); // TODO const_cast? really?
+        if (plans == _plans_for_ports.cend())
+        {
+            return false;
+        }
+        Plan * plan = plans->second.plans.at(color);
+        return plan->locked;
+    }
 
     void build(CircuitManager & circuits);
 

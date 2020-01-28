@@ -13,7 +13,7 @@ public:
     }
 
 protected:
-    Composite(Factorio & factorio): _factorio(factorio)
+    Composite(Factorio & factorio): Entity(factorio), _factorio(factorio)
     {
     }
 

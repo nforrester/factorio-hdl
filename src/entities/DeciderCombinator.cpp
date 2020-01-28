@@ -1,6 +1,7 @@
 #include "DeciderCombinator.h"
 
-DeciderCombinator::DeciderCombinator(SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count):
+DeciderCombinator::DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count):
+    Entity(factorio),
     _lhs(lhs),
     _op(op),
     _rhs(rhs),
@@ -8,26 +9,12 @@ DeciderCombinator::DeciderCombinator(SignalId lhs, Op op, SignalId rhs, SignalId
     _rhs_const(0),
     _write_input_count(write_input_count)
 {
-    assert(_lhs < num_signals ||
-           _lhs == LogicSignal::each ||
-           _lhs == LogicSignal::anything ||
-           _lhs == LogicSignal::everything);
     assert(_rhs < num_signals);
-    assert(_out < num_signals ||
-           _out == LogicSignal::each ||
-           _out == LogicSignal::everything);
-
-    if (_lhs != LogicSignal::each)
-    {
-        assert(_out != LogicSignal::each);
-    }
-    else
-    {
-        assert(_out != LogicSignal::everything);
-    }
+    _common_init();
 }
 
-DeciderCombinator::DeciderCombinator(SignalId lhs, Op op, SignalValue rhs_const, SignalId out, bool write_input_count):
+DeciderCombinator::DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalValue rhs_const, SignalId out, bool write_input_count):
+    Entity(factorio),
     _lhs(lhs),
     _op(op),
     _rhs(LogicSignal::constant),
@@ -35,6 +22,11 @@ DeciderCombinator::DeciderCombinator(SignalId lhs, Op op, SignalValue rhs_const,
     _rhs_const(rhs_const),
     _write_input_count(write_input_count)
 {
+    _common_init();
+}
+
+void DeciderCombinator::_common_init()
+{
     assert(_lhs < num_signals ||
            _lhs == LogicSignal::each ||
            _lhs == LogicSignal::anything ||
@@ -51,11 +43,14 @@ DeciderCombinator::DeciderCombinator(SignalId lhs, Op op, SignalValue rhs_const,
     {
         assert(_out != LogicSignal::everything);
     }
+
+    _set_port("in", &_in_port);
+    _set_port("out", &_out_port);
 }
 
 void DeciderCombinator::tick(CircuitManager & circuits) const
 {
-    CircuitValues const in = in_port.read(circuits);
+    CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
     SignalValue rhs;
@@ -154,7 +149,7 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
         }
     }
 
-    out_port.write(circuits, out);
+    _out_port.write(circuits, out);
 }
 
 bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const

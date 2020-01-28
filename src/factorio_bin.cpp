@@ -2,7 +2,6 @@
 #include "entities/ArithmeticCombinator.h"
 #include "entities/DeciderCombinator.h"
 #include "entities/ConstantCombinator.h"
-#include "entities/Machine.h"
 #include "entities/Counter.h"
 #include "entities/Hysteresis.h"
 #include "blueprint/Blueprint.h"
@@ -34,7 +33,7 @@ int main(int argc, char ** argv)
             {
                 c.constants.add(f.signal->name, f.count);
             }
-            ports_for_entities[e.id].push_back(&c.port);
+            ports_for_entities[e.id].push_back(&c.port("out"));
         }
         else if (e.name == Signal::decider_combinator)
         {
@@ -60,8 +59,8 @@ int main(int argc, char ** argv)
                     dc.out->name,
                     dc.copy_count_from_input);
             }
-            ports_for_entities[e.id].push_back(&d->in_port);
-            ports_for_entities[e.id].push_back(&d->out_port);
+            ports_for_entities[e.id].push_back(&d->port("in"));
+            ports_for_entities[e.id].push_back(&d->port("out"));
         }
         else if (e.name == Signal::arithmetic_combinator)
         {
@@ -85,13 +84,13 @@ int main(int argc, char ** argv)
                     *ac.rhs_const,
                     ac.out->name);
             }
-            ports_for_entities[e.id].push_back(&a->in_port);
-            ports_for_entities[e.id].push_back(&a->out_port);
+            ports_for_entities[e.id].push_back(&a->port("in"));
+            ports_for_entities[e.id].push_back(&a->port("out"));
         }
         else if (e.name == Signal::iron_chest) // TODO need a more disciplined approach?
         {
             auto & c = fac.new_entity<ConstantCombinator>();
-            ports_for_entities[e.id].push_back(&c.port);
+            ports_for_entities[e.id].push_back(&c.port("out"));
         }
         else
         {

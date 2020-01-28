@@ -13,8 +13,7 @@ TEST(CircuitTest, HysteresisGreenDeadBandHalf3)
     auto & c = fac.new_entity<ConstantCombinator>();
     c.constants.add(Signal::iron_plate, 0);
 
-    auto & h = fac.new_entity<Hysteresis>(fac,
-                                          Signal::iron_plate,
+    auto & h = fac.new_entity<Hysteresis>(Signal::iron_plate,
                                           Signal::copper_plate,
                                           10,
                                           3,
@@ -26,48 +25,48 @@ TEST(CircuitTest, HysteresisGreenDeadBandHalf3)
      *             DEAD  BAND
      */
 
-    fac.connect(Wire::green, c.port, h.in_port());
-    fac.lock(Wire::green, h.out_port());
+    fac.connect(Wire::green, c.port("out"), h.port("in"));
+    fac.lock(Wire::green, h.port("out"));
 
     fac.build();
 
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 6);
     ASSERT_EQ(6, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 1);
     ASSERT_EQ(7, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 5);
     ASSERT_EQ(12, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 1);
     ASSERT_EQ(13, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(1, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(1, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, -1);
     ASSERT_EQ(12, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(1, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(1, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, -4);
     ASSERT_EQ(8, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(1, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(1, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, -1);
     ASSERT_EQ(7, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::green).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
 }
 
 TEST(CircuitTest, HysteresisRedDeadBandHalf4)
@@ -79,8 +78,7 @@ TEST(CircuitTest, HysteresisRedDeadBandHalf4)
     auto & c = fac.new_entity<ConstantCombinator>();
     c.constants.add(Signal::iron_plate, 0);
 
-    auto & h = fac.new_entity<Hysteresis>(fac,
-                                          Signal::iron_plate,
+    auto & h = fac.new_entity<Hysteresis>(Signal::iron_plate,
                                           Signal::copper_plate,
                                           10,
                                           4,
@@ -92,48 +90,48 @@ TEST(CircuitTest, HysteresisRedDeadBandHalf4)
      *             DEAD  BAND
      */
 
-    fac.connect(Wire::red, c.port, h.in_port());
-    fac.lock(Wire::red, h.out_port());
+    fac.connect(Wire::red, c.port("out"), h.port("in"));
+    fac.lock(Wire::red, h.port("out"));
 
     fac.build();
 
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 6);
     ASSERT_EQ(6, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 1);
     ASSERT_EQ(7, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 6);
     ASSERT_EQ(13, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, 1);
     ASSERT_EQ(14, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(1, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(1, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, -1);
     ASSERT_EQ(13, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(1, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(1, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, -6);
     ASSERT_EQ(7, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(1, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(1, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 
     c.constants.add(Signal::iron_plate, -1);
     ASSERT_EQ(6, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
-    EXPECT_EQ(0, fac.read(h.out_port(), Wire::red).get(Signal::copper_plate));
+    EXPECT_EQ(0, fac.read(h.port("out"), Wire::red).get(Signal::copper_plate));
 }
 
 int main(int argc, char ** argv)
