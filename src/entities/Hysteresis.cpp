@@ -35,6 +35,6 @@ Hysteresis::Hysteresis(Factorio & factorio,
     _lock(color, a.port("in"));
     _lock(color, d.port("out"));
 
-    _set_port("in", &a.port("in"));
-    _set_port("out", &d.port("out"));
+    _set_port("in", a.port("in"));
+    _set_port("out", d.port("out"));
 }

@@ -25,8 +25,8 @@ void ArithmeticCombinator::_common_init()
         assert(_out != LogicSignal::each);
     }
 
-    _set_port("in", &_in_port);
-    _set_port("out", &_out_port);
+    _set_port("in", _in_port);
+    _set_port("out", _out_port);
 }
 
 void ArithmeticCombinator::tick(CircuitManager & circuits) const

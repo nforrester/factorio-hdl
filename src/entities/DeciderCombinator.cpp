@@ -44,8 +44,8 @@ void DeciderCombinator::_common_init()
         assert(_out != LogicSignal::everything);
     }
 
-    _set_port("in", &_in_port);
-    _set_port("out", &_out_port);
+    _set_port("in", _in_port);
+    _set_port("out", _out_port);
 }
 
 void DeciderCombinator::tick(CircuitManager & circuits) const
