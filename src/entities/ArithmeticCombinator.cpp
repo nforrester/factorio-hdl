@@ -114,3 +114,8 @@ SignalValue ArithmeticCombinator::_operate(SignalValue lhs, SignalValue rhs) con
     }
     assert(false);
 }
+
+void ArithmeticCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
+{
+    assert(false); // TODO
+}

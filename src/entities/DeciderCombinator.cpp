@@ -171,3 +171,8 @@ bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const
     }
     assert(false);
 }
+
+void DeciderCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
+{
+    assert(false); // TODO
+}

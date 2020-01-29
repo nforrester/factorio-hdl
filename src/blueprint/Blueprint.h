@@ -13,15 +13,11 @@ using json = nlohmann::json;
 std::string blueprint_string_to_raw_json(std::string const & blueprint_string);
 std::string raw_json_to_blueprint_string(std::string const & raw_json);
 
-struct Blueprint
+namespace Blueprint
 {
-    std::string to_blueprint_string() const;
-
-    Blueprint(std::string const & blueprint_string);
-    json to_json() const;
-
     struct Signal
     {
+        Signal(SignalId id): name(id), type(id < num_non_virtual_signals ? Type::item : Type::virt) {}
         Signal(json const & j);
         json to_json() const;
 
@@ -36,14 +32,13 @@ struct Blueprint
 
     struct Icon
     {
+        Icon(int index_, Signal const & signal_): index(index_), signal(signal_) {}
         Icon(json const & j);
         json to_json() const;
 
         int index;
         std::optional<Signal> signal;
     };
-
-    std::vector<Icon> icons;
 
     struct Entity
     {
@@ -55,11 +50,13 @@ struct Blueprint
 
         struct Port
         {
+            Port() {}
             Port(json const & j);
             json to_json() const;
 
             struct Wire
             {
+                Wire(int entity_id_, int port_num_): entity_id(entity_id_), port_num(port_num_) {}
                 Wire(json const & j);
                 json to_json() const;
 
@@ -100,11 +97,14 @@ struct Blueprint
 
         struct Filters
         {
+            Filters() {}
             Filters(json const & j);
             json to_json() const;
 
             struct Filter
             {
+                Filter(SignalValue count_, int index_, Signal signal_):
+                    count(count_), index(index_), signal(signal_) {}
                 Filter(json const & j);
                 json to_json() const;
 
@@ -139,9 +139,21 @@ struct Blueprint
 
         std::optional<Position> position;
     };
-    std::map<int, Entity> entities;
 
-    std::string item;
+    struct Blueprint
+    {
+        std::string to_blueprint_string() const;
 
-    int64_t version;
-};
+        Blueprint();
+        Blueprint(std::string const & blueprint_string);
+        json to_json() const;
+
+        std::vector<Icon> icons;
+
+        std::map<int, Entity> entities;
+
+        std::string item;
+
+        int64_t version;
+    };
+}

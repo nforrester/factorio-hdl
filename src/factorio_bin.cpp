@@ -17,7 +17,7 @@ int main(int argc, char ** argv)
 
     std::cout << json::parse(blueprint_string_to_raw_json(argv[1])).dump(4) << "\n\n\n";
 
-    Blueprint blueprint(argv[1]);
+    Blueprint::Blueprint blueprint(argv[1]);
 
     Factorio fac;
 

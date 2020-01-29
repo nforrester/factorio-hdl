@@ -40,6 +40,11 @@ public:
         return false;
     }
 
+    CircuitId circuit_id(WireColor wire) const
+    {
+        return _wires[wire];
+    }
+
     void disconnect(WireColor wire)
     {
         _wires[wire] = invalid_circuit_id;

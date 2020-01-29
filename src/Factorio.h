@@ -28,6 +28,9 @@ public:
     bool tick();
     bool run_until_stable(size_t timeout);
 
+    // Get a blueprint for the given Entity.
+    std::string get_blueprint_string(Entity const & entity);
+
     CircuitValues read(Port const & port) const
     {
         return port.read(_circuits);

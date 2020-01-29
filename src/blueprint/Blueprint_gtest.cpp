@@ -56,9 +56,9 @@ TEST(BlueprintTest, Parse)
 {
     std::string const blueprint_string = "0eNqlVNFu2zAM/Bc+FnZR2Wm7GXvZ2r8oCkOxmYaALRkyHTQI9O+jpCLNGidp1xcDEsnj8XjWDpbdhIMjw1DtgBprRqiedjDSi9FduOPtgFABMfaQgdF9OGlHvO6Rqckb2y/JaLYOfAZkWnyFSvnsIkaLDbXo5gEK/5wBGiYmTIziYVubqV+ikw4XuGQw2FGqrQkEBPHm+jaDLVS5cIOWHDYpWGQgU7OzXb3Etd6QFEvFO2ot4TYijSGwIjdyfTTbhhxPcrOnlTLy32GoEQPG54v+hCI7oNOJI1xJip14mL7Q+QG893E4k2aN9FX4vDhEc6gqtVFySS9OxkvBItdMxPGoJN2HNX9YTLHnEczE2vDZteTqfStze1hRx+hOmPKs6I2dgqvz2wuuPLuENxD149CZX1FVfU618txvcSRa0kwc/a+VF/MSviF+z8cPSY20UekdDv2gXSRYwa//MOhjghy2dVS5Xjnb12QEA6qV7kb03xD6wM0O24/JixNrWOw5krMmb9Y48sxTEuVXJ9jNtCuPufnwwMUHsTp4gzPYiNljp/vyRv28K1R5f+f9XynO7c0=";
 
-    Blueprint blueprint(blueprint_string);
+    Blueprint::Blueprint blueprint(blueprint_string);
     std::cout << blueprint.to_json().dump(4) << "\n";
-    Blueprint check(blueprint.to_blueprint_string());
+    Blueprint::Blueprint check(blueprint.to_blueprint_string());
     std::cout << "Regenerated: " << blueprint.to_blueprint_string() << "\n";
     // TODO EXPECT_TRUE(check == blueprint);
 }

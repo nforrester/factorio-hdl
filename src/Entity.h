@@ -8,6 +8,11 @@
 
 class Factorio;
 
+namespace Blueprint
+{
+    struct Entity;
+}
+
 class Entity
 {
 public:
@@ -18,7 +23,7 @@ public:
         return *_ports.at(name);
     }
 
-    std::set<WireColor> const & port_interface_colors(Port & port) const
+    std::set<WireColor> const & port_interface_colors(Port const & port) const
     {
         return _port_interface_colors.at(&port);
     }
@@ -28,10 +33,13 @@ public:
         return _ports;
     }
 
-    std::vector<Entity*> constituent_entities() const
+    std::vector<Entity*> const & constituent_entities() const
     {
         return _constituent_entities;
     }
+
+    // Sets only bpe.name and bpe.control_behavior
+    virtual void to_blueprint_entity(Blueprint::Entity & bpe) const = 0;
 
 protected:
     Entity(Factorio & factorio): _factorio(factorio)
@@ -49,5 +57,5 @@ protected:
 private:
     Factorio & _factorio;
     std::map<std::string, Port *> _ports;
-    std::map<Port *, std::set<WireColor>> _port_interface_colors;
+    std::map<Port const *, std::set<WireColor>> _port_interface_colors;
 };

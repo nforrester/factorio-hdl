@@ -416,14 +416,20 @@ std::string raw_json_to_blueprint_string(std::string const & raw_json)
     return blueprint_string;
 }
 
-std::string Blueprint::to_blueprint_string() const
+std::string Blueprint::Blueprint::to_blueprint_string() const
 {
     std::string bs = raw_json_to_blueprint_string(to_json().dump());
     Blueprint check(bs); // Check that it can be read back in.
     return bs;
 }
 
-Blueprint::Blueprint(std::string const & blueprint_string)
+Blueprint::Blueprint::Blueprint()
+{
+    item = "blueprint";
+    version = 0;
+}
+
+Blueprint::Blueprint::Blueprint(std::string const & blueprint_string)
 {
     JsonDigester<Blueprint> d;
 
@@ -464,7 +470,7 @@ Blueprint::Blueprint(std::string const & blueprint_string)
     d.digest(json::parse(blueprint_string_to_raw_json(blueprint_string)), *this);
 }
 
-json Blueprint::to_json() const
+json Blueprint::Blueprint::to_json() const
 {
     json j;
     for (auto const & x : icons)

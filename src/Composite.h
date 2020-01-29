@@ -12,6 +12,11 @@ public:
     {
     }
 
+    void to_blueprint_entity(Blueprint::Entity & bpe) const override
+    {
+        assert(false); // should not be called on composite entities.
+    }
+
 protected:
     Composite(Factorio & factorio): Entity(factorio), _factorio(factorio)
     {

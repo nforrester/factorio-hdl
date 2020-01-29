@@ -7,7 +7,9 @@
 using SignalValue = int32_t;
 
 using SignalId = uint_fast16_t;
-SignalId constexpr num_signals = 60 + 37 + 60 + 56 + 48;
+SignalId constexpr num_non_virtual_signals = 60 + 37 + 60 + 56;
+SignalId constexpr num_virtual_signals = 48;
+SignalId constexpr num_signals = num_non_virtual_signals + num_virtual_signals;
 namespace Signal
 {
     SignalId constexpr wooden_chest                   = 0;
@@ -273,6 +275,8 @@ namespace Signal
     SignalId constexpr dot                            = 260;
 }
 static_assert(num_signals == Signal::dot + 1);
+static_assert(Signal::digit_0 == num_non_virtual_signals);
+static_assert(Signal::digit_0 == num_signals - num_virtual_signals);
 
 namespace LogicSignal
 {
