@@ -8,5 +8,11 @@ cc_library(
     linkopts = ['-lz'],
 )
 
-bins(deps=[":factorio_lib"])
-gtests(deps=[":factorio_lib"])
+bins(deps = [":factorio_lib"])
+gtests(
+    deps = [":factorio_lib"],
+    extra_data =
+    {
+        "fdl/SExp_gtest": ["fdl/syntax-exploration.fdl"],
+    },
+)

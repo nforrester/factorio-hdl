@@ -1,0 +1,100 @@
+; FDL - Factorio Description Language
+
+; Yellow wires may be connected externally to either a red or a green wire
+; and become the appropriate color internally.
+
+; If two different red wires touch the same port, that's an error.
+; If two different green wires touch the same port, that's an error.
+; If a yellow wires and any other signal touch the same port, that's an error.
+
+; You are allowed to flip the interface colors when you use a part.
+; This will cause all internal signal colors to flip.
+
+; (notsigs a b c ...) returns a signal that is not any of a, b, c...
+
+(enum decider-output-type one input-count)
+
+(decpart constant
+    ((yellow out)
+     ((list (tuple signal int)) signal-count-list)))
+
+(decpart arithmetic
+    ((yellow in)
+     (yellow out)
+     (symbol operation)
+     (signal lhs)
+     ((either signal int) rhs)
+     (signal out)))
+
+(decpart decider
+    ((yellow in)
+     (yellow out)
+     (symbol operation)
+     (signal lhs)
+     ((either signal int) rhs)
+     (signal out)
+     (decider-output-type output-type)))
+
+(defpart hysteresis
+    ((red in)
+     (red out)
+     (signal in-sig)
+     (signal out-sig)
+     (int set-point)
+     (int half-deadband-width))
+
+    (green a)
+    (green b)
+    (constant a ((in-sig set-point)))
+    (arithmetic (a in) b in-sig / half-deadband-width out-sig)
+    (decider b (b out) out-sig < out-sig out-sig one))
+
+(defpart buffer
+    ((yellow in)
+     (yellow out))
+    (decider in out each != 0 each input-count))
+
+(defpart buffer-without-signal
+    ((yellow in)
+     (yellow out)
+     (signal sig))
+    (buffer in out)
+    (arithmetic in out sig * -1 sig))
+
+(defpart buffer-only-signal
+    ((yellow in)
+     (yellow out)
+     (signal sig))
+    (decider in out sig != 0 sig input-count))
+
+(defpart signal-exchanger
+    ((red a-in)
+     (red b-in)
+     (red a-out)
+     (red b-out)
+     (signal sig))
+    (buffer-without-signal a-in a-out sig)
+    (buffer-without-signal b-in b-out sig)
+    (buffer-only-signal a-in b-out sig)
+    (buffer-only-signal b-in a-out sig))
+
+;(defpart mux-2-circuits
+;    ((yellow a)
+;     (yellow b)
+;     (yellow out)
+;     (yellow control)
+;     (signal control-sig))
+;
+;    ; a-most is like a but with control-sig replaced with its value from control.
+;    (red a-most)
+;    (buffer-without-signal a a-most control-sig)
+;    (buffer-only-signal control a-most control-sig)
+;
+;    ; a-one has control-sig from a and the value of control-sig
+;    ; from control moved to a different signal.
+;    (red a-one)
+;    (signal not-control-sig (notsigs control-sig))
+;    (buffer-only-signal a a-one control-sig)
+;    (decider control a-one control-sig != 0 not-control-sig input-count)
+;
+;    (red a-most-or-not
