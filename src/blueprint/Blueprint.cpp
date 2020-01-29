@@ -426,6 +426,7 @@ std::string Blueprint::Blueprint::to_blueprint_string() const
 Blueprint::Blueprint::Blueprint()
 {
     item = "blueprint";
+    label = "";
     version = 0;
 }
 
@@ -462,6 +463,11 @@ Blueprint::Blueprint::Blueprint(std::string const & blueprint_string)
             assert(bp.item == "blueprint");
         });
 
+        d.optional("label", [](json const & j, Blueprint & bp)
+        {
+            bp.label = j;
+        });
+
         d.require("version", [](json const & j, Blueprint & bp) { bp.version = j; });
 
         d.digest(j, bp);
@@ -482,6 +488,10 @@ json Blueprint::Blueprint::to_json() const
         j["blueprint"]["entities"].push_back(x.second.to_json());
     }
     j["blueprint"]["item"] = item;
+    if (label != "")
+    {
+        j["blueprint"]["label"] = label;
+    }
     j["blueprint"]["version"] = version;
     return j;
 }
@@ -494,6 +504,8 @@ Blueprint::Icon::Icon(json const & j)
     d.require("signal", [](json const & j, Icon & i){ i.signal = std::make_optional(j); });
 
     d.digest(j, *this);
+
+    assert(index > 0);
 }
 
 json Blueprint::Icon::to_json() const
@@ -517,7 +529,9 @@ Blueprint::Entity::Entity(json const & j)
         assert(j.is_object());
         for (auto const & [port_string, pj] : j.items())
         {
-            assert(e.ports.emplace(std::stoi(port_string), pj).second);
+            int const port_id = std::stoi(port_string);
+            assert(port_id > 0);
+            assert(e.ports.emplace(port_id, pj).second);
         }
     });
 
@@ -557,6 +571,9 @@ Blueprint::Entity::Entity(json const & j)
     });
 
     d.digest(j, *this);
+
+    assert(id > 0);
+    assert(direction > 0);
 }
 
 json Blueprint::Entity::to_json() const
@@ -578,7 +595,7 @@ json Blueprint::Entity::to_json() const
                                            *control_behavior);
     }
 
-    if (direction != 0)
+    if (direction != 1)
     {
         j["direction"] = direction;
     }
@@ -638,6 +655,9 @@ Blueprint::Entity::Port::Wire::Wire(json const & j)
     d.optional("circuit_id", [](json const & j, Wire & w){ w.port_num = j; });
 
     d.digest(j, *this);
+
+    assert(entity_id > 0);
+    assert(port_num > 0);
 }
 
 json Blueprint::Entity::Port::Wire::to_json() const
@@ -793,6 +813,8 @@ Blueprint::Entity::Filters::Filter::Filter(json const & j)
     d.require("signal", [](json const & j, Filter & f){ f.signal = std::make_optional(j); });
 
     d.digest(j, *this);
+
+    assert(index > 0);
 }
 
 json Blueprint::Entity::Filters::Filter::to_json() const

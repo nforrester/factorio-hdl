@@ -3,5 +3,15 @@
 
 void ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
-    assert(false); // TODO
+    bpe.name = Signal::constant_combinator;
+
+    bpe.control_behavior = Blueprint::Entity::Filters();
+    auto & f = std::get<Blueprint::Entity::Filters>(*bpe.control_behavior);
+
+    int i = 1;
+    for (auto const & iv : constants)
+    {
+        f.filters.emplace_back(iv.second, i, iv.first);
+        ++i;
+    }
 }

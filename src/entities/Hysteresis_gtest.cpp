@@ -4,6 +4,9 @@
 #include "ConstantCombinator.h"
 #include "Hysteresis.h"
 
+// TODO NOT NEEDED
+#include "src/blueprint/Blueprint.h"
+
 TEST(CircuitTest, HysteresisGreenDeadBandHalf3)
 {
     int constexpr stability_time = 4;
@@ -67,6 +70,10 @@ TEST(CircuitTest, HysteresisGreenDeadBandHalf3)
     ASSERT_EQ(7, c.constants.get(Signal::iron_plate));
     EXPECT_TRUE(fac.run_until_stable(stability_time));
     EXPECT_EQ(0, fac.read(h.port("out"), Wire::green).get(Signal::copper_plate));
+
+    // TODO Remove this, it's just for dev testing.
+    std::cout << Blueprint::Blueprint(fac.get_blueprint_string(h, "Hysteresis")).to_json().dump(4) << "\n";
+    std::cout << fac.get_blueprint_string(h, "Hysteresis") << "\n";
 }
 
 TEST(CircuitTest, HysteresisRedDeadBandHalf4)

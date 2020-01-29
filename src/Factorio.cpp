@@ -10,6 +10,11 @@ void Factorio::connect(WireColor color, Port & a, Port & b)
     _planner.connect(color, a, b);
 }
 
+bool Factorio::connected(Port const & p) const
+{
+    return _planner.connected(p);
+}
+
 void Factorio::lock(WireColor color, Port & p)
 {
     assert(!_built);
@@ -51,11 +56,13 @@ bool Factorio::run_until_stable(size_t timeout)
     return stable;
 }
 
-std::string Factorio::get_blueprint_string(Entity const & entity)
+std::string Factorio::get_blueprint_string(Entity const & entity, std::string const & label)
 {
     assert(_built);
 
     Blueprint::Blueprint blueprint;
+
+    blueprint.label = label;
 
     blueprint.icons.emplace_back(1, Blueprint::Signal(Signal::constant_combinator));
     blueprint.icons.emplace_back(2, Blueprint::Signal(Signal::decider_combinator));
@@ -65,7 +72,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity)
     for (Entity const * e : entity.constituent_entities())
     {
         Blueprint::Entity be;
-        be.id = blueprint.entities.size();
+        be.id = blueprint.entities.size() + 1;
         e->to_blueprint_entity(be);
         assert(blueprint.entities.count(be.id) == 0);
         blueprint.entities[be.id] = be;
@@ -82,9 +89,9 @@ std::string Factorio::get_blueprint_string(Entity const & entity)
     };
     std::unordered_map<CircuitId, BPPortInfo> hubs;
     std::unordered_map<Port *, BPPortInfo> port_map;
-    for (size_t id = 0; id < entity.constituent_entities().size(); ++id)
+    for (size_t id = 1; id < entity.constituent_entities().size() + 1; ++id)
     {
-        Entity const & e = *entity.constituent_entities().at(id);
+        Entity const & e = *entity.constituent_entities().at(id - 1);
         Blueprint::Entity & be = blueprint.entities.at(id);
 
         for (auto const & np : e.ports())
@@ -130,7 +137,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity)
         assert(port);
 
         Blueprint::Entity be;
-        be.id = blueprint.entities.size();
+        be.id = blueprint.entities.size() + 1;
 
         be.name = Signal::constant_combinator;
         be.control_behavior = Blueprint::Entity::Filters();
@@ -164,7 +171,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity)
             auto & bpp_wires = w == Wire::red ? pmpi.port->red : pmpi.port->green;
             auto & int_wires = w == Wire::red ? interface_bpp.red : interface_bpp.green;
 
-            bpp_wires.emplace_back(be.id, 0);
+            bpp_wires.emplace_back(be.id, 1);
             int_wires.emplace_back(pmpi.entity_id, pmpi.port_num);
         }
 

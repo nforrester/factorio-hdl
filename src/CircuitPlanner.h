@@ -9,6 +9,7 @@ class CircuitPlanner
 {
 public:
     void connect(WireColor color, Port & a, Port & b);
+    bool connected(Port const & p) const;
 
     void lock(WireColor color, Port & p);
     bool locked(WireColor color, Port const & p) const

@@ -267,7 +267,7 @@ void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
         pole.name = ::Signal::medium_electric_pole;
         pole.position = power_pole_positions.at(i);
         // TODO FINISH pole
-        pole.id = blueprint.entities.size();
+        pole.id = blueprint.entities.size() + 1;
         assert(blueprint.entities.count(pole.id) == 0);
         blueprint.entities[pole.id] = pole;
     }
@@ -275,18 +275,18 @@ void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
     for (size_t i = 0; i < interface_entity_ids.size(); ++i)
     {
         Entity & e = blueprint.entities.at(interface_entity_ids.at(i));
-        e.direction = 0;
+        e.direction = 1;
         e.position = interface_positions.at(i);
     }
 
     for (size_t i = 0; i < max_slots; ++i)
     {
         Slot1x2 const & slot = slots.at(i);
-        for (size_t j = 0; j < slot.entity_ids.size(); j++)
+        for (size_t j = 0; j < slot.entity_ids.size(); ++j)
         {
             Entity & e = blueprint.entities.at(slot.entity_ids.at(j));
-            e.direction = 0;
-            e.position = slot_positions.at(j);
+            e.direction = 2;
+            e.position = slot_positions.at(i);
             if (e.name != ::Signal::constant_combinator)
             {
                 assert(e.name == ::Signal::decider_combinator ||

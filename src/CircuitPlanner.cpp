@@ -50,6 +50,23 @@ void CircuitPlanner::connect(WireColor color, Port & a, Port & b)
     }
 }
 
+bool CircuitPlanner::connected(Port const & p) const
+{
+    if (_plans_for_ports.count(const_cast<Port*>(&p)) == 0)
+    {
+        return false;
+    }
+    PlansForColors const & pfc = _plans_for_ports.at(const_cast<Port*>(&p));
+    for (Plan * plan : pfc.plans)
+    {
+        if (plan)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 void CircuitPlanner::lock(WireColor color, Port & p)
 {
     auto plans = _get_plans(p);

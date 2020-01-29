@@ -1,4 +1,5 @@
 #include "ArithmeticCombinator.h"
+#include "src/blueprint/Blueprint.h"
 
 #include <cmath>
 
@@ -117,5 +118,21 @@ SignalValue ArithmeticCombinator::_operate(SignalValue lhs, SignalValue rhs) con
 
 void ArithmeticCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
-    assert(false); // TODO
+    bpe.name = Signal::arithmetic_combinator;
+
+    bpe.control_behavior = Blueprint::Entity::ArithmeticConditions();
+    auto & ac = std::get<Blueprint::Entity::ArithmeticConditions>(*bpe.control_behavior);
+
+    ac.lhs = _lhs;
+    ac.out = _out;
+    ac.op = _op;
+
+    if (_rhs == LogicSignal::constant)
+    {
+        ac.rhs_const = _rhs_const;
+    }
+    else
+    {
+        ac.rhs_signal = _rhs;
+    }
 }

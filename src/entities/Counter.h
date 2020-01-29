@@ -23,6 +23,6 @@ public:
 
         _lock(color, a.port("out"));
 
-        _set_port("out", a.port("out"));
+        _set_port("out", a.port("out"), interface_color);
     }
 };

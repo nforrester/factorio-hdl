@@ -72,6 +72,7 @@ namespace Blueprint
 
         struct DeciderConditions
         {
+            DeciderConditions() {}
             DeciderConditions(json const & j);
             json to_json() const;
 
@@ -85,6 +86,7 @@ namespace Blueprint
 
         struct ArithmeticConditions
         {
+            ArithmeticConditions() {}
             ArithmeticConditions(json const & j);
             json to_json() const;
 
@@ -118,7 +120,7 @@ namespace Blueprint
 
         std::optional<std::variant<DeciderConditions, ArithmeticConditions, Filters>> control_behavior;
 
-        int direction = 0;
+        int direction = 1;
 
         SignalId name;
 
@@ -153,6 +155,7 @@ namespace Blueprint
         std::map<int, Entity> entities;
 
         std::string item;
+        std::string label;
 
         int64_t version;
     };

@@ -22,6 +22,7 @@ public:
     }
 
     void connect(WireColor color, Port & a, Port & b);
+    bool connected(Port const & p) const;
     void lock(WireColor color, Port & p);
     bool locked(WireColor color, Port & p) const;
     void build();
@@ -29,7 +30,7 @@ public:
     bool run_until_stable(size_t timeout);
 
     // Get a blueprint for the given Entity.
-    std::string get_blueprint_string(Entity const & entity);
+    std::string get_blueprint_string(Entity const & entity, std::string const & label);
 
     CircuitValues read(Port const & port) const
     {

@@ -27,19 +27,6 @@ public:
         w = id;
     }
 
-    bool connected() const
-    {
-        for (WireColor w = 0; w < num_wire_colors; ++w)
-        {
-            CircuitId const c = _wires[w];
-            if (c != invalid_circuit_id)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
     CircuitId circuit_id(WireColor wire) const
     {
         return _wires[wire];

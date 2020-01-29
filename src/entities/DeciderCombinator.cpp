@@ -1,4 +1,5 @@
 #include "DeciderCombinator.h"
+#include "src/blueprint/Blueprint.h"
 
 DeciderCombinator::DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count):
     Entity(factorio),
@@ -174,5 +175,22 @@ bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const
 
 void DeciderCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
-    assert(false); // TODO
+    bpe.name = Signal::decider_combinator;
+
+    bpe.control_behavior = Blueprint::Entity::DeciderConditions();
+    auto & dc = std::get<Blueprint::Entity::DeciderConditions>(*bpe.control_behavior);
+
+    dc.lhs = _lhs;
+    dc.out = _out;
+    dc.op = _op;
+    dc.copy_count_from_input = _write_input_count;
+
+    if (_rhs == LogicSignal::constant)
+    {
+        dc.rhs_const = _rhs_const;
+    }
+    else
+    {
+        dc.rhs_signal = _rhs;
+    }
 }
