@@ -18,7 +18,7 @@ namespace S
     std::unique_ptr<Exp> read(std::string const & input, std::string const & file, size_t line);
     std::unique_ptr<Exp> read(std::string_view & input, std::string const & file, size_t & line);
     struct ParseError;
-};
+}
 
 struct S::Exp
 {

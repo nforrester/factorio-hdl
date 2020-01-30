@@ -2,42 +2,70 @@
 
 ; Yellow wires may be connected externally to either a red or a green wire
 ; and become the appropriate color internally.
+; Maybe there are certain conditions under which they could be connedted to both
+; green and red, but that would require some special thinking.
 
 ; If two different red wires touch the same port, that's an error.
 ; If two different green wires touch the same port, that's an error.
-; If a yellow wires and any other signal touch the same port, that's an error.
+; If a yellow wire and any other wire touch the same port, that's an error.
 
 ; You are allowed to flip the interface colors when you use a part.
 ; This will cause all internal signal colors to flip.
 
 ; (notsigs a b c ...) returns a signal that is not any of a, b, c...
 
-(enum decider-output-type one input-count)
+; "scm" is a good scheme interpreter. http://people.csail.mit.edu/jaffer/SCM
+
+; Reserved symbols:
+;   * decpart ?
+;   * defpart
+;   * decmacro
+;   * signal
+;   * symbol
+;   * red
+;   * green
+;   * yellow
+;   * in
+;   * out
+;   * each
+;   * any
+;   * everything
+;   * inout ?
+;   * either ?
+;   * enum ?
+;   * one ?
+;   * input-count ?
+;   * decider-output-type ?
+
+; TODO Many of these circuits suffer from ragged timing between their inputs and outputs.
+;      Develop an automated way to test for this.
+
+(enum decider-output-type one input-count) ; Is this actually useful?
 
 (decpart constant
-    ((yellow out)
+    ((out yellow o)
      ((list (tuple signal int)) signal-count-list)))
 
 (decpart arithmetic
-    ((yellow in)
-     (yellow out)
+    ((in yellow i)
+     (out yellow o)
      (symbol operation)
      (signal lhs)
      ((either signal int) rhs)
-     (signal out)))
+     (signal result)))
 
 (decpart decider
-    ((yellow in)
-     (yellow out)
+    ((in yellow i)
+     (out yellow o)
      (symbol operation)
      (signal lhs)
      ((either signal int) rhs)
-     (signal out)
+     (signal result)
      (decider-output-type output-type)))
 
 (defpart hysteresis
-    ((red in)
-     (red out)
+    ((in red i)
+     (out red o)
      (signal in-sig)
      (signal out-sig)
      (int set-point)
@@ -46,55 +74,260 @@
     (green a)
     (green b)
     (constant a ((in-sig set-point)))
-    (arithmetic (a in) b in-sig / half-deadband-width out-sig)
-    (decider b (b out) out-sig < out-sig out-sig one))
+    (arithmetic (a i) b in-sig / half-deadband-width out-sig)
+    (decider b (b o) out-sig < out-sig out-sig one))
 
 (defpart buffer
-    ((yellow in)
-     (yellow out))
-    (decider in out each != 0 each input-count))
+    ((in yellow i)
+     (out yellow o))
+    (decider i o each != 0 each input-count))
 
 (defpart buffer-without-signal
-    ((yellow in)
-     (yellow out)
+    ((in yellow i)
+     (out yellow o)
      (signal sig))
-    (buffer in out)
-    (arithmetic in out sig * -1 sig))
+    (buffer i o)
+    (arithmetic i o sig * -1 sig))
 
 (defpart buffer-only-signal
-    ((yellow in)
-     (yellow out)
+    ((in yellow i)
+     (out yellow o)
      (signal sig))
-    (decider in out sig != 0 sig input-count))
+    (decider i o sig != 0 sig input-count))
 
 (defpart signal-exchanger
-    ((red a-in)
-     (red b-in)
-     (red a-out)
-     (red b-out)
+    ((in yellow a-in)
+     (in yellow b-in)
+     (out yellow a-out)
+     (out yellow b-out)
      (signal sig))
     (buffer-without-signal a-in a-out sig)
     (buffer-without-signal b-in b-out sig)
     (buffer-only-signal a-in b-out sig)
     (buffer-only-signal b-in a-out sig))
 
-;(defpart mux-2-circuits
-;    ((yellow a)
-;     (yellow b)
-;     (yellow out)
-;     (yellow control)
-;     (signal control-sig))
-;
-;    ; a-most is like a but with control-sig replaced with its value from control.
-;    (red a-most)
-;    (buffer-without-signal a a-most control-sig)
-;    (buffer-only-signal control a-most control-sig)
-;
-;    ; a-one has control-sig from a and the value of control-sig
-;    ; from control moved to a different signal.
-;    (red a-one)
-;    (signal not-control-sig (notsigs control-sig))
-;    (buffer-only-signal a a-one control-sig)
-;    (decider control a-one control-sig != 0 not-control-sig input-count)
-;
-;    (red a-most-or-not
+(defpart relay
+    ((in yellow i)
+     (out yellow o)
+     (in yellow control)
+     (signal control-sig))
+
+    ; i-most is like i but with control-sig replaced with its value from control.
+    (red i-most)
+    (buffer-without-signal i i-most control-sig)
+    (buffer-only-signal control i-most control-sig)
+
+    ; i-one has control-sig from i and the value of control-sig
+    ; from control moved to a different signal.
+    (red i-one)
+    (signal not-control-sig (notsigs control-sig))
+    (buffer-only-signal i i-one control-sig)
+    (decider control i-one control-sig != 0 not-control-sig input-count)
+
+    (red o-most)
+    (arithmetic i-most o-most each * control-sig each)
+
+    (red o-one)
+    (arithmetic i-one o-one each * not-control-sig each)
+
+    (buffer-without-signal o-most o control-sig)
+    (buffer-only-signal o-one o control-sig))
+
+; Probably mismatched latency between inputs and control
+(defpart mux-5-circuits
+    ((in yellow in0)
+     (in yellow in1)
+     (in yellow in2)
+     (in yellow in3)
+     (in yellow in4)
+     (out yellow o)
+     (in yellow control)
+     (signal control-sig))
+
+    (red control0)
+    (red control1)
+    (red control2)
+    (red control3)
+    (red control4)
+
+    (decider control control0 control-sig == 0 control-sig one)
+    (decider control control1 control-sig == 1 control-sig one)
+    (decider control control2 control-sig == 2 control-sig one)
+    (decider control control3 control-sig == 3 control-sig one)
+    (decider control control4 control-sig == 4 control-sig one)
+
+    (relay in0 o control0 control-sig)
+    (relay in1 o control1 control-sig)
+    (relay in2 o control2 control-sig)
+    (relay in3 o control3 control-sig)
+    (relay in4 o control4 control-sig))
+
+; Probably mismatched latency between inputs and control
+; TODO Develop automated test for this
+(defpart demux-5-circuits
+    ((in yellow i)
+     (out yellow out0)
+     (out yellow out1)
+     (out yellow out2)
+     (out yellow out3)
+     (out yellow out4)
+     (in yellow control)
+     (signal control-sig))
+
+    (decider control control0 control-sig == 0 control-sig one)
+    (decider control control1 control-sig == 1 control-sig one)
+    (decider control control2 control-sig == 2 control-sig one)
+    (decider control control3 control-sig == 3 control-sig one)
+    (decider control control4 control-sig == 4 control-sig one)
+
+    (relay i out0 control0 control-sig)
+    (relay i out1 control1 control-sig)
+    (relay i out2 control2 control-sig)
+    (relay i out3 control3 control-sig)
+    (relay i out4 control4 control-sig))
+
+; Designed so that control-sig and any other signal can be the same.
+(defpart mux-5-signals
+    ((in yellow i)
+     (out yellow o)
+     (in yellow control)
+     (signal control-sig)
+     (signal output-sig)
+     (signal sig0)
+     (signal sig1)
+     (signal sig2)
+     (signal sig3)
+     (signal sig4))
+
+    ; i-most is like i but with sig0 replaced with the value of control-sig from control
+    (red i-most)
+    (buffer-without-signal i i-most sig0)
+    (arithmetic control i-most control-sig * 1 sig0)
+
+    ; i-one has sig0 from i and the value of control-sig
+    ; from control moved to a signal other than sig0.
+    (red i-one)
+    (signal not-sig0 (notsigs sig0))
+    (buffer-only-signal i i-one sig0)
+    (arithmetic control i-one control-sig * 1 not-sig0)
+
+    ; o-wrong has only one active signal, and it has the value we want,
+    ; but it's probably not the output signal.
+    (red o-wrong)
+    (decider i-one o-wrong not-sig0 == 0 sig0 input-count)
+
+    (decider i-most o-wrong sig0 == 1 sig1 input-count)
+    (decider i-most o-wrong sig0 == 2 sig2 input-count)
+    (decider i-most o-wrong sig0 == 3 sig3 input-count)
+    (decider i-most o-wrong sig0 == 4 sig4 input-count)
+
+    (arithmetic o-wrong o each * 1 output-sig))
+
+; Designed so that control-sig and any other signal can be the same.
+(defpart demux-5-signals
+    ((in yellow i)
+     (out yellow o)
+     (in yellow control)
+     (signal control-sig)
+     (signal input-sig)
+     (signal sig0)
+     (signal sig1)
+     (signal sig2)
+     (signal sig3)
+     (signal sig4))
+
+    (red duplicated-input)
+    (arithmetic i duplicated-input input-sig * 1 everything)
+
+    ; duplicated-input-most is like duplicated-input but with sig0 replaced with
+    ; the value of control-sig from control
+    (red duplicated-input-most)
+    (buffer-without-signal duplicated-input duplicated-input-most sig0)
+    (arithmetic control duplicated-input-most control-sig * 1 sig0)
+
+    ; duplicated-input-one has sig0 from duplicated-input and the value of control-sig
+    ; from control moved to a signal other than sig0.
+    (red duplicated-input-one)
+    (signal not-sig0 (notsigs sig0))
+    (buffer-only-signal duplicated-input duplicated-input-one sig0)
+    (arithmetic control duplicated-input-one control-sig * 1 not-sig0)
+
+    (decider duplicated-input-one o not-sig0 == 0 sig0 input-count)
+
+    (decider duplicated-input-most o sig0 == 1 sig1 input-count)
+    (decider duplicated-input-most o sig0 == 2 sig2 input-count)
+    (decider duplicated-input-most o sig0 == 3 sig3 input-count)
+    (decider duplicated-input-most o sig0 == 4 sig4 input-count))
+
+(decmacro gen-demux-signals)
+(gen-demux-signals)
+
+(decmacro gen-mux-n-circuits)
+(gen-mux-n-circuits 2)
+
+(decmacro gen-demux-n-circuits)
+(gen-demux-n-circuits 2)
+
+(defpart split-bits-in-two
+  ((in yellow full)
+   (out yellow lo)
+   (out yellow hi))
+
+  (arithmetic full lo each & 0xffff each)
+
+  (green hi-unmasked)
+  (arithmetic full hi-unmasked each >> 16 each)
+  (arithmetic hi-unmasked hi each & 0xffff each))
+
+(defpart join-bits-from-two
+  ((in yellow lo)
+   (in yellow hi)
+   (out yellow full))
+
+  (arithmetic hi full each << 16 each)
+  (buffer lo full))
+
+; filters is 1 or 0 for every single signal.
+; For signals where filters is 1, the value from values-in is written to values-out.
+(defpart filter-all
+  ((in yellow values-in)
+   (out yellow values-out)
+   (in yellow filters))
+
+  (green lo-in)
+  (red hi-in)
+  (split-bits-in-two value-in lo-in hi-in)
+
+  (arithmetic filters (lo-in hi-in) each << 16 each)
+
+  (green lo-out)
+  (red hi-out)
+  (decider lo-in lo-out each > 0xffff each input-count)
+  (decider hi-in hi-out each > 0xffff each input-count)
+
+  (join-bits-from-two lo-out hi-out values-out))
+
+; i is 1 or 0 for every single signal.
+; o is the opposite.
+(defpart invert-all
+  ((in green i)
+   (out yellow o))
+
+  (red disconnected)
+  (red all-ones)
+  (decider disconnected all-ones letter-a == 0 everything one)
+
+  (decider (all-ones i) o each == 2 each one))
+
+; reset-control is 1 or 0 for every single signal.
+; The latch operates independently on all signals simultaneously.
+(defpart latch
+  ((in yellow values-in)
+   (out yellow values-out)
+   (in yellow take-new-values))
+
+  (green take-old-values)
+  (invert-all take-new-values take-old-values)
+
+  (filter-all values-in values-out take-new-values)
+  (filter-all values-out values-out take-old-values))
