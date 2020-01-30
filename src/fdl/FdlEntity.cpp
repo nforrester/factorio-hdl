@@ -27,6 +27,7 @@ Fdl::Entity::Entity(Factorio & factorio,
 
     expand_all_macros(ast);
 
+    // TODO read all defpart forms
     // TODO instantiate all the parts
     // TODO wire everything up
 }

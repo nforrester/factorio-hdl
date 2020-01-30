@@ -42,28 +42,29 @@
 ; TODO Many of these circuits suffer from ragged timing between their inputs and outputs.
 ;      Develop an automated way to test for this.
 
-(enum decider-output-type one input-count) ; Is this actually useful?
-
-(decpart constant
-    ((out yellow o)
-     ((list (tuple signal int)) signal-count-list)))
-
-(decpart arithmetic
-    ((in yellow i)
-     (out yellow o)
-     (symbol operation)
-     (signal lhs)
-     ((either signal int) rhs)
-     (signal result)))
-
-(decpart decider
-    ((in yellow i)
-     (out yellow o)
-     (symbol operation)
-     (signal lhs)
-     ((either signal int) rhs)
-     (signal result)
-     (decider-output-type output-type)))
+;; TODO Is any of this crap actually useful?
+;(enum decider-output-type one input-count)
+;
+;(decpart constant
+;    ((out yellow o)
+;     ((list (tuple signal int)) signal-count-list)))
+;
+;(decpart arithmetic
+;    ((in yellow i)
+;     (out yellow o)
+;     (symbol operation)
+;     (signal lhs)
+;     ((either signal int) rhs)
+;     (signal result)))
+;
+;(decpart decider
+;    ((in yellow i)
+;     (out yellow o)
+;     (symbol operation)
+;     (signal lhs)
+;     ((either signal int) rhs)
+;     (signal result)
+;     (decider-output-type output-type)))
 
 (defpart hysteresis
     ((in red i)
