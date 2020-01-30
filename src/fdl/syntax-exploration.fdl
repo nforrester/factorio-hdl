@@ -1,13 +1,15 @@
 ; FDL - Factorio Description Language
 
-; Yellow wires may be connected externally to either a red or a green wire
-; and become the appropriate color internally.
-; Maybe there are certain conditions under which they could be connedted to both
-; green and red, but that would require some special thinking.
-
 ; If two different red wires touch the same port, that's an error.
 ; If two different green wires touch the same port, that's an error.
 ; If a yellow wire and any other wire touch the same port, that's an error.
+
+; A wire connected to an externally facing out port may not also be connected to an internal in port.
+; A wire connected to an externally facing in port may not also be connected to an internal out port.
+
+; Yellow wires may be connected externally to a red, a green wire, or both,
+; and become the appropriate color internally. When connected to both a red and green wire,
+; two wires are generated internally.
 
 ; You are allowed to flip the interface colors when you use a part.
 ; This will cause all internal signal colors to flip.
@@ -19,7 +21,7 @@
 ; Reserved symbols:
 ;   * decpart ?
 ;   * defpart
-;   * decmacro
+;   * defmacro
 ;   * signal
 ;   * symbol
 ;   * red
@@ -259,14 +261,23 @@
     (decider duplicated-input-most o sig0 == 3 sig3 input-count)
     (decider duplicated-input-most o sig0 == 4 sig4 input-count))
 
-(decmacro gen-demux-signals)
+(defmacro gen-mux-signals "test.scm")
 (gen-demux-signals)
 
-(decmacro gen-mux-n-circuits)
-(gen-mux-n-circuits 2)
+(defmacro gen-demux-signals "test.scm")
+(gen-demux-signals)
 
-(decmacro gen-demux-n-circuits)
+(defmacro gen-mux-n-circuits "test.scm")
+(gen-mux-n-circuits 2)
+(gen-mux-n-circuits 3)
+(gen-mux-n-circuits 4)
+(gen-mux-n-circuits 5)
+
+(defmacro gen-demux-n-circuits "test.scm")
 (gen-demux-n-circuits 2)
+(gen-demux-n-circuits 3)
+(gen-demux-n-circuits 4)
+(gen-demux-n-circuits 5)
 
 (defpart split-bits-in-two
   ((in yellow full)
@@ -323,11 +334,12 @@
 ; The latch operates independently on all signals simultaneously.
 (defpart latch
   ((in yellow values-in)
-   (out yellow values-out)
+   (out red values-out)
    (in yellow take-new-values))
 
   (green take-old-values)
   (invert-all take-new-values take-old-values)
 
+  (green old-values)
   (filter-all values-in values-out take-new-values)
-  (filter-all values-out values-out take-old-values))
+  (filter-all old-values (old-values values-out) take-old-values))

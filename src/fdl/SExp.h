@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 #include <memory>
-#include <forward_list>
+#include <vector>
 #include <stdexcept>
 
 namespace S
@@ -13,26 +13,35 @@ namespace S
     struct Exp;
     struct List;
     struct Symbol;
+    struct String;
     struct Int;
 
-    std::unique_ptr<Exp> read(std::string const & input, std::string const & file, size_t line);
-    std::unique_ptr<Exp> read(std::string_view & input, std::string const & file, size_t & line);
+    using Ptr = std::unique_ptr<Exp>;
+    using PtrV = std::vector<Ptr>;
+
+    Ptr read(std::string const & input, std::string const & file, size_t line);
+    Ptr read(std::string_view & input, std::string const & file, size_t & line);
     struct ParseError;
+
+    PtrV consume(std::string const & input, std::string const & filename, size_t line);
 }
 
 struct S::Exp
 {
     List * as_list();
     Symbol * as_symbol();
+    String * as_string();
     Int * as_int();
 
     virtual std::string write() const = 0;
+
+    std::string file = "";
+    size_t line = 0;
 };
 
 struct S::List: public S::Exp
 {
-    using Type = std::forward_list<std::unique_ptr<Exp>>;
-    Type l;
+    PtrV l;
 
     std::string write() const override;
 };
@@ -45,6 +54,16 @@ struct S::Symbol: public S::Exp
     std::string s;
 
     std::string write() const override { return s; }
+};
+
+struct S::String: public S::Exp
+{
+    String(std::string const & s_): s(s_) {}
+    String(std::string_view const & s_): s(s_) {}
+
+    std::string s;
+
+    std::string write() const override { throw std::runtime_error("Not implemented."); }
 };
 
 struct S::Int: public S::Exp

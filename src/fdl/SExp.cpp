@@ -1,6 +1,7 @@
 #include "SExp.h"
 
 #include <unordered_set>
+#include <unordered_map>
 #include <cassert>
 #include <sstream>
 
@@ -12,6 +13,11 @@ S::List * S::Exp::as_list()
 S::Symbol * S::Exp::as_symbol()
 {
     return dynamic_cast<Symbol*>(this);
+}
+
+S::String * S::Exp::as_string()
+{
+    return dynamic_cast<String*>(this);
 }
 
 S::Int * S::Exp::as_int()
@@ -53,18 +59,30 @@ namespace
 
     std::unordered_set<char> const post_atomic_chars =
         str2set(line_ending_whitespace_chars_ + non_line_ending_whitespace_chars_ + ")");
+
+    std::unordered_map<char, char> const string_escape_map =
+    {
+        {'\\', '\\'},
+        {'"', '"'},
+        {'n', '\n'},
+        {'t', '\t'},
+    };
 }
 
-std::unique_ptr<S::Exp> S::read(std::string const & input, std::string const & file, size_t line)
+S::Ptr S::read(std::string const & input, std::string const & file, size_t line)
 {
     std::string_view v(input.data(), input.size());
-    return read(v, file, line);
+    S::Ptr result = read(v, file, line);
+    if (read(v, file, line))
+    {
+        throw ParseError(file, line, "read(string,...) called on a string with multiple forms.");
+    }
+    return result;
 }
 
-std::unique_ptr<S::Exp> S::read(std::string_view & input, std::string const & file, size_t & line)
+S::Ptr S::read(std::string_view & input, std::string const & file, size_t & line)
 {
     std::unique_ptr<List> list;
-    List::Type::iterator tail;
     while (true)
     {
         if (input.empty())
@@ -73,7 +91,7 @@ std::unique_ptr<S::Exp> S::read(std::string_view & input, std::string const & fi
             {
                 throw ParseError(file, line, "Unterminated list.");
             }
-            return std::unique_ptr<Exp>();
+            return Ptr();
         }
 
         if (non_line_ending_whitespace_chars.count(input.front()))
@@ -112,18 +130,9 @@ std::unique_ptr<S::Exp> S::read(std::string_view & input, std::string const & fi
                 input.remove_prefix(1);
                 return list;
             }
-            std::unique_ptr<Exp> elem = read(input, file, line);
+            Ptr elem = read(input, file, line);
             assert(elem);
-            if (tail == list->l.end())
-            {
-                list->l.emplace_front(std::move(elem));
-                tail = list->l.begin();
-            }
-            else
-            {
-                list->l.emplace_after(tail, std::move(elem));
-                ++tail;
-            }
+            list->l.emplace_back(std::move(elem));
             continue;
         }
 
@@ -161,7 +170,10 @@ std::unique_ptr<S::Exp> S::read(std::string_view & input, std::string const & fi
                 {
                     throw std::out_of_range("");
                 }
-                return std::make_unique<Int>(static_cast<SignalValue>(parsed));
+                Ptr e = std::make_unique<Int>(static_cast<SignalValue>(parsed));
+                e->file = file;
+                e->line = line;
+                return e;
             }
             catch (std::invalid_argument & e)
             {
@@ -186,18 +198,63 @@ std::unique_ptr<S::Exp> S::read(std::string_view & input, std::string const & fi
                 symbol = std::string_view(input_at_start_of_symbol.data(), symbol.size() + 1);
                 input.remove_prefix(1);
             }
-            return std::make_unique<Symbol>(symbol);
+            Ptr s = std::make_unique<Symbol>(symbol);
+            s->file = file;
+            s->line = line;
+            return s;
+        }
+
+        if (input.front() == '"')
+        {
+            input.remove_prefix(1);
+            if (input.empty())
+            {
+                throw ParseError(file, line, "Unterminated string.");
+            }
+
+            std::string s;
+            while (input.front() != '"')
+            {
+                if (input.front() == '\\')
+                {
+                    input.remove_prefix(1);
+                    if (input.empty())
+                    {
+                        throw ParseError(file, line, "Unterminated string.");
+                    }
+                    if (string_escape_map.count(input.front()) == 0)
+                    {
+                        throw ParseError(file, line, std::string("Unrecognized string escape sequence: \"\\") + input.front() + "\"");
+                    }
+                    s += string_escape_map.at(input.front());
+                }
+                else
+                {
+                    s += input.front();
+                }
+                input.remove_prefix(1);
+                if (input.empty())
+                {
+                    throw ParseError(file, line, "Unterminated string.");
+                }
+            }
+            input.remove_prefix(1);
+            Ptr e = std::make_unique<String>(s);
+            e->file = file;
+            e->line = line;
+            return e;
         }
 
         if (input.front() == '(')
         {
             list = std::make_unique<List>();
-            tail = list->l.begin();
+            list->file = file;
+            list->line = line;
             input.remove_prefix(1);
             continue;
         }
 
-        throw ParseError(file, line, std::string("Expected int, symbol, or list. Found '") + input.front() + "'.");
+        throw ParseError(file, line, std::string("Expected int, symbol, string, or list. Found '") + input.front() + "'.");
     }
 }
 
@@ -206,7 +263,7 @@ std::string S::List::write() const
     std::ostringstream out;
     out << '(';
     bool first = true;
-    for (std::unique_ptr<S::Exp> const & s : l)
+    for (Ptr const & s : l)
     {
         assert(s);
         if (!first)
@@ -218,4 +275,26 @@ std::string S::List::write() const
     }
     out << ')';
     return out.str();
+}
+
+S::PtrV S::consume(std::string const & input, std::string const & filename, size_t line)
+{
+    std::string_view view(input.data(), input.size());
+
+    S::PtrV ast;
+    while (true)
+    {
+        assert(view.size() > 0);
+        S::Ptr e = S::read(view, filename, line);
+        if (e)
+        {
+            ast.push_back(std::move(e));
+        }
+        else
+        {
+            assert(view.size() == 0);
+            break;
+        }
+    }
+    return ast;
 }

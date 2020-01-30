@@ -1,12 +1,11 @@
 #include "gtest/gtest.h"
 
 #include "SExp.h"
-
-#include <fstream>
+#include "src/util.h"
 
 TEST(SExpTest, Empty)
 {
-    std::unique_ptr<S::Exp> e = S::read("", "<test-stimulus>", 1);
+    S::Ptr e = S::read("", "<test-stimulus>", 1);
     ASSERT_FALSE(e);
 }
 
@@ -38,10 +37,13 @@ TEST(SExpTest, Symbols)
 
     for (std::string const & input : symbols)
     {
-        std::unique_ptr<S::Exp> e = S::read(input, "<test-stimulus>", 1);
+        S::Ptr e = S::read(input, "<test-stimulus>", 1);
         ASSERT_TRUE(e);
         EXPECT_TRUE(e->as_symbol());
         EXPECT_EQ(input, e->as_symbol()->s);
+
+        EXPECT_NE("", e->file);
+        EXPECT_NE(0u, e->line);
     }
 }
 
@@ -70,11 +72,55 @@ TEST(SExpTest, Ints)
 
     for (std::string const & input : ints)
     {
-        std::unique_ptr<S::Exp> e = S::read(input, "<test-stimulus>", 1);
+        S::Ptr e = S::read(input, "<test-stimulus>", 1);
         ASSERT_TRUE(e);
         EXPECT_TRUE(e->as_int());
         EXPECT_EQ(stoll(input, nullptr, 0), e->as_int()->v);
+
+        EXPECT_NE("", e->file);
+        EXPECT_NE(0u, e->line);
     }
+}
+
+TEST(SExpTest, Strings)
+{
+    std::vector<std::string> strings =
+    {
+        "hello",
+        "Hello world!",
+        "some_file.txt",
+        "()",
+        "(())",
+        "((()))",
+        "(((()) ()))",
+        "( (( ( )) () ) )",
+        "(hello )",
+        "( hello)",
+        "( hello )",
+        "(42 hello)",
+        "(42 hello (world))",
+    };
+
+    for (std::string const & input : strings)
+    {
+        S::Ptr e = S::read("\"" + input + "\"", "<test-stimulus>", 1);
+        ASSERT_TRUE(e);
+        EXPECT_TRUE(e->as_string());
+        EXPECT_EQ(input, e->as_string()->s);
+
+        EXPECT_NE("", e->file);
+        EXPECT_NE(0u, e->line);
+    }
+
+    std::string input = "\"This is a\\nstring with\\tvarious escaped\\\" characters\\\\.\"";
+    std::string expected = "This is a\nstring with\tvarious escaped\" characters\\.";
+    S::Ptr e = S::read(input, "<test-stimulus>", 1);
+    ASSERT_TRUE(e);
+    EXPECT_TRUE(e->as_string());
+    EXPECT_EQ(expected, e->as_string()->s);
+
+    EXPECT_NE("", e->file);
+    EXPECT_NE(0u, e->line);
 }
 
 TEST(SExpTest, Lists)
@@ -95,18 +141,24 @@ TEST(SExpTest, Lists)
 
     for (std::string const & input : lists)
     {
-        std::unique_ptr<S::Exp> e = S::read(input, "<test-stimulus>", 1);
+        S::Ptr e = S::read(input, "<test-stimulus>", 1);
         ASSERT_TRUE(e);
         EXPECT_TRUE(e->as_list());
+
+        EXPECT_NE("", e->file);
+        EXPECT_NE(0u, e->line);
     }
 }
 
 TEST(SExpTest, Whitespace)
 {
-    std::unique_ptr<S::Exp> e = S::read("0 ", "<test-stimulus>", 1);
+    S::Ptr e = S::read("0 ", "<test-stimulus>", 1);
     ASSERT_TRUE(e);
     EXPECT_TRUE(e->as_int());
     EXPECT_EQ(0, e->as_int()->v);
+
+    EXPECT_NE("", e->file);
+    EXPECT_NE(0u, e->line);
 
     e.reset();
 
@@ -115,23 +167,32 @@ TEST(SExpTest, Whitespace)
     EXPECT_TRUE(e->as_int());
     EXPECT_EQ(0, e->as_int()->v);
 
+    EXPECT_NE("", e->file);
+    EXPECT_NE(0u, e->line);
+
     e.reset();
 
     e = S::read(" 0 ", "<test-stimulus>", 1);
     ASSERT_TRUE(e);
     EXPECT_TRUE(e->as_int());
     EXPECT_EQ(0, e->as_int()->v);
+
+    EXPECT_NE("", e->file);
+    EXPECT_NE(0u, e->line);
 }
 
 TEST(SExpTest, Comment)
 {
-    std::unique_ptr<S::Exp> e = S::read("; comment", "<test-stimulus>", 1);
+    S::Ptr e = S::read("; comment", "<test-stimulus>", 1);
     ASSERT_FALSE(e);
 
     e = S::read("; comment\n0", "<test-stimulus>", 1);
     ASSERT_TRUE(e);
     EXPECT_TRUE(e->as_int());
     EXPECT_EQ(0, e->as_int()->v);
+
+    EXPECT_NE("", e->file);
+    EXPECT_NE(0u, e->line);
 }
 
 TEST(SExpTest, Errors)
@@ -147,7 +208,7 @@ TEST(SExpTest, Errors)
         {"-3-", "<test-stimulus>:1: Character '-' is not valid in an int."},
         {"(", "<test-stimulus>:1: Unterminated list."},
         {"((())", "<test-stimulus>:1: Unterminated list."},
-        {")", "<test-stimulus>:1: Expected int, symbol, or list. Found ')'."},
+        {")", "<test-stimulus>:1: Expected int, symbol, string, or list. Found ')'."},
         {"3()", "<test-stimulus>:1: Character '(' is not valid in an int."},
         {"f()", "<test-stimulus>:1: Character '(' is not valid in a symbol."},
     };
@@ -171,32 +232,14 @@ TEST(SExpTest, Errors)
 TEST(SExpTest, BigFile)
 {
     std::string filename = "src/fdl/syntax-exploration.fdl";
+    std::vector<S::Ptr> ast = S::consume(read_file(filename), filename, 1);
+    ASSERT_LT(10u, ast.size());
 
-    std::string buffer;
+    for (auto const & e : ast)
     {
-        std::ifstream f(filename);
-        ASSERT_TRUE(f.good());
-        buffer = std::string { std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>() };
+        EXPECT_NE("", e->file);
+        EXPECT_NE(0u, e->line);
     }
-
-    std::string_view input(buffer.data(), buffer.size());
-    size_t line = 1;
-
-    ASSERT_GT(input.size(), 0u);
-    while (input.size() > 0)
-    {
-        std::unique_ptr<S::Exp> e = S::read(input, filename, line);
-        if (input.size() > 0)
-        {
-            ASSERT_TRUE(e);
-        }
-        else
-        {
-            ASSERT_FALSE(e);
-        }
-    }
-
-    ASSERT_LT(1u, line);
 }
 
 int main(int argc, char ** argv)
