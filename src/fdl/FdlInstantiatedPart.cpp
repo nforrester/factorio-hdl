@@ -11,7 +11,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
     std::unordered_map<std::string, S::PtrV const *> const & defparts,
     Factorio & factorio)
 {
-    // TODO initialize names_in_use with list of reserved words?
+    // TODO initialize names_in_use with list of reserved words
     std::unordered_set<std::string> names_in_use;
 
     std::unordered_map<std::string, SignalId> signals;
@@ -29,7 +29,8 @@ Fdl::InstantiatedPart::InstantiatedPart(
             ", got " + std::to_string(provided_args.size() - 1));
     }
 
-    /* Simultaneously parse the provided and declared arguments, and process them. */
+    /* Compare provided arguments against declared arguments,
+     * and check that both are syntactically valid. */
     size_t arg_index = 0;
     auto provided_arg_it = provided_args.begin();
     for (S::Ptr const & declared_arg_s : declared_args)
@@ -114,13 +115,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
             _outside_ports.push_back(port);
 
-            if (_inside_wires.count(port.name) != 0)
-            {
-                throw S::ParseError(
-                    declared_arg.at(2)->file,
-                    declared_arg.at(2)->line,
-                    "Duplicate port name " + port.name);
-            }
+            assert(_inside_wires.count(port.name) == 0);
             _inside_wires[port.name] = wire;
         }
         else if (arg_type == "signal")
@@ -196,12 +191,73 @@ Fdl::InstantiatedPart::InstantiatedPart(
         ++arg_index;
     }
 
-    /* Parse and process the part body. */
+    /* Process the part body, checking that it is syntactically valid. */
     for (auto body_form = defpart.begin() + 2;
          body_form != defpart.end();
          ++body_form)
     {
-        // TODO FINISH THIS
-        assert(false);
+        S::List * l = (*body_form)->as_list();
+        if (!l || l->l.size() == 0 || !l->l.front()->as_symbol())
+        {
+            throw S::ParseError(
+                (*body_form)->file,
+                (*body_form)->line,
+                "Expected non-empty list starting with a symbol in part body.");
+        }
+        S::PtrV const & ll = l->l;
+
+        std::string const & type = ll.front()->as_symbol()->s;
+        if (type == "yellow")
+        {
+            throw S::ParseError(
+                l->file,
+                l->line,
+                "Yellow is only an acceptable color for wires attached to outside ports.");
+        }
+        else if (type == "green" || type == "red")
+        {
+            /* Add a wire. */
+            if (ll.size() != 2 || !ll.at(1)->as_symbol())
+            {
+                throw S::ParseError(
+                    l->file,
+                    l->line,
+                    "Expected a single symbol for the name of the wire.");
+            }
+
+            std::string const & wire_name = ll.at(1)->as_symbol()->s;
+            if (!names_in_use.emplace(wire_name).second)
+            {
+                throw S::ParseError(
+                    ll.at(1)->file,
+                    ll.at(1)->line,
+                    "Name already in use: " + wire_name);
+            }
+            assert(_inside_wires.count(wire_name) == 0);
+            Wire wire;
+            wire.color = type == "green" ? Color::green : Color::red;
+            _inside_wires[wire_name] = wire;
+        }
+        else
+        {
+            /* Add a part. */
+            if (type == "constant")
+            {
+                assert(false);
+            }
+            else if (type == "arithmetic")
+            {
+                assert(false);
+            }
+            else
+            if (type == "decider")
+            {
+                assert(false);
+            }
+            else
+            {
+                assert(false);
+            }
+        }
     }
 }

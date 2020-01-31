@@ -59,6 +59,7 @@ Fdl::Entity::Entity(Factorio & factorio,
                 s->line,
                 "Duplicate defintion for " + name + ".");
         }
+        // TODO check name against list of reserved words
         defparts[name] = &defpart;
     }
 
