@@ -16,6 +16,7 @@ public:
         assert(!_built);
 
         std::unique_ptr<T> ptr = std::make_unique<T>(*this, std::forward<Args>(args)...);
+        assert(ptr);
         T & ref = *ptr;
         _entities.push_back(std::move(ptr));
         return ref;

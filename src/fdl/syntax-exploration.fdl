@@ -325,9 +325,8 @@
   ((in green i)
    (out yellow o))
 
-  (red disconnected)
   (red all-ones)
-  (decider disconnected all-ones letter-a == 0 everything one)
+  (decider () all-ones letter-a == 0 everything one)
 
   (decider (all-ones i) o each == 2 each one))
 

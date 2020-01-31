@@ -8,7 +8,8 @@
 #include <cstdlib>
 
 Fdl::Entity::Entity(Factorio & factorio,
-                    std::string const & part_name,
+                    std::string const & part_type,
+                    std::vector<Arg> const & provided_args,
                     std::string const & fdl_filename):
     Composite(factorio)
 {
@@ -63,10 +64,8 @@ Fdl::Entity::Entity(Factorio & factorio,
         defparts[name] = &defpart;
     }
 
-    // TODO Allow the part to have some arguments?
-    assert(defparts.count(part_name));
-    InstantiatedPart part(*defparts.at(part_name),
-                          std::vector<InstantiatedPart::Arg>(),
+    InstantiatedPart part(part_type,
+                          provided_args,
                           __FILE__,
                           __LINE__,
                           defparts,
