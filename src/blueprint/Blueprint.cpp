@@ -413,6 +413,17 @@ SignalId get_signal_id_from_lower_case(std::string const & name)
     return lower_case_map.at(name);
 }
 
+std::string get_signal_name_lower_case(SignalId id)
+{
+    std::string lower_name = get_signal_name(id);
+    std::transform(
+        lower_name.begin(),
+        lower_name.end(),
+        lower_name.begin(),
+        [](unsigned char c){ return std::tolower(c); });
+
+    return lower_name;
+}
 
 std::string blueprint_string_to_raw_json(std::string const & blueprint_string)
 {

@@ -7,3 +7,4 @@
  * Blueprint.cpp */
 
 SignalId get_signal_id_from_lower_case(std::string const & name);
+std::string get_signal_name_lower_case(SignalId id);

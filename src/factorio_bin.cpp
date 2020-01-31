@@ -92,9 +92,14 @@ int main(int argc, char ** argv)
             auto & c = fac.new_entity<ConstantCombinator>();
             ports_for_entities[e.id].push_back(&c.port("out"));
         }
+        else if (e.name == Signal::medium_electric_pole) // TODO need a more disciplined approach?
+        {
+            auto & c = fac.new_entity<ConstantCombinator>();
+            ports_for_entities[e.id].push_back(&c.port("out"));
+        }
         else
         {
-            throw std::runtime_error(FILE_LINE + ": " + std::to_string(e.name));
+            throw std::runtime_error(FILE_LINE + ": " + get_signal_name_lower_case(e.name));
         }
     }
 

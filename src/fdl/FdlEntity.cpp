@@ -67,7 +67,7 @@ Fdl::Entity::Entity(Factorio & factorio,
     }
 
     InstantiatedPart & part = _new_entity<InstantiatedPart>(
-        part_type, provided_args, __FILE__, __LINE__, defparts);
+        part_type, provided_args, __FILE__, __LINE__, defparts, part_type + " 0 > ");
 
     part.connect_all(colors_of_outside_wires);
 

@@ -40,7 +40,8 @@ public:
         std::vector<Arg> const & provided_args,
         std::string const & instantiation_file,
         size_t instantiation_line,
-        std::unordered_map<std::string, S::PtrV const *> const & defparts);
+        std::unordered_map<std::string, S::PtrV const *> const & defparts,
+        std::string const & log_leader);
 
     void connect_all(std::unordered_map<std::string, std::set<WireColor>> const & colors_of_outside_wires);
 
@@ -88,4 +89,7 @@ private:
     ::Entity * _entity = nullptr;
 
     std::vector<InstantiatedPart*> _parts;
+
+    std::string _log_leader;
+    std::string _part_type;
 };

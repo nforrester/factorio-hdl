@@ -18,7 +18,7 @@ int main(int argc, char ** argv)
 
     fac.build();
 
-    std::cout << "Begin\n";
+    std::cerr << "Begin\n";
 
     bool stable = false;
     for (int i = 0; true; ++i)
@@ -29,20 +29,20 @@ int main(int argc, char ** argv)
         }
 
         stable = fac.tick();
-        std::cout << "Tick.\n";
+        std::cerr << "Tick.\n";
     }
 
     if (stable)
     {
-        std::cout << "Stable.";
+        std::cerr << "Stable.";
     }
     else
     {
-        std::cout << "Did not stabilize before timeout.";
+        std::cerr << "Did not stabilize before timeout.";
     }
-    std::cout << "\n";
-    std::cout << "\n";
-    std::cout << "\n";
+    std::cerr << "\n";
+    std::cerr << "\n";
+    std::cerr << "\n";
 
     std::cout << fac.get_blueprint_string(fdl, argv[1]) << "\n";
 

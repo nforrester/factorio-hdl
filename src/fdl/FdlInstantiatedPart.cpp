@@ -6,6 +6,7 @@
 
 #include <unordered_set>
 #include <cassert>
+#include <iostream>
 
 Fdl::InstantiatedPart::InstantiatedPart(
         Factorio & factorio,
@@ -13,9 +14,13 @@ Fdl::InstantiatedPart::InstantiatedPart(
         std::vector<Arg> const & provided_args,
         std::string const & instantiation_file,
         size_t instantiation_line,
-        std::unordered_map<std::string, S::PtrV const *> const & defparts):
+        std::unordered_map<std::string, S::PtrV const *> const & defparts,
+        std::string const & log_leader):
     Composite(factorio)
 {
+    _log_leader = log_leader;
+    _part_type = part_type;
+
     /* If this is a primitive part, make it so. */
     if (part_type == "constant")
     {
@@ -592,8 +597,16 @@ Fdl::InstantiatedPart::InstantiatedPart(
                 throw S::ParseError(s.file, s.line, "Unrecognized argument " + s.write());
             }
 
+            std::cerr << _log_leader << "NEW "
+                      << type << " " << _parts.size() << "\n";
+
             InstantiatedPart & new_part = _new_entity<InstantiatedPart>(
-                type, new_part_args, l->file, l->line, defparts);
+                type,
+                new_part_args,
+                l->file,
+                l->line,
+                defparts,
+                _log_leader + type + " " + std::to_string(_parts.size()) + " > ");
 
             /* Attach wires. */
             size_t const part_idx = _parts.size();
@@ -880,13 +893,20 @@ void Fdl::InstantiatedPart::connect_all(
             Port const & port = part._outside_ports.at(ippp.second);
             if (!first_port)
             {
+                std::cerr << _log_leader << "HUB   "
+                          << part._part_type << " " << ippp.first << " " << ippp.second
+                          << "\n";
                 first_port = part.ports().at(port.name);
                 continue;
             }
+            std::cerr << _log_leader << "SPOKE "
+                      << part._part_type << " " << ippp.first << " " << ippp.second;
             for (WireColor color : final_wire_colors.at(wire_name))
             {
+                std::cerr << (color == ::Wire::green ? " (green)" : " (red)");
                 _connect(color, *first_port, *part.ports().at(port.name));
             }
+            std::cerr << "\n";
         }
     }
 
