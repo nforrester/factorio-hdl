@@ -78,13 +78,14 @@
     (green b)
     (constant a ((in-sig set-point)))
     (arithmetic (a i) b in-sig / half-deadband-width out-sig)
-    (decider b (b o) out-sig < out-sig out-sig one))
+    (decider b o out-sig > 0 out-sig one))
 
 (defpart main ()
     (red i)
     (red o)
-    (hysteresis (i) o sig:signal-a sig:signal-b 50 10)
-    (constant i ((sig:signal-a 20) (sig:signal-i 1)))
+    (hysteresis i o sig:signal-a sig:signal-b 50 10)
+    (constant i ((sig:signal-a 50) (sig:signal-c 1)))
+    (constant i ((sig:signal-a -20) (sig:signal-i 1)))
     (constant o ((sig:signal-o 1))))
 
 (defpart buffer

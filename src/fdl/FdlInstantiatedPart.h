@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SExp.h"
+#include "src/Composite.h"
 #include "src/entities/ArithmeticCombinator.h"
 #include "src/entities/DeciderCombinator.h"
 
@@ -17,7 +18,7 @@ namespace Fdl
     class InstantiatedPart;
 }
 
-class Fdl::InstantiatedPart
+class Fdl::InstantiatedPart: public Composite
 {
 public:
     /* The vector<string> is the list of outside wires.
@@ -34,12 +35,14 @@ public:
         bool>;                    /*  n  Can be passed to decider (true -> write input counts). */
 
     InstantiatedPart(
+        Factorio & factorio,
         std::string const & part_type,
         std::vector<Arg> const & provided_args,
         std::string const & instantiation_file,
         size_t instantiation_line,
-        std::unordered_map<std::string, S::PtrV const *> const & defparts,
-        Entity & fdl_entity);
+        std::unordered_map<std::string, S::PtrV const *> const & defparts);
+
+    void connect_all(std::unordered_map<std::string, std::set<WireColor>> const & colors_of_outside_wires);
 
 private:
     enum class Color
@@ -84,5 +87,5 @@ private:
 
     ::Entity * _entity = nullptr;
 
-    std::vector<std::unique_ptr<InstantiatedPart>> _parts;
+    std::vector<InstantiatedPart*> _parts;
 };

@@ -8,12 +8,13 @@
 #include <cassert>
 
 Fdl::InstantiatedPart::InstantiatedPart(
-    std::string const & part_type,
-    std::vector<Arg> const & provided_args,
-    std::string const & instantiation_file,
-    size_t instantiation_line,
-    std::unordered_map<std::string, S::PtrV const *> const & defparts,
-    Entity & fdl_entity)
+        Factorio & factorio,
+        std::string const & part_type,
+        std::vector<Arg> const & provided_args,
+        std::string const & instantiation_file,
+        size_t instantiation_line,
+        std::unordered_map<std::string, S::PtrV const *> const & defparts):
+    Composite(factorio)
 {
     /* If this is a primitive part, make it so. */
     if (part_type == "constant")
@@ -38,7 +39,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         _outside_ports.push_back(out);
 
-        ConstantCombinator * constant = &fdl_entity._new_entity<ConstantCombinator>();
+        ConstantCombinator * constant = &_new_entity<ConstantCombinator>();
         constant->constants = std::get<CircuitValues>(provided_args.at(1));
         _entity = constant;
 
@@ -84,7 +85,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
         if (std::holds_alternative<SignalId>(provided_args.at(4)))
         {
-            _entity = &fdl_entity._new_entity<ArithmeticCombinator>(
+            _entity = &_new_entity<ArithmeticCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<ArithmeticCombinator::Op>(provided_args.at(3)),
                 std::get<SignalId>(provided_args.at(4)),
@@ -92,7 +93,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         else
         {
-            _entity = &fdl_entity._new_entity<ArithmeticCombinator>(
+            _entity = &_new_entity<ArithmeticCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<ArithmeticCombinator::Op>(provided_args.at(3)),
                 std::get<SignalValue>(provided_args.at(4)),
@@ -143,7 +144,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
         if (std::holds_alternative<SignalId>(provided_args.at(4)))
         {
-            _entity = &fdl_entity._new_entity<DeciderCombinator>(
+            _entity = &_new_entity<DeciderCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<DeciderCombinator::Op>(provided_args.at(3)),
                 std::get<SignalId>(provided_args.at(4)),
@@ -152,7 +153,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         else
         {
-            _entity = &fdl_entity._new_entity<DeciderCombinator>(
+            _entity = &_new_entity<DeciderCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<DeciderCombinator::Op>(provided_args.at(3)),
                 std::get<SignalValue>(provided_args.at(4)),
@@ -591,20 +592,15 @@ Fdl::InstantiatedPart::InstantiatedPart(
                 throw S::ParseError(s.file, s.line, "Unrecognized argument " + s.write());
             }
 
-            std::unique_ptr<InstantiatedPart> new_part = std::make_unique<InstantiatedPart>(
-                type,
-                new_part_args,
-                l->file,
-                l->line,
-                defparts,
-                fdl_entity);
+            InstantiatedPart & new_part = _new_entity<InstantiatedPart>(
+                type, new_part_args, l->file, l->line, defparts);
 
             /* Attach wires. */
             size_t const part_idx = _parts.size();
             size_t port_idx = 0;
             bool definitely_norm_colors = false;
             bool definitely_flip_colors = false;
-            for (auto const & inside_port : new_part->_outside_ports)
+            for (auto const & inside_port : new_part._outside_ports)
             {
                 /* If two different red wires touch the same port, that's an error.
                  * If two different green wires touch the same port, that's an error.
@@ -691,7 +687,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
                     "Wires connected to part are not of consistent colors.");
             }
 
-            _parts.emplace_back(std::move(new_part));
+            _parts.emplace_back(&new_part);
         }
     }
 
@@ -749,6 +745,183 @@ Fdl::InstantiatedPart::InstantiatedPart(
                             " is connected both to an external in port and an internal out port.");
                     }
                 }
+            }
+        }
+    }
+}
+
+void Fdl::InstantiatedPart::connect_all(
+    std::unordered_map<std::string, std::set<WireColor>> const & colors_of_outside_wires)
+{
+    if (_entity)
+    {
+        for (Port const & port : _outside_ports)
+        {
+            _set_port(port.name, *_entity->ports().at(port.name));
+        }
+        return;
+    }
+
+    bool definitely_norm_colors = false;
+    bool definitely_flip_colors = false;
+    for (auto const & p : _outside_ports)
+    {
+        if (p.outside_wires.size() == 2)
+        {
+            assert(p.color == Color::yellow);
+            assert(colors_of_outside_wires.at(p.outside_wires.at(0)) !=
+                   colors_of_outside_wires.at(p.outside_wires.at(1)));
+            continue;
+        }
+
+        std::set<WireColor> connected_colors;
+        for (std::string const & outside_wire_name : p.outside_wires)
+        {
+            for (WireColor color : colors_of_outside_wires.at(outside_wire_name))
+            {
+                assert(connected_colors.count(color) == 0);
+                connected_colors.insert(color);
+            }
+        }
+
+        if (connected_colors.size() == 2)
+        {
+            assert(p.color == Color::yellow);
+            assert(*connected_colors.begin() !=
+                   *connected_colors.begin() + 1);
+            continue;
+        }
+        assert(connected_colors.size() == 1);
+        WireColor connected_color = *connected_colors.begin();
+
+        if (p.color == Color::yellow)
+        {
+            continue;
+        }
+
+        if (connected_color == ::Wire::green)
+        {
+            if (p.color == Color::green)
+            {
+                definitely_norm_colors = true;
+            }
+            if (p.color == Color::red)
+            {
+                definitely_flip_colors = true;
+            }
+        }
+        else
+        {
+            assert(connected_color == ::Wire::red);
+            if (p.color == Color::red)
+            {
+                definitely_norm_colors = true;
+            }
+            if (p.color == Color::green)
+            {
+                definitely_flip_colors = true;
+            }
+        }
+    }
+    assert(!(definitely_norm_colors && definitely_flip_colors));
+
+    std::unordered_map<std::string, std::set<WireColor>> final_wire_colors;
+    for (auto const & nw : _inside_wires)
+    {
+        std::string const & name = nw.first;
+        Wire const & wire = nw.second;
+
+        std::set<WireColor> colors;
+        if (wire.color == Color::red)
+        {
+            colors.insert(definitely_flip_colors ? ::Wire::green : ::Wire::red);
+        }
+        else if (wire.color == Color::green)
+        {
+            colors.insert(definitely_flip_colors ? ::Wire::red : ::Wire::green);
+        }
+        else
+        {
+            assert(wire.color == Color::yellow);
+            if (wire.outside_port.has_value())
+            {
+                for (std::string const & outside_wire_name :
+                     _outside_ports.at(*wire.outside_port).outside_wires)
+                {
+                    for (WireColor color : colors_of_outside_wires.at(outside_wire_name))
+                    {
+                        assert(colors.count(color) == 0);
+                        colors.insert(color);
+                    }
+                }
+            }
+            else
+            {
+                colors.insert(::Wire::green);
+            }
+        }
+        final_wire_colors[name] = colors;
+    }
+
+    for (InstantiatedPart * p : _parts)
+    {
+        p->connect_all(final_wire_colors);
+    }
+
+    for (auto const & nw : _inside_wires)
+    {
+        std::string const & wire_name = nw.first;
+        Wire const & wire = nw.second;
+
+        ::Port * first_port = nullptr;
+        for (auto const & ippp : wire.inside_ports)
+        {
+            InstantiatedPart & part = *_parts.at(ippp.first);
+            Port const & port = part._outside_ports.at(ippp.second);
+            if (!first_port)
+            {
+                first_port = part.ports().at(port.name);
+                continue;
+            }
+            for (WireColor color : final_wire_colors.at(wire_name))
+            {
+                _connect(color, *first_port, *part.ports().at(port.name));
+            }
+        }
+    }
+
+    for (Port const & port : _outside_ports)
+    {
+        size_t part_idx, port_idx;
+        std::tie(part_idx, port_idx) = _inside_wires.at(port.name).inside_ports.front();
+        InstantiatedPart & inside_part = *_parts.at(part_idx);
+        ::Port & inside_port = *inside_part.ports().at(inside_part._outside_ports.at(port_idx).name);
+
+        if (port.color == Color::yellow)
+        {
+            _set_port(port.name, inside_port);
+        }
+        else if (port.color == Color::red)
+        {
+            if (definitely_flip_colors)
+            {
+                _set_port(port.name, inside_port, ::Wire::green);
+            }
+            else
+            {
+                _set_port(port.name, inside_port, ::Wire::red);
+            }
+        }
+        else
+        {
+            assert(port.color == Color::green);
+            if (definitely_flip_colors)
+            {
+                _set_port(port.name, inside_port, ::Wire::red);
+            }
+            else
+            {
+                _set_port(port.name, inside_port, ::Wire::green);
             }
         }
     }

@@ -10,7 +10,11 @@ int main(int argc, char ** argv)
 
     Factorio fac;
 
-    Entity & fdl = fac.new_entity<Fdl::Entity>("main", std::vector<Fdl::Entity::Arg>(), argv[1]);
+    Entity & fdl = fac.new_entity<Fdl::Entity>(
+        "main",
+        std::vector<Fdl::Entity::Arg>(),
+        std::unordered_map<std::string, std::set<WireColor>>(),
+        argv[1]);
 
     fac.build();
 
@@ -25,10 +29,9 @@ int main(int argc, char ** argv)
         }
 
         stable = fac.tick();
-        std::cout << "\nTick.\n";
+        std::cout << "Tick.\n";
     }
 
-    std::cout << "\n";
     if (stable)
     {
         std::cout << "Stable.";

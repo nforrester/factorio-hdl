@@ -10,6 +10,8 @@
 Fdl::Entity::Entity(Factorio & factorio,
                     std::string const & part_type,
                     std::vector<Arg> const & provided_args,
+                    std::unordered_map<std::string, std::set<WireColor>> const &
+                        colors_of_outside_wires,
                     std::string const & fdl_filename):
     Composite(factorio)
 {
@@ -64,13 +66,24 @@ Fdl::Entity::Entity(Factorio & factorio,
         defparts[name] = &defpart;
     }
 
-    InstantiatedPart part(part_type,
-                          provided_args,
-                          __FILE__,
-                          __LINE__,
-                          defparts,
-                          *this);
+    InstantiatedPart & part = _new_entity<InstantiatedPart>(
+        part_type, provided_args, __FILE__, __LINE__, defparts);
 
-    // TODO wire up the part to the Composite/Entity interface.
-    assert(false);
+    part.connect_all(colors_of_outside_wires);
+
+    for (auto const & np : part.ports())
+    {
+        std::string const & name = np.first;
+        Port & port = *np.second;
+        std::set<WireColor> interf = part.port_interface_colors(port);
+        if (interf.size() == 2)
+        {
+            _set_port(name, port);
+        }
+        else
+        {
+            assert(interf.size() == 1);
+            _set_port(name, port, *interf.begin());
+        }
+    }
 }
