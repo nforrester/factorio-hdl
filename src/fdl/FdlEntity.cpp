@@ -69,7 +69,7 @@ Fdl::Entity::Entity(Factorio & factorio,
                           __FILE__,
                           __LINE__,
                           defparts,
-                          factorio);
+                          *this);
 
     // TODO wire up the part to the Composite/Entity interface.
     assert(false);

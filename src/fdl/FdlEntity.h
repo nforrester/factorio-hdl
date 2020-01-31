@@ -19,4 +19,5 @@ public:
            std::string const & fdl_filename);
 
 private:
+    friend class InstantiatedPart;
 };

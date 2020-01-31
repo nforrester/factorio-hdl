@@ -9,11 +9,11 @@
 #include <vector>
 #include <string>
 
-class Factorio;
 class Entity;
 
 namespace Fdl
 {
+    class Entity;
     class InstantiatedPart;
 }
 
@@ -39,7 +39,7 @@ public:
         std::string const & instantiation_file,
         size_t instantiation_line,
         std::unordered_map<std::string, S::PtrV const *> const & defparts,
-        Factorio & factorio);
+        Entity & fdl_entity);
 
 private:
     enum class Color
@@ -82,7 +82,7 @@ private:
 
     std::unordered_map<std::string, Wire> _inside_wires;
 
-    Entity * _entity = nullptr;
+    ::Entity * _entity = nullptr;
 
     std::vector<std::unique_ptr<InstantiatedPart>> _parts;
 };

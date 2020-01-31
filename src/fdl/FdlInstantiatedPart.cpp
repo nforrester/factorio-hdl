@@ -1,7 +1,8 @@
 #include "FdlInstantiatedPart.h"
-#include "src/Factorio.h"
+#include "FdlEntity.h"
 #include "src/entities/ConstantCombinator.h"
 #include "src/blueprint/util.h"
+#include "src/util.h"
 
 #include <unordered_set>
 #include <cassert>
@@ -12,7 +13,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
     std::string const & instantiation_file,
     size_t instantiation_line,
     std::unordered_map<std::string, S::PtrV const *> const & defparts,
-    Factorio & factorio)
+    Entity & fdl_entity)
 {
     /* If this is a primitive part, make it so. */
     if (part_type == "constant")
@@ -37,7 +38,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         _outside_ports.push_back(out);
 
-        ConstantCombinator * constant = &factorio.new_entity<ConstantCombinator>();
+        ConstantCombinator * constant = &fdl_entity._new_entity<ConstantCombinator>();
         constant->constants = std::get<CircuitValues>(provided_args.at(1));
         _entity = constant;
 
@@ -83,7 +84,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
         if (std::holds_alternative<SignalId>(provided_args.at(4)))
         {
-            _entity = &factorio.new_entity<ArithmeticCombinator>(
+            _entity = &fdl_entity._new_entity<ArithmeticCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<ArithmeticCombinator::Op>(provided_args.at(3)),
                 std::get<SignalId>(provided_args.at(4)),
@@ -91,7 +92,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         else
         {
-            _entity = &factorio.new_entity<ArithmeticCombinator>(
+            _entity = &fdl_entity._new_entity<ArithmeticCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<ArithmeticCombinator::Op>(provided_args.at(3)),
                 std::get<SignalValue>(provided_args.at(4)),
@@ -103,11 +104,11 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
     if (part_type == "decider")
     {
-        if (provided_args.size() != 6 ||
+        if (provided_args.size() != 7 ||
             !holds_alternative<std::vector<std::string>>(provided_args.at(0)) ||
             !holds_alternative<std::vector<std::string>>(provided_args.at(1)) ||
             !holds_alternative<SignalId>(provided_args.at(2)) ||
-            !holds_alternative<ArithmeticCombinator::Op>(provided_args.at(3)) ||
+            !holds_alternative<DeciderCombinator::Op>(provided_args.at(3)) ||
             !(holds_alternative<SignalId>(provided_args.at(4)) ||
               holds_alternative<SignalValue>(provided_args.at(4))) ||
             !holds_alternative<SignalId>(provided_args.at(5)) ||
@@ -116,7 +117,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
             throw S::ParseError(
                 instantiation_file,
                 instantiation_line,
-                "Expected (arithmetic <wires> <wires> "
+                "Expected (decider <wires> <wires> "
                 "<signal> <op> <signal|constant> <signal> <one|input-count>)");
         }
 
@@ -142,7 +143,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
         if (std::holds_alternative<SignalId>(provided_args.at(4)))
         {
-            _entity = &factorio.new_entity<DeciderCombinator>(
+            _entity = &fdl_entity._new_entity<DeciderCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<DeciderCombinator::Op>(provided_args.at(3)),
                 std::get<SignalId>(provided_args.at(4)),
@@ -151,7 +152,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         else
         {
-            _entity = &factorio.new_entity<DeciderCombinator>(
+            _entity = &fdl_entity._new_entity<DeciderCombinator>(
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<DeciderCombinator::Op>(provided_args.at(3)),
                 std::get<SignalValue>(provided_args.at(4)),
@@ -178,14 +179,15 @@ Fdl::InstantiatedPart::InstantiatedPart(
     std::unordered_map<std::string, SignalId> signals;
     std::unordered_map<std::string, SignalValue> ints;
 
-    S::PtrV const & declared_args = defpart.at(1)->as_list()->l;
+    assert(defpart.at(2)->as_list());
+    S::PtrV const & declared_args = defpart.at(2)->as_list()->l;
 
     if (provided_args.size() != declared_args.size())
     {
         throw S::ParseError(
             declared_args.front()->file,
             declared_args.front()->line,
-            "Wrong number of arguments to " + defpart.front()->as_symbol()->s +
+            "Wrong number of arguments to " + defpart.at(1)->as_symbol()->s +
             ". Expected " + std::to_string(declared_args.size()) +
             ", got " + std::to_string(provided_args.size() - 1));
     }
@@ -196,7 +198,6 @@ Fdl::InstantiatedPart::InstantiatedPart(
     auto provided_arg_it = provided_args.begin();
     for (S::Ptr const & declared_arg_s : declared_args)
     {
-        ++provided_arg_it;
         Arg const & provided_arg = *provided_arg_it;
 
         S::PtrV const & declared_arg = declared_arg_s->as_list()->l;
@@ -261,7 +262,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
                     instantiation_line,
                     "Expected wire or list of wires for argument " +
                     std::to_string(arg_index + 1) + " to " +
-                    defpart.front()->as_symbol()->s);
+                    defpart.at(1)->as_symbol()->s);
             }
 
             for (auto const & wire_name : std::get<std::vector<std::string>>(provided_arg))
@@ -308,7 +309,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
                     instantiation_line,
                     "Expected signal for argument " +
                     std::to_string(arg_index + 1) + " to " +
-                    defpart.front()->as_symbol()->s);
+                    defpart.at(1)->as_symbol()->s);
             }
 
             signals[signal_name] = std::get<SignalId>(provided_arg);
@@ -339,7 +340,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
                     instantiation_line,
                     "Expected int for argument " +
                     std::to_string(arg_index + 1) + " to " +
-                    defpart.front()->as_symbol()->s);
+                    defpart.at(1)->as_symbol()->s);
             }
 
             ints[int_name] = std::get<SignalValue>(provided_arg);
@@ -353,10 +354,11 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
 
         ++arg_index;
+        ++provided_arg_it;
     }
 
     /* Process the part body, checking that it is syntactically valid. */
-    for (auto body_form = defpart.begin() + 2;
+    for (auto body_form = defpart.begin() + 3;
          body_form != defpart.end();
          ++body_form)
     {
@@ -493,14 +495,14 @@ Fdl::InstantiatedPart::InstantiatedPart(
                     std::vector<std::string> wires;
                     for (auto & w : sl)
                     {
-                        if (!w->as_symbol() || !_inside_wires.count(s.as_symbol()->s))
+                        if (!w->as_symbol() || !_inside_wires.count(w->as_symbol()->s))
                         {
                             throw S::ParseError(
                                 w->file,
                                 w->line,
                                 w->write() + " is not a wire.");
                         }
-                        wires.push_back(s.as_symbol()->s);
+                        wires.push_back(w->as_symbol()->s);
                     }
                     new_part_args.emplace_back(wires);
                     continue;
@@ -516,6 +518,14 @@ Fdl::InstantiatedPart::InstantiatedPart(
                 if (s.as_symbol())
                 {
                     std::string word = s.as_symbol()->s;
+
+                    if (_inside_wires.count(word))
+                    {
+                        std::vector<std::string> wires;
+                        wires.push_back(word);
+                        new_part_args.emplace_back(wires);
+                        continue;
+                    }
 
                     if (ints.count(word))
                     {
@@ -587,7 +597,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
                 l->file,
                 l->line,
                 defparts,
-                factorio);
+                fdl_entity);
 
             /* Attach wires. */
             size_t const part_idx = _parts.size();

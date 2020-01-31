@@ -80,6 +80,13 @@
     (arithmetic (a i) b in-sig / half-deadband-width out-sig)
     (decider b (b o) out-sig < out-sig out-sig one))
 
+(defpart main ()
+    (red i)
+    (red o)
+    (hysteresis (i) o sig:signal-a sig:signal-b 50 10)
+    (constant i ((sig:signal-a 20) (sig:signal-i 1)))
+    (constant o ((sig:signal-o 1))))
+
 (defpart buffer
     ((in yellow i)
      (out yellow o))
@@ -262,23 +269,23 @@
     (decider duplicated-input-most o sig0 == 3 sig3 input-count)
     (decider duplicated-input-most o sig0 == 4 sig4 input-count))
 
-(defmacro gen-mux-signals "test.scm")
-(gen-demux-signals)
+;(defmacro gen-mux-signals "test.scm")
+;(gen-mux-signals)
 
 (defmacro gen-demux-signals "test.scm")
 (gen-demux-signals)
 
-(defmacro gen-mux-n-circuits "test.scm")
-(gen-mux-n-circuits 2)
-(gen-mux-n-circuits 3)
-(gen-mux-n-circuits 4)
-(gen-mux-n-circuits 5)
+;(defmacro gen-mux-n-circuits "test.scm")
+;(gen-mux-n-circuits 2)
+;(gen-mux-n-circuits 3)
+;(gen-mux-n-circuits 4)
+;(gen-mux-n-circuits 5)
 
-(defmacro gen-demux-n-circuits "test.scm")
-(gen-demux-n-circuits 2)
-(gen-demux-n-circuits 3)
-(gen-demux-n-circuits 4)
-(gen-demux-n-circuits 5)
+;(defmacro gen-demux-n-circuits "test.scm")
+;(gen-demux-n-circuits 2)
+;(gen-demux-n-circuits 3)
+;(gen-demux-n-circuits 4)
+;(gen-demux-n-circuits 5)
 
 (defpart split-bits-in-two
   ((in yellow full)
@@ -326,7 +333,7 @@
    (out yellow o))
 
   (red all-ones)
-  (decider () all-ones letter-a == 0 everything one)
+  (decider () all-ones signal-a == 0 everything one)
 
   (decider (all-ones i) o each == 2 each one))
 

@@ -5,6 +5,7 @@
 #include "src/util.h"
 
 #include <cassert>
+#include <algorithm>
 
 namespace {
     std::map<std::string, SignalId> const name_to_signal_id_map = {
@@ -399,8 +400,14 @@ SignalId get_signal_id_from_lower_case(std::string const & name)
     std::map<std::string, SignalId> lower_case_map;
     for (auto const & kv : name_to_signal_id_map)
     {
-        assert(lower_case_map.count(kv.first) == 0);
-        lower_case_map[kv.first] = kv.second;
+        std::string lower_key = kv.first;
+        std::transform(
+            lower_key.begin(),
+            lower_key.end(),
+            lower_key.begin(),
+            [](unsigned char c){ return std::tolower(c); });
+        assert(lower_case_map.count(lower_key) == 0);
+        lower_case_map[lower_key] = kv.second;
     }
 
     return lower_case_map.at(name);

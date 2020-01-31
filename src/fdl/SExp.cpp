@@ -41,7 +41,7 @@ namespace
         "0123456789"
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "!=<>+-*/%^|&_";
+        "!=<>+-*/%^|&_:";
 
     std::unordered_set<char> const non_line_ending_whitespace_chars =
         str2set(non_line_ending_whitespace_chars_);
