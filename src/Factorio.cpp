@@ -110,6 +110,10 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
             for (WireColor w = 0; w < num_wire_colors; w++)
             {
                 CircuitId cid = p.circuit_id(w);
+                if (cid == invalid_circuit_id)
+                {
+                    continue;
+                }
                 if (hubs.count(cid) == 0)
                 {
                     hubs[cid] = {be.id, bp_port_num, &bpp};
