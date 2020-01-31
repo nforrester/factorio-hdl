@@ -40,7 +40,20 @@ S::Ptr Fdl::Macro::execute(S::List const & orig_form) const
         generated_fdl += buf.data();
     }
 
-    return S::read(generated_fdl, orig_form.file, orig_form.line);
+    /* Read, check, and return the replacement form. */
+    S::Ptr replacement_form = S::read(generated_fdl, orig_form.file, orig_form.line);
+
+    S::List * l = replacement_form->as_list();
+    if (!l || l->l.size() == 0 || !l->l.front()->as_symbol())
+    {
+        throw S::ParseError(
+            replacement_form->file,
+            replacement_form->line,
+            "All top level forms must be non-empty lists beginning with symbols "
+            "(even after macro expansion).");
+    }
+
+    return replacement_form;
 }
 
 void Fdl::expand_these_macros(MacroMap const & macros, S::Ptr & ast_node)

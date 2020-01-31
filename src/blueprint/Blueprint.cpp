@@ -393,6 +393,27 @@ namespace {
     }
 }
 
+SignalId get_signal_id_from_lower_case(std::string const & name)
+{
+    // TODO don't remake this every time
+    std::map<std::string, SignalId> lower_case_map;
+    for (auto const & kv : name_to_signal_id_map)
+    {
+        assert(lower_case_map.count(kv.first) == 0);
+        lower_case_map[kv.first] = kv.second;
+    }
+
+    try
+    {
+        return lower_case_map.at(name);
+    }
+    catch (std::out_of_range & e)
+    {
+        throw std::runtime_error(FILE_LINE + ": " + name);
+    }
+}
+
+
 std::string blueprint_string_to_raw_json(std::string const & blueprint_string)
 {
     assert(blueprint_string.size() > 0);
