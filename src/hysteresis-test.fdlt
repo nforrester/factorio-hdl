@@ -1,0 +1,13 @@
+(load "fdl/syntax-exploration.fdl")
+(green input i)
+(green output o)
+(part-under-test (hysteresis i o sig:signal-a sig:signal-b 50 10))
+(test-type fixed-latency 3)
+
+(test (((i sig:signal-a)) ((o sig:signal-b)))
+  ((0) (0))
+  ((59) (0))
+  ((60) (1))
+  ((41) (1))
+  ((40) (0))
+  ((100) (1)))

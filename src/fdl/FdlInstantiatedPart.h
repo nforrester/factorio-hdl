@@ -92,4 +92,6 @@ private:
 
     std::string _log_leader;
     std::string _part_type;
+
+    friend class Entity;
 };
