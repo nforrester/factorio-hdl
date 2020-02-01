@@ -61,6 +61,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     assert(_built);
 
     Blueprint::Blueprint blueprint;
+    Blueprint::LayoutState layout_state(blueprint);
 
     blueprint.label = label;
 
@@ -70,14 +71,49 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     blueprint.icons.emplace_back(4, Blueprint::Signal(Signal::arithmetic_combinator));
 
     int total_area = 0;
-    for (Entity const * e : entity.constituent_entities())
+    for (Entity const * e : entity.primitive_constituents())
     {
         Blueprint::Entity be;
         be.id = blueprint.entities.size() + 1;
         total_area += e->to_blueprint_entity(be);
         assert(blueprint.entities.count(be.id) == 0);
         blueprint.entities[be.id] = be;
+
+        layout_state.entity_states.emplace_front();
+        Blueprint::LayoutState::EntityState & entity_state = layout_state.entity_states.front();
+        entity_state.primitive = true;
+        entity_state.entity = e;
+        entity_state.blueprint_entity = &blueprint.entities.at(be.id);
+        layout_state.entity_states_by_entity[e] = &entity_state;
+        layout_state.entity_states_by_blueprint_entity[&blueprint.entities.at(be.id)] = &entity_state;
+        layout_state.entity_states_by_id[be.id] = &entity_state;
     }
+
+    std::function<void(::Entity const *)> make_entity_states_for_composite_entities;
+    make_entity_states_for_composite_entities =
+        [&make_entity_states_for_composite_entities,
+         &layout_state]
+        (Entity const * e)
+        {
+            if (layout_state.entity_states_by_entity.count(e))
+            {
+                return;
+            }
+
+            layout_state.entity_states.emplace_front();
+            Blueprint::LayoutState::EntityState & entity_state = layout_state.entity_states.front();
+            entity_state.entity = e;
+            layout_state.entity_states_by_entity[e] = &entity_state;
+            for (Entity const * dc : e->direct_constituents())
+            {
+                make_entity_states_for_composite_entities(dc);
+                entity_state.direct_constituents.push_back(layout_state.entity_states_by_entity.at(dc));
+            }
+        };
+    make_entity_states_for_composite_entities(&entity);
+
+    Blueprint::LayoutState::EntityState & top_level_entity_state =
+        *layout_state.entity_states_by_entity.at(&entity);
 
     /* This implements a hub and spoke wiring strategy.
      * It only works for designs that fit in a 6x7 cell.
@@ -90,9 +126,9 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     };
     std::unordered_map<CircuitId, BPPortInfo> hubs;
     std::unordered_map<Port *, BPPortInfo> port_map;
-    for (size_t id = 1; id < entity.constituent_entities().size() + 1; ++id)
+    for (size_t id = 1; id < entity.primitive_constituents().size() + 1; ++id)
     {
-        Entity const & e = *entity.constituent_entities().at(id - 1);
+        Entity const & e = *entity.primitive_constituents().at(id - 1);
         Blueprint::Entity & be = blueprint.entities.at(id);
 
         for (auto const & np : e.ports())
@@ -184,15 +220,28 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
 
         assert(blueprint.entities.count(be.id) == 0);
         blueprint.entities[be.id] = be;
+
+        layout_state.entity_states.emplace_front();
+        Blueprint::LayoutState::EntityState & es = layout_state.entity_states.front();
+        es.primitive = true;
+        es.blueprint_entity = &blueprint.entities.at(be.id);
+        layout_state.entity_states_by_blueprint_entity[es.blueprint_entity] = &es;
+        layout_state.entity_states_by_id[be.id] = &es;
+        top_level_entity_state.direct_constituents.push_back(&es);
     }
 
     if (total_area <= 42)
     {
-        arrange_blueprint_6x7_cell(blueprint);
+        arrange_blueprint_6x7_cell(layout_state, top_level_entity_state);
     }
     else
     {
         throw std::runtime_error("Too big: " + std::to_string(total_area));
+    }
+
+    for (auto const & es : layout_state.entity_states)
+    {
+        assert(es.placed);
     }
 
     return blueprint.to_blueprint_string();

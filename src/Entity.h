@@ -33,9 +33,16 @@ public:
         return _ports;
     }
 
-    std::vector<Entity*> const & constituent_entities() const
+    // Primitives making up this Entity (constant, arithmetic, and decider combinators).
+    std::vector<Entity*> const & primitive_constituents() const
     {
-        return _constituent_entities;
+        return _primitive_constituents;
+    }
+
+    // For Composite entities, these are the direct children, even if they are themselves Composite.
+    std::vector<Entity*> const & direct_constituents() const
+    {
+        return _direct_constituents;
     }
 
     // Sets only bpe.name and bpe.control_behavior
@@ -45,10 +52,12 @@ public:
 protected:
     Entity(Factorio & factorio): _factorio(factorio)
     {
-        _constituent_entities.push_back(this);
+        // This is undone in Composite's constructor.
+        _primitive_constituents.push_back(this);
     }
 
-    std::vector<Entity*> _constituent_entities;
+    std::vector<Entity*> _primitive_constituents;
+    std::vector<Entity*> _direct_constituents;
 
     void _lock(WireColor color, Port & p);
 

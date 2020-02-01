@@ -20,9 +20,9 @@ public:
 protected:
     Composite(Factorio & factorio): Entity(factorio), _factorio(factorio)
     {
-        assert(_constituent_entities.size() == 1);
-        assert(_constituent_entities.at(0) == this);
-        _constituent_entities.clear();
+        assert(_primitive_constituents.size() == 1);
+        assert(_primitive_constituents.at(0) == this);
+        _primitive_constituents.clear();
     }
 
     template <typename T, typename... Args>
@@ -30,8 +30,9 @@ protected:
     T & _new_entity(Args&&... args)
     {
         T & e = _factorio.new_entity<T>(std::forward<Args>(args)...);
-        std::vector<Entity*> const es = e.constituent_entities();
-        _constituent_entities.insert(_constituent_entities.end(), es.cbegin(), es.cend());
+        std::vector<Entity*> const es = e.primitive_constituents();
+        _primitive_constituents.insert(_primitive_constituents.end(), es.cbegin(), es.cend());
+        _direct_constituents.push_back(&e);
         return e;
     }
 

@@ -150,8 +150,28 @@ namespace
     }
 }
 
-void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
+void Blueprint::arrange_blueprint_6x7_cell(
+    LayoutState & layout_state,
+    LayoutState::EntityState & entity_state_for_whole_cell)
 {
+    std::vector<LayoutState::EntityState*> primitive_entities_for_this_cell;
+    std::function<void(LayoutState::EntityState *)> list_primitive_entities_for_this_cell;
+    list_primitive_entities_for_this_cell =
+        [&list_primitive_entities_for_this_cell,
+         &primitive_entities_for_this_cell]
+        (LayoutState::EntityState * es)
+        {
+            if (es->primitive)
+            {
+                primitive_entities_for_this_cell.push_back(es);
+            }
+            for (LayoutState::EntityState * dc : es->direct_constituents)
+            {
+                list_primitive_entities_for_this_cell(dc);
+            }
+        };
+    list_primitive_entities_for_this_cell(&entity_state_for_whole_cell);
+
     /* 7 slots on one side, minus 1 for a power pole.
      * The other side is reserved for the next 6x7 cell. */
     size_t constexpr max_interface_slots = (7 - 1) * 1;
@@ -168,9 +188,9 @@ void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
     size_t next_2_slot = 0;
     size_t next_1_slot = 0;
 
-    for (auto const & ie : blueprint.entities)
+    for (LayoutState::EntityState const * es : primitive_entities_for_this_cell)
     {
-        Entity const & e = ie.second;
+        Entity const & e = *es->blueprint_entity;
         assert(!e.position.has_value());
 
         if (is_interface(e))
@@ -266,17 +286,25 @@ void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
         Entity pole;
         pole.name = ::Signal::medium_electric_pole;
         pole.position = power_pole_positions.at(i);
-        // TODO FINISH pole
-        pole.id = blueprint.entities.size() + 1;
-        assert(blueprint.entities.count(pole.id) == 0);
-        blueprint.entities[pole.id] = pole;
+        pole.id = layout_state.blueprint.entities.size() + 1;
+        assert(layout_state.blueprint.entities.count(pole.id) == 0);
+        layout_state.blueprint.entities[pole.id] = pole;
+
+        layout_state.entity_states.emplace_front();
+        LayoutState::EntityState & pole_state = layout_state.entity_states.front();
+        pole_state.blueprint_entity = &layout_state.blueprint.entities.at(pole.id);
+        pole_state.placed = true;
+        layout_state.entity_states_by_blueprint_entity[pole_state.blueprint_entity] = &pole_state;
+        layout_state.entity_states_by_id[pole.id] = &pole_state;
+        entity_state_for_whole_cell.direct_constituents.push_back(&pole_state);
     }
 
     for (size_t i = 0; i < interface_entity_ids.size(); ++i)
     {
-        Entity & e = blueprint.entities.at(interface_entity_ids.at(i));
+        Entity & e = layout_state.blueprint.entities.at(interface_entity_ids.at(i));
         e.direction = 1;
         e.position = interface_positions.at(i);
+        layout_state.entity_states_by_id.at(interface_entity_ids.at(i))->placed = true;
     }
 
     for (size_t i = 0; i < max_slots; ++i)
@@ -284,7 +312,7 @@ void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
         Slot1x2 const & slot = slots.at(i);
         for (size_t j = 0; j < slot.entity_ids.size(); ++j)
         {
-            Entity & e = blueprint.entities.at(slot.entity_ids.at(j));
+            Entity & e = layout_state.blueprint.entities.at(slot.entity_ids.at(j));
             e.direction = 2;
             e.position = slot_positions.at(i);
             if (e.name != ::Signal::constant_combinator)
@@ -298,6 +326,20 @@ void Blueprint::arrange_blueprint_6x7_cell(Blueprint & blueprint)
             {
                 e.position->x += j;
             }
+            layout_state.entity_states_by_id.at(slot.entity_ids.at(j))->placed = true;
         }
     }
+
+    std::function<void(LayoutState::EntityState *)> mark_all_as_placed;
+    mark_all_as_placed =
+        [&mark_all_as_placed]
+        (LayoutState::EntityState * es)
+        {
+            for (LayoutState::EntityState * dc : es->direct_constituents)
+            {
+                mark_all_as_placed(dc);
+            }
+            es->placed = true;
+        };
+    mark_all_as_placed(&entity_state_for_whole_cell);
 }
