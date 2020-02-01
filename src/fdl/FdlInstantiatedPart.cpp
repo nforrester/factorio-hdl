@@ -1,7 +1,6 @@
 #include "FdlInstantiatedPart.h"
 #include "FdlEntity.h"
 #include "src/entities/ConstantCombinator.h"
-#include "src/blueprint/util.h"
 #include "src/util.h"
 
 #include <unordered_set>
@@ -417,10 +416,16 @@ Fdl::InstantiatedPart::InstantiatedPart(
             std::cerr << _log_leader << "NEW "
                       << type << " " << _parts.size() << "\n";
 
+            std::unordered_set<std::string> wire_names;
+            for (auto const & nw : _inside_wires)
+            {
+                wire_names.insert(nw.first);
+            }
+
             /* Add a new part. */
             InstantiatedPart & new_part = _new_entity<InstantiatedPart>(
                 type,
-                gather_new_part_args(**body_form),
+                gather_new_part_args(**body_form, signals, ints, wire_names),
                 l->file,
                 l->line,
                 defparts,

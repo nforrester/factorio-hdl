@@ -19,7 +19,7 @@ Fdl::Entity::Entity(Factorio & factorio,
     S::PtrV ast = S::consume(read_file(fdl_filename), fdl_filename, 1);
     for (auto const & form : ast)
     {
-        check_valid_top_level_form(form);
+        check_valid_top_level_form(*form);
     }
     expand_all_macros(ast);
     std::unordered_map<std::string, S::PtrV const *> defparts = ast_to_defparts(ast);
@@ -29,6 +29,7 @@ Fdl::Entity::Entity(Factorio & factorio,
 
     _part->connect_all(colors_of_outside_wires);
 
+    size_t port_idx = 0;
     for (auto const & np : _part->ports())
     {
         std::string const & name = np.first;
@@ -43,6 +44,7 @@ Fdl::Entity::Entity(Factorio & factorio,
             assert(interf.size() == 1);
             _set_port(name, port, *interf.begin());
         }
-        _port_to_metadata[ports().at(name)] = &port;
+        _port_to_metadata[&port] = &_part->_outside_ports.at(port_idx);
+        ++port_idx;
     }
 }

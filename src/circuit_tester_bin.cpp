@@ -1,5 +1,9 @@
-#include "src/Factorio.h"
-#include "FdlEntity.h"
+#include "Factorio.h"
+#include "util.h"
+#include "fdl/FdlEntity.h"
+#include "fdl/FdlMacro.h"
+#include "fdl/util.h"
+#include "entities/ConstantCombinator.h"
 
 #include <iostream>
 #include <sstream>
@@ -13,9 +17,9 @@ int main(int argc, char ** argv)
     S::PtrV test_description = S::consume(read_file(argv[1]), argv[1], 1);
     for (auto const & form : test_description)
     {
-        check_valid_top_level_form(form);
+        Fdl::check_valid_top_level_form(*form);
     }
-    expand_all_macros(test_description);
+    Fdl::expand_all_macros(test_description);
 
     struct TestPort
     {
@@ -74,7 +78,7 @@ int main(int argc, char ** argv)
 
             TestPort test_port;
             test_port.color = command == "green" ? Wire::green : Wire::red;
-            test_form.input = "input" == test_form.at(1)->as_symbol()->s;
+            test_port.input = "input" == test_form.at(1)->as_symbol()->s;
 
             std::string name = test_form.at(2)->as_symbol()->s;
 
@@ -94,7 +98,7 @@ int main(int argc, char ** argv)
         {
             if (test_form.size() != 3 ||
                 !test_form.at(1)->as_symbol() ||
-                !test_form.at(1)->as_symbol()->s == "fixed-latency" ||
+                test_form.at(1)->as_symbol()->s != "fixed-latency" ||
                 !test_form.at(2)->as_int())
             {
                 throw S::ParseError(
@@ -104,7 +108,7 @@ int main(int argc, char ** argv)
                     "Expected (test-type fixed-latency <int>)");
             }
 
-            latency = test_form.at(2)->as_int();
+            latency = test_form.at(2)->as_int()->v;
         }
 
         if (command == "part-under-test")
@@ -136,21 +140,29 @@ int main(int argc, char ** argv)
                 test_ports.at(np.first).entity = &fac.new_entity<ConstantCombinator>();
             }
 
-            Entity & part_under_test = fac.new_entity<Fdl::Entity>(
+            std::unordered_set<std::string> wire_names;
+            for (auto const & np : test_ports)
+            {
+                wire_names.insert(np.first);
+            }
+
+            Fdl::Entity & part_under_test = fac.new_entity<Fdl::Entity>(
                 test_form.at(1)->as_list()->l.front()->as_symbol()->s,
-                gather_new_part_args(test_form.at(1)),
+                Fdl::gather_new_part_args(*test_form.at(1),
+                                          std::unordered_map<std::string, SignalId>(),
+                                          std::unordered_map<std::string, SignalValue>(),
+                                          wire_names),
                 wire_colors,
                 filename);
 
             for (auto const & np : part_under_test.ports())
             {
-                std::string const & inner_port_name = np.first;
-                Port const & inner_port = np.second;
+                Port & inner_port = *np.second;
                 for (auto const & test_port_name :
                      part_under_test.wires_desired_by_port(inner_port))
                 {
                     TestPort const & test_port = test_ports.at(test_port_name);
-                    Port const & outer_port = test_port.entity->ports().at("out");
+                    Port & outer_port = *test_port.entity->ports().at("out");
                     fac.connect(test_port.color, outer_port, inner_port);
                 }
             }
@@ -160,7 +172,7 @@ int main(int argc, char ** argv)
 
         if (command == "test")
         {
-            S::PtrV test_sequence = *s;
+            S::PtrV const & test_sequence = s->as_list()->l;
             if (test_sequence.size() < 3 ||
                 !test_sequence.at(1)->as_list() ||
                 !std::all_of(test_sequence.at(1)->as_list()->l.begin(),
@@ -174,7 +186,7 @@ int main(int argc, char ** argv)
                 !std::all_of(
                     test_sequence.begin() + 2,
                     test_sequence.end(),
-                    [](S::Ptr const x) -> bool {
+                    [](S::Ptr const & x) -> bool {
                         return x->as_list() &&
                                x->as_list()->l.size() == 2 &&
                                std::all_of(
@@ -197,17 +209,18 @@ int main(int argc, char ** argv)
                     "Malformed test expression."); // TODO make this less vague
             }
 
-            HODOR // TODO assemble test_input_format, test_output_format, test_inputs, and test_outputs.
+            assert(false); // TODO assemble test_input_format, test_output_format, test_inputs, and test_outputs.
         }
     }
 
     assert(parts_created);
     assert(test_input_format.size() > 0 ||
            test_output_format.size() > 0);
+    assert(latency >= 0);
 
     fac.build();
 
-    HODOR // TODO run the test
+    assert(false); // TODO run the test
 
     return 0;
 }

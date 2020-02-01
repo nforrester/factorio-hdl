@@ -1,19 +1,20 @@
 #include "util.h"
+#include "src/blueprint/util.h"
 
-void check_valid_top_level_form(S::Exp const & form)
+void Fdl::check_valid_top_level_form(S::Exp & form)
 {
     S::List * l = form.as_list();
     if (!l || l->l.size() == 0 || !l->l.front()->as_symbol())
     {
         throw S::ParseError(
-            s->file,
-            s->line,
+            form.file,
+            form.line,
             "All top level forms must be non-empty lists beginning with symbols.");
     }
 }
 
 std::unordered_map<std::string, S::PtrV const *>
-ast_to_defparts(S::PtrV const & ast)
+Fdl::ast_to_defparts(S::PtrV const & ast)
 {
     std::unordered_map<std::string, S::PtrV const *> defparts;
     for (auto const & s : ast)
@@ -50,7 +51,11 @@ ast_to_defparts(S::PtrV const & ast)
     return defparts;
 }
 
-std::vector<Arg> gather_new_part_args(S::Exp const & body_form)
+std::vector<Fdl::Arg> Fdl::gather_new_part_args(
+    S::Exp & body_form,
+    std::unordered_map<std::string, SignalId> const & signals,
+    std::unordered_map<std::string, SignalValue> const & ints,
+    std::unordered_set<std::string> const & outside_wires)
 {
     S::List * l = body_form.as_list();
     assert(l);
@@ -139,7 +144,7 @@ std::vector<Arg> gather_new_part_args(S::Exp const & body_form)
             std::vector<std::string> wires;
             for (auto & w : sl)
             {
-                if (!w->as_symbol() || !_inside_wires.count(w->as_symbol()->s))
+                if (!w->as_symbol() || !outside_wires.count(w->as_symbol()->s))
                 {
                     throw S::ParseError(
                         w->file,
@@ -163,7 +168,7 @@ std::vector<Arg> gather_new_part_args(S::Exp const & body_form)
         {
             std::string word = s.as_symbol()->s;
 
-            if (_inside_wires.count(word))
+            if (outside_wires.count(word))
             {
                 std::vector<std::string> wires;
                 wires.push_back(word);

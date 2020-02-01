@@ -43,7 +43,7 @@ S::Ptr Fdl::Macro::execute(S::List const & orig_form) const
 
     /* Read, check, and return the replacement form. */
     S::Ptr replacement_form = S::read(generated_fdl, orig_form.file, orig_form.line);
-    check_valid_top_level_form(replacement_form);
+    check_valid_top_level_form(*replacement_form);
     return replacement_form;
 }
 

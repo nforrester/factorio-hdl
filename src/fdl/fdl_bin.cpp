@@ -12,7 +12,7 @@ int main(int argc, char ** argv)
 
     Entity & fdl = fac.new_entity<Fdl::Entity>(
         "main",
-        std::vector<Fdl::Entity::Arg>(),
+        std::vector<Fdl::Arg>(),
         std::unordered_map<std::string, std::set<WireColor>>(),
         argv[1]);
 

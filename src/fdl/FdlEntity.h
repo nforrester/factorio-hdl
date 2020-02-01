@@ -11,8 +11,6 @@ namespace Fdl
 class Fdl::Entity: public Composite
 {
 public:
-    using Arg = InstantiatedPart::Arg;
-
     Entity(Factorio & factorio,
            std::string const & part_name,
            std::vector<Arg> const & provided_args,

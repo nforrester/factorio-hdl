@@ -1,14 +1,7 @@
 #pragma once
 
-#include "SExp.h"
+#include "util.h"
 #include "src/Composite.h"
-#include "src/entities/ArithmeticCombinator.h"
-#include "src/entities/DeciderCombinator.h"
-
-#include <unordered_map>
-#include <variant>
-#include <vector>
-#include <string>
 
 class Entity;
 
@@ -21,19 +14,6 @@ namespace Fdl
 class Fdl::InstantiatedPart: public Composite
 {
 public:
-    /* The vector<string> is the list of outside wires.
-     * The bool is whether a decider should output the input count (true) or not (false). */
-    // TODO Allow more types of arguments to be given to defparts?
-    using Arg = std::variant<
-        /* Can be arg to defpart?    y/n */
-        std::vector<std::string>, /*  y  List of outside wires to connect to a port. */
-        SignalId,                 /*  y  Can be passed to arithmetic or decider. */
-        SignalValue,              /*  y  Can be passed to arithmetic or decider. */
-        CircuitValues,            /*  n  Can be passed to constant. */
-        ArithmeticCombinator::Op, /*  n  Can be passed to arithmetic. */
-        DeciderCombinator::Op,    /*  n  Can be passed to decider. */
-        bool>;                    /*  n  Can be passed to decider (true -> write input counts). */
-
     InstantiatedPart(
         Factorio & factorio,
         std::string const & part_type,
@@ -93,5 +73,5 @@ private:
     std::string _log_leader;
     std::string _part_type;
 
-    friend class Entity;
+    friend class Fdl::Entity;
 };
