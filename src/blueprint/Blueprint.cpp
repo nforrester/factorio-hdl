@@ -270,6 +270,9 @@ namespace {
         //{"???",      Signal::check},
         //{"???",      Signal::info},
         //{"???",      Signal::dot},
+        {"everything", LogicSignal::everything},
+        {"anything", LogicSignal::anything},
+        {"each", LogicSignal::each},
     };
 
     SignalId get_signal_id(std::string const & name)

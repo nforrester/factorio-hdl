@@ -19,7 +19,7 @@ public:
 
     CircuitValues constants;
 
-    void to_blueprint_entity(Blueprint::Entity & bpe) const override;
+    int to_blueprint_entity(Blueprint::Entity & bpe) const override;
 
 private:
     Port _port;

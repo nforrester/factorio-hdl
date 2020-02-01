@@ -183,6 +183,10 @@ Fdl::InstantiatedPart::InstantiatedPart(
     std::unordered_set<std::string> names_in_use;
 
     std::unordered_map<std::string, SignalId> signals;
+    signals["everything"] = LogicSignal::everything;
+    signals["anything"] = LogicSignal::anything;
+    signals["each"] = LogicSignal::each;
+
     std::unordered_map<std::string, SignalValue> ints;
 
     assert(defpart.at(2)->as_list());
@@ -468,6 +472,60 @@ Fdl::InstantiatedPart::InstantiatedPart(
                 };
 
             ints[int_name] = value_from_expression(*ll.at(2));
+        }
+        else if (type == "signal")
+        {
+            if (ll.size() != 3 || !ll.at(1)->as_symbol())
+            {
+                throw S::ParseError(
+                    l->file,
+                    l->line,
+                    "Expected a single symbol for the name of the signal, "
+                    "and one more expression for the value.");
+            }
+            std::string const & signal_name = ll.at(1)->as_symbol()->s;
+            if (names_in_use.count(signal_name))
+            {
+                throw S::ParseError(l->file, l->line, "Name already in use: " + signal_name);
+            }
+            std::function<SignalValue(S::Exp &)> signal_from_expression;
+            signal_from_expression =
+                [&signals, &signal_from_expression](S::Exp & v) -> SignalId
+                {
+                    if (v.as_symbol())
+                    {
+                        return signal_from_symbol(v.as_symbol()->s, signals);
+                    }
+                    S::List * l = v.as_list();
+                    if (l && l->l.size() >= 2)
+                    {
+                        S::Symbol * s = l->l.front()->as_symbol();
+                        if (s)
+                        {
+                            if (s->s == "notsigs")
+                            {
+                                std::set<SignalId> notsigs;
+                                for (auto it = l->l.begin() + 1; it != l->l.end(); ++it)
+                                {
+                                    notsigs.insert(signal_from_expression(**it));
+                                }
+                                SignalId sig = 0;
+                                while (notsigs.count(sig))
+                                {
+                                    ++sig;
+                                }
+                                assert(sig < num_signals);
+                                return sig;
+                            }
+                        }
+                    }
+                    throw S::ParseError(
+                        v.file,
+                        v.line,
+                        "Expression '" + v.write() + "' is not convertible to a signal.");
+                };
+
+            signals[signal_name] = signal_from_expression(*ll.at(2));
         }
         else
         {

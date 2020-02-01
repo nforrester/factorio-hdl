@@ -39,7 +39,8 @@ public:
     }
 
     // Sets only bpe.name and bpe.control_behavior
-    virtual void to_blueprint_entity(Blueprint::Entity & bpe) const = 0;
+    // Returns the area of the entity.
+    virtual int to_blueprint_entity(Blueprint::Entity & bpe) const = 0;
 
 protected:
     Entity(Factorio & factorio): _factorio(factorio)

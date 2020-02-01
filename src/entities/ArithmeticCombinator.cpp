@@ -122,7 +122,7 @@ SignalValue ArithmeticCombinator::operate(
     assert(false);
 }
 
-void ArithmeticCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
+int ArithmeticCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
     bpe.name = Signal::arithmetic_combinator;
 
@@ -141,4 +141,6 @@ void ArithmeticCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
     {
         ac.rhs_signal = _rhs;
     }
+
+    return 2;
 }

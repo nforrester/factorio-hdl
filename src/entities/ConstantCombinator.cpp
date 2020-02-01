@@ -1,7 +1,7 @@
 #include "ConstantCombinator.h"
 #include "src/blueprint/Blueprint.h"
 
-void ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
+int ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
     bpe.name = Signal::constant_combinator;
 
@@ -14,4 +14,6 @@ void ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
         f.filters.emplace_back(iv.second, i, iv.first);
         ++i;
     }
+
+    return 1;
 }

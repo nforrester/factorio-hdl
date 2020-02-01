@@ -37,4 +37,8 @@ namespace Fdl
         std::unordered_set<std::string> const & outside_wires);
 
     std::optional<ArithmeticCombinator::Op> arith_op_from_string(std::string const & s);
+
+    SignalId signal_from_symbol(
+        S::Symbol const & symbol,
+        std::unordered_map<std::string, SignalId> const & signals);
 }

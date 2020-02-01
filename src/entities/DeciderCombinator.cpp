@@ -173,7 +173,7 @@ bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const
     assert(false);
 }
 
-void DeciderCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
+int DeciderCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
     bpe.name = Signal::decider_combinator;
 
@@ -193,4 +193,6 @@ void DeciderCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
     {
         dc.rhs_signal = _rhs;
     }
+
+    return 2;
 }

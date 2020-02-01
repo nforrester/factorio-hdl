@@ -23,7 +23,7 @@ public:
 
     void tick(CircuitManager & circuits) const override;
 
-    void to_blueprint_entity(Blueprint::Entity & bpe) const override;
+    int to_blueprint_entity(Blueprint::Entity & bpe) const override;
 
 private:
     Port _in_port;

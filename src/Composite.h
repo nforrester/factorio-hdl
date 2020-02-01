@@ -12,7 +12,7 @@ public:
     {
     }
 
-    void to_blueprint_entity(Blueprint::Entity & bpe) const override
+    int to_blueprint_entity(Blueprint::Entity & bpe) const override
     {
         assert(false); // should not be called on composite entities.
     }

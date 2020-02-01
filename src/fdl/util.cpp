@@ -85,33 +85,8 @@ std::vector<Fdl::Arg> Fdl::gather_new_part_args(
                             "Expected (<signal> <int>), got: " + sig_val->write());
                     }
 
-                    std::string const & word = sig_val->as_list()->l.at(0)->as_symbol()->s;
-                    SignalId sig;
-                    if (signals.count(word))
-                    {
-                        sig = signals.at(word);
-                    }
-                    else if (word.starts_with("sig:"))
-                    {
-                        try
-                        {
-                            sig = get_signal_id_from_lower_case(word.substr(4));
-                        }
-                        catch (std::out_of_range & e)
-                        {
-                            throw S::ParseError(
-                                sig_val->file,
-                                sig_val->line,
-                                "No such signal: " + word);
-                        }
-                    }
-                    else
-                    {
-                        throw S::ParseError(
-                            sig_val->file,
-                            sig_val->line,
-                            "Not a signal: " + word);
-                    }
+                    S::Symbol const & symbol = *sig_val->as_list()->l.at(0)->as_symbol();
+                    SignalId sig = signal_from_symbol(symbol, signals);
 
                     SignalValue value;
                     S::Exp & int_exp = *sig_val->as_list()->l.at(1);
@@ -131,7 +106,7 @@ std::vector<Fdl::Arg> Fdl::gather_new_part_args(
                             throw S::ParseError(
                                 int_exp.file,
                                 int_exp.line,
-                                "Not an int: " + word);
+                                "Not an int: " + int_word);
                         }
                     }
 
@@ -248,4 +223,35 @@ std::optional<ArithmeticCombinator::Op> Fdl::arith_op_from_string(std::string co
     if (word == "|") { return ArithmeticCombinator::Op::OR; }
     if (word == "^") { return ArithmeticCombinator::Op::XOR; }
     return std::optional<ArithmeticCombinator::Op>();
+}
+
+SignalId Fdl::signal_from_symbol(
+    S::Symbol const & symbol,
+    std::unordered_map<std::string, SignalId> const & signals)
+{
+    if (signals.count(symbol.s))
+    {
+        return signals.at(symbol.s);
+    }
+    else if (symbol.s.starts_with("sig:"))
+    {
+        try
+        {
+            return get_signal_id_from_lower_case(symbol.s.substr(4));
+        }
+        catch (std::out_of_range & e)
+        {
+            throw S::ParseError(
+                symbol.file,
+                symbol.line,
+                "No such signal: " + symbol.s);
+        }
+    }
+    else
+    {
+        throw S::ParseError(
+            symbol.file,
+            symbol.line,
+            "Not a signal: " + symbol.s);
+    }
 }

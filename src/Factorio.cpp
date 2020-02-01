@@ -69,11 +69,12 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     blueprint.icons.emplace_back(3, Blueprint::Signal(Signal::constant_combinator));
     blueprint.icons.emplace_back(4, Blueprint::Signal(Signal::arithmetic_combinator));
 
+    int total_area = 0;
     for (Entity const * e : entity.constituent_entities())
     {
         Blueprint::Entity be;
         be.id = blueprint.entities.size() + 1;
-        e->to_blueprint_entity(be);
+        total_area += e->to_blueprint_entity(be);
         assert(blueprint.entities.count(be.id) == 0);
         blueprint.entities[be.id] = be;
     }
@@ -185,7 +186,14 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         blueprint.entities[be.id] = be;
     }
 
-    arrange_blueprint_6x7_cell(blueprint);
+    if (total_area <= 42)
+    {
+        arrange_blueprint_6x7_cell(blueprint);
+    }
+    else
+    {
+        throw std::runtime_error("Too big: " + std::to_string(total_area));
+    }
 
     return blueprint.to_blueprint_string();
 }
