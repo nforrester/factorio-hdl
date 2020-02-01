@@ -1,4 +1,5 @@
 #include "CircuitValues.h"
+#include "blueprint/util.h"
 
 #include <vector>
 
@@ -59,7 +60,7 @@ std::ostream & operator<<(std::ostream & out, CircuitValues const & values)
         }
         first = false;
 
-        out << v.first << " = " << v.second;
+        out << get_signal_name_lower_case(v.first) << " = " << v.second;
     }
     out << "]";
 

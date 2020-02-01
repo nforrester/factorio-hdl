@@ -6,6 +6,7 @@
 #include <unordered_set>
 #include <cassert>
 #include <iostream>
+#include <functional>
 
 Fdl::InstantiatedPart::InstantiatedPart(
         Factorio & factorio,
@@ -410,6 +411,63 @@ Fdl::InstantiatedPart::InstantiatedPart(
             wire.line = ll.at(1)->line;
             wire.color = type == "green" ? Color::green : Color::red;
             _inside_wires[wire_name] = wire;
+        }
+        else if (type == "int")
+        {
+            if (ll.size() != 3 || !ll.at(1)->as_symbol())
+            {
+                throw S::ParseError(
+                    l->file,
+                    l->line,
+                    "Expected a single symbol for the name of the int, "
+                    "and one more expression for the value.");
+            }
+            std::string const & int_name = ll.at(1)->as_symbol()->s;
+            if (names_in_use.count(int_name))
+            {
+                throw S::ParseError(l->file, l->line, "Name already in use: " + int_name);
+            }
+            std::function<SignalValue(S::Exp &)> value_from_expression;
+            value_from_expression =
+                [&ints, &value_from_expression](S::Exp & v) -> SignalValue
+                {
+                    if (v.as_int())
+                    {
+                        return v.as_int()->v;
+                    }
+                    if (v.as_symbol())
+                    {
+                        std::string const & int_name = v.as_symbol()->s;
+                        if (!ints.count(int_name))
+                        {
+                            throw S::ParseError(v.file, v.line, "Not an int: " + int_name);
+                        }
+                        return ints.at(int_name);
+                    }
+                    S::List * l = v.as_list();
+                    if (l && l->l.size() == 3)
+                    {
+                        S::Symbol * s = l->l.front()->as_symbol();
+                        if (s)
+                        {
+                            std::optional<ArithmeticCombinator::Op> arith_op =
+                                arith_op_from_string(s->s);
+                            if (arith_op.has_value())
+                            {
+                                return ArithmeticCombinator::operate(
+                                    *arith_op,
+                                    value_from_expression(*l->l.at(1)),
+                                    value_from_expression(*l->l.at(2)));
+                            }
+                        }
+                    }
+                    throw S::ParseError(
+                        v.file,
+                        v.line,
+                        "Expression '" + v.write() + "' is not convertible to an int.");
+                };
+
+            ints[int_name] = value_from_expression(*ll.at(2));
         }
         else
         {

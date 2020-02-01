@@ -220,17 +220,8 @@ std::vector<Fdl::Arg> Fdl::gather_new_part_args(
             if (word == "<=") { new_part_args.emplace_back(DeciderCombinator::Op::LE); }
             if (word == "==") { new_part_args.emplace_back(DeciderCombinator::Op::EQ); }
             if (word == "!=") { new_part_args.emplace_back(DeciderCombinator::Op::NE); }
-            if (word == "+") { new_part_args.emplace_back(ArithmeticCombinator::Op::ADD); }
-            if (word == "-") { new_part_args.emplace_back(ArithmeticCombinator::Op::SUB); }
-            if (word == "*") { new_part_args.emplace_back(ArithmeticCombinator::Op::MUL); }
-            if (word == "/") { new_part_args.emplace_back(ArithmeticCombinator::Op::DIV); }
-            if (word == "%") { new_part_args.emplace_back(ArithmeticCombinator::Op::MOD); }
-            if (word == "**") { new_part_args.emplace_back(ArithmeticCombinator::Op::POW); }
-            if (word == "<<") { new_part_args.emplace_back(ArithmeticCombinator::Op::LSH); }
-            if (word == ">>") { new_part_args.emplace_back(ArithmeticCombinator::Op::RSH); }
-            if (word == "&") { new_part_args.emplace_back(ArithmeticCombinator::Op::AND); }
-            if (word == "|") { new_part_args.emplace_back(ArithmeticCombinator::Op::OR); }
-            if (word == "^") { new_part_args.emplace_back(ArithmeticCombinator::Op::XOR); }
+            std::optional<ArithmeticCombinator::Op> arith_op = arith_op_from_string(word);
+            if (arith_op.has_value()) { new_part_args.emplace_back(*arith_op); }
             if (nargs != new_part_args.size())
             {
                 continue;
@@ -241,4 +232,20 @@ std::vector<Fdl::Arg> Fdl::gather_new_part_args(
     }
 
     return new_part_args;
+}
+
+std::optional<ArithmeticCombinator::Op> Fdl::arith_op_from_string(std::string const & word)
+{
+    if (word == "+") { return ArithmeticCombinator::Op::ADD; }
+    if (word == "-") { return ArithmeticCombinator::Op::SUB; }
+    if (word == "*") { return ArithmeticCombinator::Op::MUL; }
+    if (word == "/") { return ArithmeticCombinator::Op::DIV; }
+    if (word == "%") { return ArithmeticCombinator::Op::MOD; }
+    if (word == "**") { return ArithmeticCombinator::Op::POW; }
+    if (word == "<<") { return ArithmeticCombinator::Op::LSH; }
+    if (word == ">>") { return ArithmeticCombinator::Op::RSH; }
+    if (word == "&") { return ArithmeticCombinator::Op::AND; }
+    if (word == "|") { return ArithmeticCombinator::Op::OR; }
+    if (word == "^") { return ArithmeticCombinator::Op::XOR; }
+    return std::optional<ArithmeticCombinator::Op>();
 }

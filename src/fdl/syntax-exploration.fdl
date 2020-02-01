@@ -76,9 +76,10 @@
 
     (green a)
     (green b)
-    (constant a ((in-sig set-point)))
+    (int negative-set-point (* -1 set-point))
+    (constant a ((in-sig negative-set-point)))
     (arithmetic (a i) b in-sig / half-deadband-width out-sig)
-    (decider b o out-sig > 0 out-sig one))
+    (decider b (b o) out-sig > 0 out-sig one))
 
 (defpart main ()
     (red i)

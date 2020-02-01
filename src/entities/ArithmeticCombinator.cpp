@@ -88,7 +88,13 @@ namespace
 
 SignalValue ArithmeticCombinator::_operate(SignalValue lhs, SignalValue rhs) const
 {
-    switch (_op)
+    return operate(_op, lhs, rhs);
+}
+
+SignalValue ArithmeticCombinator::operate(
+    ArithmeticCombinator::Op op, SignalValue lhs, SignalValue rhs)
+{
+    switch (op)
     {
     case Op::ADD:
         return lhs + rhs;
