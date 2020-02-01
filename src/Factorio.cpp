@@ -232,7 +232,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
 
     if (total_area <= 42)
     {
-        arrange_blueprint_6x7_cell(layout_state, top_level_entity_state);
+        arrange_blueprint_6x7_cell(layout_state, top_level_entity_state, 0, 0);
     }
     else
     {

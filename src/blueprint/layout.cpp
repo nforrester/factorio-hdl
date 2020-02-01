@@ -3,131 +3,6 @@
 
 #include <unordered_set>
 
-void Blueprint::move_blueprint(Blueprint & blueprint, double x, double y)
-{
-    for (auto & ie : blueprint.entities)
-    {
-        Entity & e = ie.second;
-        assert(e.position.has_value());
-        e.position->x += x;
-        e.position->y += y;
-    }
-}
-
-namespace
-{
-    void assert_only_legal_entities(Blueprint::Blueprint const & blueprint)
-    {
-        // Code depends on legal entities being restricted to either 1x1 or 1x2.
-        static std::unordered_set<SignalId> const legal_entities =
-        {
-            Signal::medium_electric_pole,
-            Signal::constant_combinator,
-            Signal::arithmetic_combinator,
-            Signal::decider_combinator,
-        };
-
-        for (auto const & ie : blueprint.entities)
-        {
-            Blueprint::Entity const & e = ie.second;
-            assert(legal_entities.count(e.name) == 1);
-        }
-    }
-
-    struct CollisionSet
-    {
-        CollisionSet(Blueprint::Blueprint const & blueprint)
-        {
-            // Ensure that all entities are 1x1 or 1x2.
-            assert_only_legal_entities(blueprint);
-
-            for (auto const & ie : blueprint.entities)
-            {
-                Blueprint::Entity const & e = ie.second;
-                bool x_int = e.position->x == fmod(e.position->x, 1);
-                bool y_int = e.position->y == fmod(e.position->y, 1);
-                assert(x_int || y_int);
-                if (x_int)
-                {
-                    if (y_int)
-                    {
-                        if (e.name == Signal::medium_electric_pole)
-                        {
-                            medium_electric_pole_positions.insert(*e.position);
-                        }
-                        else
-                        {
-                            non_merging_positions.insert(*e.position);
-                        }
-                    }
-                    else
-                    {
-                        assert(x_int && (!y_int));
-                        assert(e.name != Signal::medium_electric_pole);
-                        double const x = e.position->x;
-                        double const y = e.position->y;
-                        double const y1 = floor(y);
-                        double const y2 = y1 + 1;
-                        non_merging_positions.insert(Blueprint::Entity::Position(x, y1));
-                        non_merging_positions.insert(Blueprint::Entity::Position(x, y2));
-                    }
-                }
-                else
-                {
-                    assert((!x_int) && y_int);
-                    assert(e.name != Signal::medium_electric_pole);
-                    double const x = e.position->x;
-                    double const y = e.position->y;
-                    double const x1 = floor(x);
-                    double const x2 = x1 + 1;
-                    non_merging_positions.insert(Blueprint::Entity::Position(x1, y));
-                    non_merging_positions.insert(Blueprint::Entity::Position(x2, y));
-                }
-            }
-        }
-
-        struct PositionHash
-        {
-            size_t operator()(Blueprint::Entity::Position const & p) const
-            {
-                size_t hx = std::hash<double>()(p.x);
-                size_t hy = std::hash<double>()(p.y);
-                return std::hash<size_t>()(hx ^ hy);
-            }
-        };
-
-        std::unordered_set<Blueprint::Entity::Position, PositionHash> non_merging_positions;
-        std::unordered_set<Blueprint::Entity::Position, PositionHash> medium_electric_pole_positions;
-    };
-}
-
-void Blueprint::merge_blueprints(Blueprint & dst, Blueprint const & src)
-{
-    CollisionSet dst_collisions(dst);
-    CollisionSet src_collisions(src);
-
-    for (auto const & p : src_collisions.non_merging_positions)
-    {
-        assert(dst_collisions.non_merging_positions.count(p) == 0);
-        assert(dst_collisions.medium_electric_pole_positions.count(p) == 0);
-    }
-
-    for (auto const & p : src_collisions.medium_electric_pole_positions)
-    {
-        assert(dst_collisions.non_merging_positions.count(p) == 0);
-    }
-
-    assert(false);
-    // TODO ACTUALLY PERFORM THE MERGE. BE SURE TO CHANGE WIRE TARGET ENTITY IDS.
-//    for (auto const & ie : src.entities)
-//    {
-//        Blueprint::Entity const & e = ie.second;
-//        if (dst_collisions.medium_electric_pole_positions.count(*e.p) == 0)
-//        {
-//        }
-//    }
-}
-
 namespace
 {
     /* Constant combinators whose signals are all 0
@@ -152,8 +27,13 @@ namespace
 
 void Blueprint::arrange_blueprint_6x7_cell(
     LayoutState & layout_state,
-    LayoutState::EntityState & entity_state_for_whole_cell)
+    LayoutState::EntityState & entity_state_for_whole_cell,
+    int offset_x_cells,
+    int offset_y_cells)
 {
+    int offset_x = offset_x_cells * 7;
+    int offset_y = offset_y_cells * 8;
+
     std::vector<LayoutState::EntityState*> primitive_entities_for_this_cell;
     std::function<void(LayoutState::EntityState *)> list_primitive_entities_for_this_cell;
     list_primitive_entities_for_this_cell =
@@ -284,8 +164,17 @@ void Blueprint::arrange_blueprint_6x7_cell(
     for (size_t i = 0; i < num_power_poles; ++i)
     {
         Entity pole;
-        pole.name = ::Signal::medium_electric_pole;
         pole.position = power_pole_positions.at(i);
+        pole.position->x += offset_x;
+        pole.position->y += offset_y;
+        auto ppp = std::make_pair(pole.position->x, pole.position->y);
+        if (layout_state.medium_electric_pole_positions.count(ppp))
+        {
+            continue;
+        }
+        layout_state.medium_electric_pole_positions.insert(ppp);
+
+        pole.name = ::Signal::medium_electric_pole;
         pole.id = layout_state.blueprint.entities.size() + 1;
         assert(layout_state.blueprint.entities.count(pole.id) == 0);
         layout_state.blueprint.entities[pole.id] = pole;
@@ -304,6 +193,8 @@ void Blueprint::arrange_blueprint_6x7_cell(
         Entity & e = layout_state.blueprint.entities.at(interface_entity_ids.at(i));
         e.direction = 1;
         e.position = interface_positions.at(i);
+        e.position->x += offset_x;
+        e.position->y += offset_y;
         layout_state.entity_states_by_id.at(interface_entity_ids.at(i))->placed = true;
     }
 
@@ -315,6 +206,8 @@ void Blueprint::arrange_blueprint_6x7_cell(
             Entity & e = layout_state.blueprint.entities.at(slot.entity_ids.at(j));
             e.direction = 2;
             e.position = slot_positions.at(i);
+            e.position->x += offset_x;
+            e.position->y += offset_y;
             if (e.name != ::Signal::constant_combinator)
             {
                 assert(e.name == ::Signal::decider_combinator ||

@@ -3,6 +3,7 @@
 #include <vector>
 #include <forward_list>
 #include <unordered_map>
+#include <unordered_set>
 
 class Entity;
 
@@ -10,8 +11,15 @@ namespace Blueprint {
     struct Blueprint;
     class Entity;
 
-    void move_blueprint(Blueprint & blueprint, double x, double y);
-    void merge_blueprints(Blueprint & dst, Blueprint const & src);
+    struct PositionHash
+    {
+        size_t operator()(std::pair<double, double> const & p) const
+        {
+            size_t hx = std::hash<double>()(p.first);
+            size_t hy = std::hash<double>()(p.second);
+            return std::hash<size_t>()(hx ^ hy);
+        }
+    };
 
     struct LayoutState
     {
@@ -29,6 +37,8 @@ namespace Blueprint {
         std::unordered_map<::Entity const *, EntityState*> entity_states_by_entity;
         std::unordered_map<Entity*, EntityState*> entity_states_by_blueprint_entity;
         std::unordered_map<int, EntityState*> entity_states_by_id;
+
+		std::unordered_set<std::pair<double, double>, PositionHash> medium_electric_pole_positions;
     };
 
     /* Set position and direction for all entities in blueprint.
@@ -39,5 +49,7 @@ namespace Blueprint {
      * are assumed to mark exernal interfaces. */
     void arrange_blueprint_6x7_cell(
         LayoutState & layout_state,
-        LayoutState::EntityState & entity_state_for_whole_cell);
+        LayoutState::EntityState & entity_state_for_whole_cell,
+        int offset_x_cells,
+        int offset_y_cells);
 }
