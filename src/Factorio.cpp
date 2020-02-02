@@ -119,6 +119,99 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     Blueprint::LayoutState::EntityState & top_level_entity_state =
         *layout_state.entity_states_by_entity.at(&entity);
 
+    /* For each interface, add a constant combinator with a label. */
+    std::map<int, Port const *> interface_id_to_port_map;
+    for (auto const & np : entity.ports())
+    {
+        std::string const & name = np.first;
+        Port const * port = np.second;
+        assert(port);
+
+        Blueprint::Entity be;
+        be.id = blueprint.entities.size() + 1;
+
+        // set label
+        be.name = Signal::constant_combinator;
+        be.control_behavior = Blueprint::Entity::Filters();
+        Blueprint::Entity::Filters & f = std::get<Blueprint::Entity::Filters>(*be.control_behavior);
+        size_t i = 0;
+        for (char c : name)
+        {
+            if ('A' <= c && c <= 'Z')
+            {
+                c += 'a' - 'A';
+            }
+            if (c < 'a' || 'z' < c)
+            {
+                continue;
+            }
+            if (i == 4)
+            {
+                break;
+            }
+            ++i;
+            f.filters.emplace_back(0, i, static_cast<SignalId>(c - 'a') + Signal::letter_a);
+        }
+
+        assert(blueprint.entities.count(be.id) == 0);
+        blueprint.entities[be.id] = be;
+        interface_id_to_port_map[be.id] = port;
+
+        layout_state.entity_states.emplace_front();
+        Blueprint::LayoutState::EntityState & es = layout_state.entity_states.front();
+        es.primitive = true;
+        es.blueprint_entity = &blueprint.entities.at(be.id);
+        layout_state.entity_states_by_blueprint_entity[es.blueprint_entity] = &es;
+        layout_state.entity_states_by_id[be.id] = &es;
+        top_level_entity_state.direct_constituents.push_back(&es);
+    }
+
+    /* Traverse the tree of entities depth first and pack entities into a row of 6x7 cells. */
+    std::vector<std::vector<Blueprint::LayoutState::EntityState*>> entities_that_fit_in_cells;
+    entities_that_fit_in_cells.emplace_back();
+    size_t constexpr cell_area = 6 * 7;
+    size_t current_cell_available_area = cell_area;
+    std::forward_list<Blueprint::LayoutState::EntityState*> entities_that_might_not_fit_in_cells;
+    entities_that_might_not_fit_in_cells.push_front(&top_level_entity_state);
+    while (!entities_that_might_not_fit_in_cells.empty())
+    {
+        Blueprint::LayoutState::EntityState * this_one = entities_that_might_not_fit_in_cells.front();
+        entities_that_might_not_fit_in_cells.pop_front();
+        if (this_one->total_non_interface_area <= current_cell_available_area)
+        {
+            entities_that_fit_in_cells.back().push_back(this_one);
+            current_cell_available_area -= this_one->total_non_interface_area;
+            continue;
+        }
+        /* Don't break up this entity if it will fit completely in the next cell. */
+        if (this_one->total_non_interface_area <= cell_area)
+        {
+            current_cell_available_area = cell_area;
+            entities_that_fit_in_cells.emplace_back();
+            entities_that_fit_in_cells.back().push_back(this_one);
+            current_cell_available_area -= this_one->total_non_interface_area;
+            continue;
+        }
+        for (Blueprint::LayoutState::EntityState * dc : this_one->direct_constituents)
+        {
+            entities_that_might_not_fit_in_cells.push_front(dc);
+        }
+    }
+
+    /* Arrange the row of 6x7 cells on a Hilbert Curve so that adjacent cells will be in close proximity. */
+    int const hilbert_curve_final_side_length =
+        compute_final_side_length(entities_that_fit_in_cells.size());
+    for (size_t i = 0; i < entities_that_fit_in_cells.size(); ++i)
+    {
+        int x, y;
+        std::tie(x, y) = compute_position_along_hilbert_curve(hilbert_curve_final_side_length, i);
+        arrange_blueprint_6x7_cell(layout_state, entities_that_fit_in_cells.at(i), x, y);
+    }
+    for (auto const & es : layout_state.entity_states)
+    {
+        assert((!es.primitive) || es.placed);
+    }
+
     /* This implements a hub and spoke wiring strategy.
      * It only works for designs that fit in a 6x7 cell.
      * This will need to be upgraded to handle large blueprints. */
@@ -174,37 +267,12 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         }
     }
 
-    /* For each interface, add a constant combinator with a label and a wire. */
-    for (auto const & np : entity.ports())
+    /* Wire up the labeled interface combinators. */
+    for (std::pair<int, Port const *> id_and_port : interface_id_to_port_map)
     {
-        std::string const & name = np.first;
-        Port const * port = np.second;
+        Blueprint::Entity & be = blueprint.entities.at(id_and_port.first);
+        Port const * port = id_and_port.second;
         assert(port);
-
-        Blueprint::Entity be;
-        be.id = blueprint.entities.size() + 1;
-
-        be.name = Signal::constant_combinator;
-        be.control_behavior = Blueprint::Entity::Filters();
-        Blueprint::Entity::Filters & f = std::get<Blueprint::Entity::Filters>(*be.control_behavior);
-        size_t i = 0;
-        for (char c : name)
-        {
-            if ('A' <= c && c <= 'Z')
-            {
-                c += 'a' - 'A';
-            }
-            if (c < 'a' || 'z' < c)
-            {
-                continue;
-            }
-            if (i == 4)
-            {
-                break;
-            }
-            ++i;
-            f.filters.emplace_back(0, i, static_cast<SignalId>(c - 'a') + Signal::letter_a);
-        }
 
         Blueprint::Entity::Port interface_bpp;
         BPPortInfo const & pmpi = port_map.at(const_cast<Port*>(port));
@@ -221,64 +289,6 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         }
 
         be.ports[1] = interface_bpp;
-
-        assert(blueprint.entities.count(be.id) == 0);
-        blueprint.entities[be.id] = be;
-
-        layout_state.entity_states.emplace_front();
-        Blueprint::LayoutState::EntityState & es = layout_state.entity_states.front();
-        es.primitive = true;
-        es.blueprint_entity = &blueprint.entities.at(be.id);
-        layout_state.entity_states_by_blueprint_entity[es.blueprint_entity] = &es;
-        layout_state.entity_states_by_id[be.id] = &es;
-        top_level_entity_state.direct_constituents.push_back(&es);
-    }
-
-    std::vector<std::vector<Blueprint::LayoutState::EntityState*>> entities_that_fit_in_cells;
-    entities_that_fit_in_cells.emplace_back();
-    size_t constexpr cell_area = 6 * 7;
-    size_t current_cell_available_area = cell_area;
-    std::forward_list<Blueprint::LayoutState::EntityState*> entities_that_might_not_fit_in_cells;
-    entities_that_might_not_fit_in_cells.push_front(&top_level_entity_state);
-    while (!entities_that_might_not_fit_in_cells.empty())
-    {
-        Blueprint::LayoutState::EntityState * this_one = entities_that_might_not_fit_in_cells.front();
-        entities_that_might_not_fit_in_cells.pop_front();
-        if (this_one->total_non_interface_area <= current_cell_available_area)
-        {
-            entities_that_fit_in_cells.back().push_back(this_one);
-            current_cell_available_area -= this_one->total_non_interface_area;
-            continue;
-        }
-        if (this_one->total_non_interface_area <= cell_area)
-        {
-            current_cell_available_area = cell_area;
-            entities_that_fit_in_cells.emplace_back();
-            entities_that_fit_in_cells.back().push_back(this_one);
-            current_cell_available_area -= this_one->total_non_interface_area;
-            continue;
-        }
-        for (Blueprint::LayoutState::EntityState * dc : this_one->direct_constituents)
-        {
-            entities_that_might_not_fit_in_cells.push_front(dc);
-        }
-    }
-
-    int const hilbert_curve_final_side_length =
-        compute_final_side_length(entities_that_fit_in_cells.size());
-
-    for (size_t i = 0; i < entities_that_fit_in_cells.size(); ++i)
-    {
-        int x, y;
-        std::tie(x, y) = compute_position_along_hilbert_curve(hilbert_curve_final_side_length, i);
-        arrange_blueprint_6x7_cell(layout_state, entities_that_fit_in_cells.at(i), x, y);
-    }
-
-    // TODO wire up the cells to eachother.
-
-    for (auto const & es : layout_state.entity_states)
-    {
-        assert((!es.primitive) || es.placed);
     }
 
     return blueprint.to_blueprint_string();
