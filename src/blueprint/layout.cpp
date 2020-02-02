@@ -27,10 +27,12 @@ namespace
 
 void Blueprint::arrange_blueprint_6x7_cell(
     LayoutState & layout_state,
-    LayoutState::EntityState & entity_state_for_whole_cell,
+    std::vector<LayoutState::EntityState*> const & top_cell_entity_states,
     int offset_x_cells,
     int offset_y_cells)
 {
+    assert(top_cell_entity_states.size() > 0);
+
     int offset_x = offset_x_cells * 7;
     int offset_y = offset_y_cells * 8;
 
@@ -50,7 +52,10 @@ void Blueprint::arrange_blueprint_6x7_cell(
                 list_primitive_entities_for_this_cell(dc);
             }
         };
-    list_primitive_entities_for_this_cell(&entity_state_for_whole_cell);
+    for (LayoutState::EntityState * es : top_cell_entity_states)
+    {
+        list_primitive_entities_for_this_cell(es);
+    }
 
     /* 7 slots on one side, minus 1 for a power pole.
      * The other side is reserved for the next 6x7 cell. */
@@ -185,7 +190,7 @@ void Blueprint::arrange_blueprint_6x7_cell(
         pole_state.placed = true;
         layout_state.entity_states_by_blueprint_entity[pole_state.blueprint_entity] = &pole_state;
         layout_state.entity_states_by_id[pole.id] = &pole_state;
-        entity_state_for_whole_cell.direct_constituents.push_back(&pole_state);
+        top_cell_entity_states.front()->direct_constituents.push_back(&pole_state);
     }
 
     for (size_t i = 0; i < interface_entity_ids.size(); ++i)
@@ -234,5 +239,8 @@ void Blueprint::arrange_blueprint_6x7_cell(
             }
             es->placed = true;
         };
-    mark_all_as_placed(&entity_state_for_whole_cell);
+    for (LayoutState::EntityState * es : top_cell_entity_states)
+    {
+        mark_all_as_placed(es);
+    }
 }

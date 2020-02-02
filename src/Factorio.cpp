@@ -234,16 +234,28 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         top_level_entity_state.direct_constituents.push_back(&es);
     }
 
-    std::vector<Blueprint::LayoutState::EntityState*> entities_that_fit_in_cells;
+    std::vector<std::vector<Blueprint::LayoutState::EntityState*>> entities_that_fit_in_cells;
+    entities_that_fit_in_cells.emplace_back();
+    size_t constexpr cell_area = 6 * 7;
+    size_t current_cell_available_area = cell_area;
     std::forward_list<Blueprint::LayoutState::EntityState*> entities_that_might_not_fit_in_cells;
     entities_that_might_not_fit_in_cells.push_front(&top_level_entity_state);
     while (!entities_that_might_not_fit_in_cells.empty())
     {
         Blueprint::LayoutState::EntityState * this_one = entities_that_might_not_fit_in_cells.front();
         entities_that_might_not_fit_in_cells.pop_front();
-        if (this_one->total_non_interface_area <= 42)
+        if (this_one->total_non_interface_area <= current_cell_available_area)
         {
-            entities_that_fit_in_cells.push_back(this_one);
+            entities_that_fit_in_cells.back().push_back(this_one);
+            current_cell_available_area -= this_one->total_non_interface_area;
+            continue;
+        }
+        if (this_one->total_non_interface_area <= cell_area)
+        {
+            current_cell_available_area = cell_area;
+            entities_that_fit_in_cells.emplace_back();
+            entities_that_fit_in_cells.back().push_back(this_one);
+            current_cell_available_area -= this_one->total_non_interface_area;
             continue;
         }
         for (Blueprint::LayoutState::EntityState * dc : this_one->direct_constituents)
@@ -259,8 +271,10 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     {
         int x, y;
         std::tie(x, y) = compute_position_along_hilbert_curve(hilbert_curve_final_side_length, i);
-        arrange_blueprint_6x7_cell(layout_state, *entities_that_fit_in_cells.at(i), x, y);
+        arrange_blueprint_6x7_cell(layout_state, entities_that_fit_in_cells.at(i), x, y);
     }
+
+    // TODO wire up the cells to eachother.
 
     for (auto const & es : layout_state.entity_states)
     {

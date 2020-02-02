@@ -50,7 +50,7 @@ namespace Blueprint {
      * are assumed to mark exernal interfaces. */
     void arrange_blueprint_6x7_cell(
         LayoutState & layout_state,
-        LayoutState::EntityState & entity_state_for_whole_cell,
+        std::vector<LayoutState::EntityState*> const & top_cell_entity_states,
         int offset_x_cells,
         int offset_y_cells);
 }
