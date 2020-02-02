@@ -32,6 +32,7 @@ namespace Blueprint {
             bool placed = false;
             std::vector<EntityState*> direct_constituents;
             bool primitive = false;
+            size_t total_non_interface_area = 0;
         };
         std::forward_list<EntityState> entity_states;
         std::unordered_map<::Entity const *, EntityState*> entity_states_by_entity;

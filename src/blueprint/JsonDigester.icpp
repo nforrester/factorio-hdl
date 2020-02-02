@@ -41,7 +41,10 @@ void JsonDigester<T>::digest(json const & j, T & x) const
     {
         if (std::get<bool>(h))
         {
-            assert(observed_keys.count(key) == 1);
+            if (observed_keys.count(key) != 1)
+            {
+                throw std::runtime_error("Did not see key \"" + key + "\"");
+            }
         }
     }
 }

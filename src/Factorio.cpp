@@ -2,6 +2,7 @@
 
 #include "blueprint/Blueprint.h"
 #include "blueprint/layout.h"
+#include "blueprint/hilbert_curve.h"
 
 void Factorio::connect(WireColor color, Port & a, Port & b)
 {
@@ -70,12 +71,11 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     blueprint.icons.emplace_back(3, Blueprint::Signal(Signal::constant_combinator));
     blueprint.icons.emplace_back(4, Blueprint::Signal(Signal::arithmetic_combinator));
 
-    int total_area = 0;
     for (Entity const * e : entity.primitive_constituents())
     {
         Blueprint::Entity be;
         be.id = blueprint.entities.size() + 1;
-        total_area += e->to_blueprint_entity(be);
+        int const total_non_interface_area = e->to_blueprint_entity(be);
         assert(blueprint.entities.count(be.id) == 0);
         blueprint.entities[be.id] = be;
 
@@ -84,6 +84,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         entity_state.primitive = true;
         entity_state.entity = e;
         entity_state.blueprint_entity = &blueprint.entities.at(be.id);
+        entity_state.total_non_interface_area = total_non_interface_area;
         layout_state.entity_states_by_entity[e] = &entity_state;
         layout_state.entity_states_by_blueprint_entity[&blueprint.entities.at(be.id)] = &entity_state;
         layout_state.entity_states_by_id[be.id] = &entity_state;
@@ -103,11 +104,14 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
             layout_state.entity_states.emplace_front();
             Blueprint::LayoutState::EntityState & entity_state = layout_state.entity_states.front();
             entity_state.entity = e;
+            entity_state.total_non_interface_area = 0;
             layout_state.entity_states_by_entity[e] = &entity_state;
             for (Entity const * dc : e->direct_constituents())
             {
                 make_entity_states_for_composite_entities(dc);
                 entity_state.direct_constituents.push_back(layout_state.entity_states_by_entity.at(dc));
+                entity_state.total_non_interface_area +=
+                    entity_state.direct_constituents.back()->total_non_interface_area;
             }
         };
     make_entity_states_for_composite_entities(&entity);
@@ -230,18 +234,37 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         top_level_entity_state.direct_constituents.push_back(&es);
     }
 
-    if (total_area <= 42)
+    std::vector<Blueprint::LayoutState::EntityState*> entities_that_fit_in_cells;
+    std::forward_list<Blueprint::LayoutState::EntityState*> entities_that_might_not_fit_in_cells;
+    entities_that_might_not_fit_in_cells.push_front(&top_level_entity_state);
+    while (!entities_that_might_not_fit_in_cells.empty())
     {
-        arrange_blueprint_6x7_cell(layout_state, top_level_entity_state, 0, 0);
+        Blueprint::LayoutState::EntityState * this_one = entities_that_might_not_fit_in_cells.front();
+        entities_that_might_not_fit_in_cells.pop_front();
+        if (this_one->total_non_interface_area <= 42)
+        {
+            entities_that_fit_in_cells.push_back(this_one);
+            continue;
+        }
+        for (Blueprint::LayoutState::EntityState * dc : this_one->direct_constituents)
+        {
+            entities_that_might_not_fit_in_cells.push_front(dc);
+        }
     }
-    else
+
+    int const hilbert_curve_final_side_length =
+        compute_final_side_length(entities_that_fit_in_cells.size());
+
+    for (size_t i = 0; i < entities_that_fit_in_cells.size(); ++i)
     {
-        throw std::runtime_error("Too big: " + std::to_string(total_area));
+        int x, y;
+        std::tie(x, y) = compute_position_along_hilbert_curve(hilbert_curve_final_side_length, i);
+        arrange_blueprint_6x7_cell(layout_state, *entities_that_fit_in_cells.at(i), x, y);
     }
 
     for (auto const & es : layout_state.entity_states)
     {
-        assert(es.placed);
+        assert((!es.primitive) || es.placed);
     }
 
     return blueprint.to_blueprint_string();

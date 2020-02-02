@@ -7,6 +7,8 @@
 #include <cassert>
 #include <algorithm>
 
+#include <iostream>
+
 namespace {
     std::map<std::string, SignalId> const name_to_signal_id_map = {
         {"wooden-chest",                   Signal::wooden_chest},
@@ -270,9 +272,9 @@ namespace {
         //{"???",      Signal::check},
         //{"???",      Signal::info},
         //{"???",      Signal::dot},
-        {"everything", LogicSignal::everything},
-        {"anything", LogicSignal::anything},
-        {"each", LogicSignal::each},
+        {"signal-everything", LogicSignal::everything},
+        {"signal-anything", LogicSignal::anything},
+        {"signal-each", LogicSignal::each},
     };
 
     SignalId get_signal_id(std::string const & name)
@@ -311,10 +313,10 @@ namespace {
     {
         {"<", DeciderCombinator::Op::LT},
         {">", DeciderCombinator::Op::GT},
-        {"<=", DeciderCombinator::Op::LE},
-        {">=", DeciderCombinator::Op::GE},
-        {"==", DeciderCombinator::Op::EQ},
-        {"!=", DeciderCombinator::Op::NE},
+        {"≤", DeciderCombinator::Op::LE},
+        {"≥", DeciderCombinator::Op::GE},
+        {"=", DeciderCombinator::Op::EQ},
+        {"≠", DeciderCombinator::Op::NE},
     };
 
     DeciderCombinator::Op get_decider_op(std::string const & name)
@@ -508,6 +510,7 @@ Blueprint::Blueprint::Blueprint(std::string const & blueprint_string)
         d.digest(j, bp);
     });
 
+    std::cout << json::parse(blueprint_string_to_raw_json(blueprint_string)).dump(4) << "\n";
     d.digest(json::parse(blueprint_string_to_raw_json(blueprint_string)), *this);
 }
 
