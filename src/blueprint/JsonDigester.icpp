@@ -17,7 +17,10 @@ void JsonDigester<T>::digest(json const & j, T & x) const
 {
     _used = true;
 
-    assert(j.is_object());
+    if (!j.is_object())
+    {
+        throw std::runtime_error("Expected object: " + j.dump());
+    }
 
     std::unordered_set<std::string> observed_keys;
     for (auto & [key, value] : j.items())

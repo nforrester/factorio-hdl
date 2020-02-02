@@ -146,7 +146,7 @@
     (red i-one)
     (signal not-control-sig (notsigs control-sig))
     (buffer-only-signal i i-one control-sig)
-    (decider control i-one control-sig != 0 not-control-sig input-count)
+    (decider control i-one control-sig != 0 not-control-sig one)
 
     (red o-most)
     (arithmetic i-most o-most each * control-sig each)

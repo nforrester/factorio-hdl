@@ -4,6 +4,9 @@
 #include "blueprint/layout.h"
 #include "blueprint/hilbert_curve.h"
 
+#include <sstream>
+#include <list>
+
 void Factorio::connect(WireColor color, Port & a, Port & b)
 {
     assert(!_built);
@@ -129,9 +132,9 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
 
         Blueprint::Entity be;
         be.id = blueprint.entities.size() + 1;
+        be.name = Signal::constant_combinator;
 
         // set label
-        be.name = Signal::constant_combinator;
         be.control_behavior = Blueprint::Entity::Filters();
         Blueprint::Entity::Filters & f = std::get<Blueprint::Entity::Filters>(*be.control_behavior);
         size_t i = 0;
@@ -212,16 +215,49 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         assert((!es.primitive) || es.placed);
     }
 
-    /* This implements a hub and spoke wiring strategy.
-     * It only works for designs that fit in a 6x7 cell.
-     * This will need to be upgraded to handle large blueprints. */
+    /* Mark down all the tiles that are already occupied. */
+    struct LocationHash
+    {
+        size_t operator()(std::pair<int, int> const & p) const
+        {
+            size_t hx = std::hash<int>()(p.first);
+            size_t hy = std::hash<int>()(p.second);
+            return std::hash<size_t>()(hx ^ hy);
+        }
+    };
+    std::unordered_set<std::pair<int, int>, LocationHash> occupied_locations;
+    for (auto const & id_be : blueprint.entities)
+    {
+        /* Assumes that all entities are either 1x1 or 1x2. */
+        Blueprint::Entity const & be = id_be.second;
+        int size_x = fabs(fmod(be.position->x, 1.0)) > 0.1 ? 2 : 1;
+        int size_y = fabs(fmod(be.position->y, 1.0)) > 0.1 ? 2 : 1;
+        assert(size_x + size_y < 4);
+        int x = std::floor(be.position->x);
+        int y = std::floor(be.position->y);
+        assert(occupied_locations.emplace(x, y).second);
+        if (size_x == 2)
+        {
+            assert(occupied_locations.emplace(x + 1, y).second);
+        }
+        if (size_y == 2)
+        {
+            assert(occupied_locations.emplace(x, y + 1).second);
+        }
+    }
+
+    /* This is an iterative wiring strategy. We go over and over the list of entities,
+     * trying to connect them to existing connected entities. If we completely stop
+     * making progress we then start adding blank constant combinators to bridge the
+     * gaps. */
     struct BPPortInfo
     {
         int entity_id;
         int port_num;
         Blueprint::Entity::Port * port;
+        std::vector<std::pair<CircuitId, WireColor>> circuits;
     };
-    std::unordered_map<CircuitId, BPPortInfo> hubs;
+    std::list<BPPortInfo> ports_to_wire_up;
     std::unordered_map<Port *, BPPortInfo> port_map;
     for (size_t id = 1; id < entity.primitive_constituents().size() + 1; ++id)
     {
@@ -235,37 +271,182 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
             Port const & p = *np.second;
 
             int const bp_port_num = e.ports().size() == 1 ? 1 : name == "in" ? 1 : 2;
-            assert(be.ports.count(bp_port_num) == 0);
-            auto & bpp = be.ports[bp_port_num] = Blueprint::Entity::Port();
 
-            assert(port_map.count(const_cast<Port*>(&p)) == 0);
-            port_map[const_cast<Port*>(&p)] = {be.id, bp_port_num, &bpp};
+            assert(be.ports.count(bp_port_num) == 0);
+            be.ports[bp_port_num] = Blueprint::Entity::Port();
+            auto & bpp = be.ports.at(bp_port_num);
+
+            BPPortInfo bppi;
+            bppi.entity_id = id;
+            bppi.port_num = bp_port_num;
+            bppi.port = &bpp;
 
             for (WireColor w = 0; w < num_wire_colors; w++)
             {
                 CircuitId cid = p.circuit_id(w);
-                if (cid == invalid_circuit_id)
+                if (cid != invalid_circuit_id)
+                {
+                    bppi.circuits.emplace_back(cid, w);
+                }
+            }
+
+            ports_to_wire_up.push_back(bppi);
+
+            assert(port_map.count(const_cast<Port*>(&p)) == 0);
+            port_map[const_cast<Port*>(&p)] = bppi;
+        }
+    }
+
+    std::unordered_map<CircuitId, std::vector<BPPortInfo>> network_membership;
+    std::set<std::tuple<size_t, int, CircuitId>> unwired_ports;
+    std::set<std::tuple<size_t, int, CircuitId>> wired_ports;
+    bool progress;
+    bool take_desperate_measures = false;
+    do
+    {
+        progress = false;
+        for (auto bppi = ports_to_wire_up.begin();
+             bppi != ports_to_wire_up.end();
+             ++bppi)
+        {
+            Blueprint::Entity & be = blueprint.entities.at(bppi->entity_id);
+
+            auto & bpp = be.ports.at(bppi->port_num);
+
+            for (auto const & c : bppi->circuits)
+            {
+                CircuitId cid = c.first;
+                WireColor w = c.second;
+
+                if (wired_ports.count(std::make_tuple(bppi->entity_id, bppi->port_num, cid)))
                 {
                     continue;
                 }
-                if (hubs.count(cid) == 0)
+
+                bool wired_successfully = false;
+                if (network_membership.count(cid) != 0)
                 {
-                    hubs[cid] = {be.id, bp_port_num, &bpp};
+                    BPPortInfo const * closest = nullptr;
+                    double closest_distance = std::numeric_limits<double>::max();
+                    for (BPPortInfo const & bpi : network_membership.at(cid))
+                    {
+                        Blueprint::Entity const & other = blueprint.entities.at(bpi.entity_id);
+                        double const distance = Blueprint::distance_between_entities(
+                            other.position->x, other.position->y,
+                            be.position->x, be.position->y);
+                        if (!closest || closest_distance > distance)
+                        {
+                            closest = &bpi;
+                            closest_distance = distance;
+                        }
+                    }
+                    assert(closest);
+
+                    Blueprint::Entity const & other = blueprint.entities.at(closest->entity_id);
+                    if (!Blueprint::close_enough_for_direct_connection(
+                            other.position->x, other.position->y,
+                            be.position->x, be.position->y))
+                    {
+                        unwired_ports.emplace(bppi->entity_id, bppi->port_num, cid);
+
+                        if (take_desperate_measures)
+                        {
+                            /* Find a free location where an empty port would be helpful. */
+                            int const x_start = other.position->x;
+                            int const y_start = other.position->y;
+
+                            int best_new_x = x_start;
+                            int best_new_y = y_start;
+                            double best_new_distance = Blueprint::distance_between_entities(
+                                best_new_x, best_new_y, be.position->x, be.position->y);
+
+                            for (int x_offset = -10; x_offset <= 10; ++x_offset)
+                            {
+                                for (int y_offset = -10; y_offset <= 10; ++y_offset)
+                                {
+                                    int const x = x_start + x_offset;
+                                    int const y = y_start + y_offset;
+                                    if (!Blueprint::close_enough_for_direct_connection(
+                                            x, y, other.position->x, other.position->y))
+                                    {
+                                        continue;
+                                    }
+                                    if (occupied_locations.count(std::make_pair(x, y)))
+                                    {
+                                        continue;
+                                    }
+                                    double const distance = Blueprint::distance_between_entities(
+                                        x, y, be.position->x, be.position->y);
+                                    if (best_new_distance > distance)
+                                    {
+                                        best_new_x = x;
+                                        best_new_y = y;
+                                        best_new_distance = distance;
+                                    }
+                                }
+                            }
+
+                            assert(best_new_x != x_start || best_new_y != y_start);
+
+                            /* Add a constant combinator with no filters at that spot. */
+                            Blueprint::Entity new_be;
+                            new_be.id = blueprint.entities.size() + 1;
+                            new_be.name = Signal::constant_combinator;
+                            new_be.control_behavior = Blueprint::Entity::Filters();
+                            new_be.position = {
+                                static_cast<double>(best_new_x),
+                                static_cast<double>(best_new_y),
+                            };
+                            new_be.direction = 1;
+                            new_be.ports[1] = Blueprint::Entity::Port();
+                            blueprint.entities[new_be.id] = new_be;
+                            occupied_locations.emplace(best_new_x, best_new_y);
+
+                            BPPortInfo new_bppi;
+                            new_bppi.entity_id = new_be.id;
+                            new_bppi.port_num = 1;
+                            new_bppi.port = &new_be.ports.at(1);
+                            new_bppi.circuits.emplace_back(cid, w);
+                            ports_to_wire_up.push_back(new_bppi);
+                            progress = true;
+                            take_desperate_measures = false;
+                        }
+                    }
+                    else
+                    {
+                        wired_successfully = true;
+
+                        assert(w == Wire::red || w == Wire::green);
+                        auto & bpp_wires = w == Wire::red ? bpp.red : bpp.green;
+                        auto & hub_wires = w == Wire::red ? closest->port->red : closest->port->green;
+
+                        bpp_wires.emplace_back(closest->entity_id, closest->port_num);
+                        hub_wires.emplace_back(be.id, bppi->port_num);
+                    }
                 }
-                else
+                if (wired_successfully || network_membership.count(cid) == 0)
                 {
-                    BPPortInfo const & bpi = hubs.at(cid);
-
-                    assert(w == Wire::red || w == Wire::green);
-                    auto & bpp_wires = w == Wire::red ? bpp.red : bpp.green;
-                    auto & hub_wires = w == Wire::red ? bpi.port->red : bpi.port->green;
-
-                    bpp_wires.emplace_back(bpi.entity_id, bpi.port_num);
-                    hub_wires.emplace_back(be.id, bp_port_num);
+                    network_membership[cid].push_back({be.id, bppi->port_num, &bpp});
+                    wired_ports.emplace(bppi->entity_id, bppi->port_num, cid);
+                    unwired_ports.erase(std::make_tuple(bppi->entity_id, bppi->port_num, cid));
+                    progress = true;
+                    take_desperate_measures = false;
                 }
             }
         }
-    }
+        if (!progress)
+        {
+            if (take_desperate_measures)
+            {
+                std::ostringstream err;
+                err << "The Emperor is displeased by your apparent lack of progress.\n";
+                err << "There are " << unwired_ports.size() << " unwired ports.\n";
+                err << "There are " << wired_ports.size() << " wired ports.\n";
+                throw std::runtime_error(err.str());
+            }
+            take_desperate_measures = true;
+        }
+    } while (unwired_ports.size() > 0);
 
     /* Wire up the labeled interface combinators. */
     for (std::pair<int, Port const *> id_and_port : interface_id_to_port_map)

@@ -25,6 +25,50 @@ namespace
     }
 }
 
+double Blueprint::distance_between_entities(
+    double x1, double y1,
+    int size_x1, int size_y1,
+    double x2, double y2,
+    int size_x2, int size_y2)
+{
+    double x_dist = std::max(0.0, fabs(x1 - x2) - size_x1 * 0.5 - size_x2 * 0.5);
+    double y_dist = std::max(0.0, fabs(y1 - y2) - size_y1 * 0.5 - size_y2 * 0.5);
+    return pow(x_dist * x_dist + y_dist * y_dist, 0.5);
+}
+
+double Blueprint::distance_between_entities(
+    double x1, double y1,
+    double x2, double y2)
+{
+    int size_x1 = fabs(fmod(x1, 1.0)) > 0.1 ? 2 : 1;
+    int size_y1 = fabs(fmod(y1, 1.0)) > 0.1 ? 2 : 1;
+    int size_x2 = fabs(fmod(x2, 1.0)) > 0.1 ? 2 : 1;
+    int size_y2 = fabs(fmod(y2, 1.0)) > 0.1 ? 2 : 1;
+    return distance_between_entities(x1, y1, size_x1, size_y1, x2, y2, size_x2, size_y2);
+}
+
+bool Blueprint::close_enough_for_direct_connection(
+    double x1, double y1,
+    int size_x1, int size_y1,
+    double x2, double y2,
+    int size_x2, int size_y2)
+{
+    return 9.05 > distance_between_entities(x1, y1, size_x1, size_y1, x2, y2, size_x2, size_y2);
+}
+
+bool Blueprint::close_enough_for_direct_connection(
+    double x1, double y1,
+    double x2, double y2)
+{
+    int size_x1 = fabs(fmod(x1, 1.0)) > 0.1 ? 2 : 1;
+    int size_y1 = fabs(fmod(y1, 1.0)) > 0.1 ? 2 : 1;
+    int size_x2 = fabs(fmod(x2, 1.0)) > 0.1 ? 2 : 1;
+    int size_y2 = fabs(fmod(y2, 1.0)) > 0.1 ? 2 : 1;
+    return close_enough_for_direct_connection(
+        x1, y1, size_x1, size_y1,
+        x2, y2, size_x2, size_y2);
+}
+
 void Blueprint::arrange_blueprint_6x7_cell(
     LayoutState & layout_state,
     std::vector<LayoutState::EntityState*> const & top_cell_entity_states,

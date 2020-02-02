@@ -42,6 +42,28 @@ namespace Blueprint {
 		std::unordered_set<std::pair<double, double>, PositionHash> medium_electric_pole_positions;
     };
 
+    double distance_between_entities(
+        double x1, double y1,
+        int size_x1, int size_y1,
+        double x2, double y2,
+        int size_x2, int size_y2);
+
+    /* Assumes that all entities are either 1x1 or 1x2. */
+    double distance_between_entities(
+        double x1, double y1,
+        double x2, double y2);
+
+    bool close_enough_for_direct_connection(
+        double x1, double y1,
+        int size_x1, int size_y1,
+        double x2, double y2,
+        int size_x2, int size_y2);
+
+    /* Assumes that all entities are either 1x1 or 1x2. */
+    bool close_enough_for_direct_connection(
+        double x1, double y1,
+        double x2, double y2);
+
     /* Set position and direction for all entities in blueprint.
      * Blueprint should only have combinators.
      * 6 medium electric poles will be added.

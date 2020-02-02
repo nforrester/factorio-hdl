@@ -41,6 +41,19 @@ TEST(BitsTest, Basic)
     EXPECT_FALSE(bits.get(7));
     EXPECT_FALSE(bits.get(8));
     EXPECT_FALSE(bits.get(9));
+
+    bits = bits2;
+
+    EXPECT_FALSE(bits.get(0));
+    EXPECT_FALSE(bits.get(1));
+    EXPECT_TRUE(bits.get(2));
+    EXPECT_FALSE(bits.get(3));
+    EXPECT_FALSE(bits.get(4));
+    EXPECT_TRUE(bits.get(5));
+    EXPECT_FALSE(bits.get(6));
+    EXPECT_FALSE(bits.get(7));
+    EXPECT_FALSE(bits.get(8));
+    EXPECT_FALSE(bits.get(9));
 }
 
 TEST(BitsTest, Which)

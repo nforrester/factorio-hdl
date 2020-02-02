@@ -9,6 +9,9 @@ combinator -> steel pole = 10 blocks apart
 steel pole -> steel pole =  9 blocks apart
 
 Quarter circle combinator-combinator maximum range map:
+
+  0123456789A
+
 A XX
 9   XXXX
 8       X

@@ -673,6 +673,7 @@ json Blueprint::Entity::Port::to_json() const
 {
     json j;
 
+    assert(green.size() != 0 || red.size() != 0);
     for (Wire const & w : green)
     {
         j["green"].push_back(w.to_json());
@@ -835,6 +836,7 @@ Blueprint::Entity::Filters::Filters(json const & j)
 json Blueprint::Entity::Filters::to_json() const
 {
     json j;
+    j["filters"] = json::array();
     for (auto const & f : filters)
     {
         j["filters"].push_back(f.to_json());
