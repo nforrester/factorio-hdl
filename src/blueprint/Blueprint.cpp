@@ -10,6 +10,7 @@
 #include <iostream>
 
 namespace {
+    // TODO fix var names
     std::map<std::string, SignalId> const name_to_signal_id_map = {
         {"wooden-chest",                   Signal::wooden_chest},
         {"iron-chest",                     Signal::iron_chest},
@@ -50,13 +51,13 @@ namespace {
         {"tank",                           Signal::tank},
         {"logistic-robot",                 Signal::logistic_robot},
         {"construction-robot",             Signal::construction_robot},
-        {"active-provider-chest",          Signal::active_provider_chest},
-        {"passive-provider-chest",         Signal::passive_provider_chest},
-        {"storage-chest",                  Signal::storage_chest},
-        {"buffer-chest",                   Signal::buffer_chest},
-        {"requester-chest",                Signal::requester_chest},
+        {"logistic-chest-active-provider",          Signal::active_provider_chest},
+        {"logistic-chest-passive-provider",         Signal::passive_provider_chest},
+        {"logistic-chest-storage",                  Signal::storage_chest},
+        {"logistic-chest-buffer",                   Signal::buffer_chest},
+        {"logistic-chest-requester",                Signal::requester_chest},
         {"roboport",                       Signal::roboport},
-        {"lamp",                           Signal::lamp},
+        {"small-lamp",                           Signal::lamp},
         {"red-wire",                       Signal::red_wire},
         {"green-wire",                     Signal::green_wire},
         {"arithmetic-combinator",          Signal::arithmetic_combinator},
@@ -102,9 +103,9 @@ namespace {
         {"speed-module",                   Signal::speed_module},
         {"speed-module-2",                 Signal::speed_module_2},
         {"speed-module-3",                 Signal::speed_module_3},
-        {"efficiency-module",              Signal::efficiency_module},
-        {"efficiency-module-2",            Signal::efficiency_module_2},
-        {"efficiency-module-3",            Signal::efficiency_module_3},
+        {"effectivity-module",              Signal::efficiency_module},
+        {"effectivity-module-2",            Signal::efficiency_module_2},
+        {"effectivity-module-3",            Signal::efficiency_module_3},
         {"productivity-module",            Signal::productivity_module},
         {"productivity-module-2",          Signal::productivity_module_2},
         {"productivity-module-3",          Signal::productivity_module_3},
@@ -115,14 +116,6 @@ namespace {
         {"copper-ore",                     Signal::copper_ore},
         {"uranium-ore",                    Signal::uranium_ore},
         {"raw-fish",                       Signal::raw_fish},
-        {"crude-oil",                      Signal::crude_oil},
-        {"heavy-oil",                      Signal::heavy_oil},
-        {"light-oil",                      Signal::light_oil},
-        {"lubricant",                      Signal::lubricant},
-        {"petroleum-gas",                  Signal::petroleum_gas},
-        {"sulfuric-acid",                  Signal::sulfuric_acid},
-        {"water",                          Signal::water},
-        {"steam",                          Signal::steam},
         {"iron-plate",                     Signal::iron_plate},
         {"copper-plate",                   Signal::copper_plate},
         {"solid-fuel",                     Signal::solid_fuel},
@@ -131,7 +124,6 @@ namespace {
         {"sulfur",                         Signal::sulfur},
         {"battery",                        Signal::battery},
         {"explosives",                     Signal::explosives},
-        {"uranium-processing",             Signal::uranium_processing},
         {"crude-oil-barrel",               Signal::crude_oil_barrel},
         {"heavy-oil-barrel",               Signal::heavy_oil_barrel},
         {"light-oil-barrel",               Signal::light_oil_barrel},
@@ -159,8 +151,6 @@ namespace {
         {"uranium-238",                    Signal::uranium_238},
         {"uranium-fuel-cell",              Signal::uranium_fuel_cell},
         {"used-up-uranium-fuel-cell",      Signal::used_up_uranium_fuel_cell},
-        {"nuclear-fuel-reprocessing",      Signal::nuclear_fuel_reprocessing},
-        {"kovarex-enrichment-process",     Signal::kovarex_enrichment_process},
         {"automation-science-pack",        Signal::automation_science_pack},
         {"logistic-science-pack",          Signal::logistic_science_pack},
         {"military-science-pack",          Signal::military_science_pack},
@@ -178,8 +168,8 @@ namespace {
         {"firearm-magazine",               Signal::firearm_magazine},
         {"piercing-rounds-magazine",       Signal::piercing_rounds_magazine},
         {"uranium-rounds-magazine",        Signal::uranium_rounds_magazine},
-        {"shotgun-shells",                 Signal::shotgun_shells},
-        {"piercing-shotgun-shells",        Signal::piercing_shotgun_shells},
+        {"shotgun-shell",                 Signal::shotgun_shells},
+        {"piercing-shotgun-shell",        Signal::piercing_shotgun_shells},
         {"cannon-shell",                   Signal::cannon_shell},
         {"explosive-cannon-shell",         Signal::explosive_cannon_shell},
         {"uranium-cannon-shell",           Signal::uranium_cannon_shell},
@@ -203,20 +193,20 @@ namespace {
         {"modular-armor",                  Signal::modular_armor},
         {"power-armor",                    Signal::power_armor},
         {"power-armor-mk2",                Signal::power_armor_mk2},
-        {"portable-solar-panel",           Signal::portable_solar_panel},
-        {"portable-fusion-reactor",        Signal::portable_fusion_reactor},
-        {"energy-shield",                  Signal::energy_shield},
-        {"energy-shield-mk2",              Signal::energy_shield_mk2},
-        {"personal-battery",               Signal::personal_battery},
-        {"personal-battery-mk2",           Signal::personal_battery_mk2},
-        {"personal-laser-defense",         Signal::personal_laser_defense},
-        {"discharge-defense",              Signal::discharge_defense},
+        {"solar-panel-equipment",           Signal::portable_solar_panel},
+        {"fusion-reactor-equipment",        Signal::portable_fusion_reactor},
+        {"energy-shield-equipment",                  Signal::energy_shield},
+        {"energy-shield-mk2-equipment",              Signal::energy_shield_mk2},
+        {"battery-equipment",               Signal::personal_battery},
+        {"battery-mk2-equipment",           Signal::personal_battery_mk2},
+        {"personal-laser-defense-equipment",         Signal::personal_laser_defense},
+        {"discharge-defense-equipment",              Signal::discharge_defense},
         {"belt-immunity-equipment",        Signal::belt_immunity_equipment},
-        {"exoskeleton",                    Signal::exoskeleton},
-        {"personal-roboport",              Signal::personal_roboport},
-        {"personal-roboport-mk2",          Signal::personal_roboport_mk2},
-        {"nightvision",                    Signal::nightvision},
-        {"wall",                           Signal::wall},
+        {"exoskeleton-equipment",                    Signal::exoskeleton},
+        {"personal-roboport-equipment",              Signal::personal_roboport},
+        {"personal-roboport-mk2-equipment",          Signal::personal_roboport_mk2},
+        {"night-vision-equipment",                    Signal::nightvision},
+        {"stone-wall",                           Signal::wall},
         {"gate",                           Signal::gate},
         {"gun-turret",                     Signal::gun_turret},
         {"laser-turret",                   Signal::laser_turret},
@@ -224,6 +214,14 @@ namespace {
         {"artillery-turret",               Signal::artillery_turret},
         {"radar",                          Signal::radar},
         {"rocket-silo",                    Signal::rocket_silo},
+        {"crude-oil",                      Signal::crude_oil},
+        {"heavy-oil",                      Signal::heavy_oil},
+        {"light-oil",                      Signal::light_oil},
+        {"lubricant",                      Signal::lubricant},
+        {"petroleum-gas",                  Signal::petroleum_gas},
+        {"sulfuric-acid",                  Signal::sulfuric_acid},
+        {"water",                          Signal::water},
+        {"steam",                          Signal::steam},
         {"signal-0", Signal::digit_0},
         {"signal-1", Signal::digit_1},
         {"signal-2", Signal::digit_2},
@@ -260,18 +258,18 @@ namespace {
         {"signal-X", Signal::letter_x},
         {"signal-Y", Signal::letter_y},
         {"signal-Z", Signal::letter_z},
-        //{"???",      Signal::color_red},
-        //{"???",      Signal::color_green},
-        //{"???",      Signal::color_blue},
-        //{"???",      Signal::color_yellow},
-        //{"???",      Signal::color_magenta},
-        //{"???",      Signal::color_cyan},
-        //{"???",      Signal::color_white},
-        //{"???",      Signal::color_grey},
-        //{"???",      Signal::color_black},
-        //{"???",      Signal::check},
-        //{"???",      Signal::info},
-        //{"???",      Signal::dot},
+        {"signal-red",    Signal::color_red},
+        {"signal-green",  Signal::color_green},
+        {"signal-blue",   Signal::color_blue},
+        {"signal-yellow", Signal::color_yellow},
+        {"signal-pink",   Signal::color_magenta},
+        {"signal-cyan",   Signal::color_cyan},
+        {"signal-white",  Signal::color_white},
+        {"signal-grey",   Signal::color_grey},
+        {"signal-black",  Signal::color_black},
+        {"signal-check",  Signal::check},
+        {"signal-info",   Signal::info},
+        {"signal-dot",    Signal::dot},
         {"signal-everything", LogicSignal::everything},
         {"signal-anything", LogicSignal::anything},
         {"signal-each", LogicSignal::each},
@@ -510,7 +508,7 @@ Blueprint::Blueprint::Blueprint(std::string const & blueprint_string)
         d.digest(j, bp);
     });
 
-    std::cout << json::parse(blueprint_string_to_raw_json(blueprint_string)).dump(4) << "\n";
+    //std::cout << json::parse(blueprint_string_to_raw_json(blueprint_string)).dump(4) << "\n";
     d.digest(json::parse(blueprint_string_to_raw_json(blueprint_string)), *this);
 }
 
@@ -876,6 +874,7 @@ Blueprint::Signal::Signal(json const & j)
         std::map<std::string, Type> types;
         types["virtual"] = Type::virt;
         types["item"] = Type::item;
+        types["fluid"] = Type::fluid;
         try
         {
             s.type = types.at(j);
@@ -897,10 +896,14 @@ json Blueprint::Signal::to_json() const
     {
         j["type"] = "virtual";
     }
+    else if (type == Type::item)
+    {
+        j["type"] = "item";
+    }
     else
     {
-        assert(type == Type::item);
-        j["type"] = "item";
+        assert(type == Type::fluid);
+        j["type"] = "fluid";
     }
     return j;
 }

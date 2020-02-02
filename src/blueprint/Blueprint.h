@@ -18,7 +18,14 @@ namespace Blueprint
 {
     struct Signal
     {
-        Signal(SignalId id): name(id), type(id < num_non_virtual_signals ? Type::item : Type::virt) {}
+        Signal(SignalId id):
+            name(id),
+            type(id < num_non_virtual_signals ?
+                 (id < ::Signal::crude_oil ? Type::item : Type::fluid) :
+                 Type::virt)
+        {
+        }
+
         Signal(json const & j);
         json to_json() const;
 
@@ -28,6 +35,7 @@ namespace Blueprint
         {
             virt,
             item,
+            fluid,
         } type;
     };
 

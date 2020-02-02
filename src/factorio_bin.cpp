@@ -16,6 +16,7 @@ int main(int argc, char ** argv)
     assert(argc == 2);
 
     std::cout << json::parse(blueprint_string_to_raw_json(argv[1])).dump(4) << "\n\n\n";
+    std::cout.flush();
 
     Blueprint::Blueprint blueprint(argv[1]);
 

@@ -1,10 +1,37 @@
 #include "FdlMacro.h"
 #include "src/util.h"
+#include "src/blueprint/util.h"
 #include "util.h"
 
 #include <sstream>
 #include <cstdlib>
 #include <cassert>
+#include <filesystem>
+#include <random>
+#include <fstream>
+
+namespace
+{
+    std::random_device dir_gen_dev;
+    std::mt19937 dir_gen_prng(dir_gen_dev());
+    std::uniform_int_distribution<uint64_t> dir_gen_rand(0);
+
+	std::filesystem::path make_temp_dir()
+	{
+        for (int i = 0; i < 1000; ++i)
+        {
+			std::ostringstream dirname;
+			dirname << std::hex << dir_gen_rand(dir_gen_prng);
+            std::filesystem::path const dirpath =
+                std::filesystem::temp_directory_path() / dirname.str();
+			if (std::filesystem::create_directory(dirpath))
+            {
+				return dirpath;
+			}
+		}
+        throw std::runtime_error("could not find non-existing directory");
+	}
+}
 
 S::Ptr Fdl::Macro::execute(S::List const & orig_form) const
 {
@@ -17,9 +44,23 @@ S::Ptr Fdl::Macro::execute(S::List const & orig_form) const
         *it = S::read("(quote " + (*it)->write() + ")", orig_form.file, orig_form.line);
     }
 
+    /* Autogenerate some useful definitions. */
+    std::filesystem::path temp_dir = make_temp_dir();
+    std::filesystem::path autogen_path = temp_dir / "autogen.scm";
+    {
+        std::ofstream autogen(autogen_path.string());
+        assert(autogen.good());
+        autogen << "(define all-signals (quote (";
+        for (SignalId s = 0; s < num_signals; ++s)
+        {
+            autogen << " sig:" << get_signal_name_lower_case(s);
+        }
+        autogen << ")))\n";
+    }
+
     /* Feed it to scheme. */
     std::ostringstream command;
-    command << "scm -l '" << scheme_file << "' ";
+    command << "scm -l '" << autogen_path.string() << "' -l '" << scheme_file << "' ";
     command << "-e '(write " << quoted_args->write() << ")'";
 
     std::unique_ptr<FILE, decltype(&pclose)> pipe(
@@ -40,6 +81,8 @@ S::Ptr Fdl::Macro::execute(S::List const & orig_form) const
     {
         generated_fdl += buf.data();
     }
+
+    std::filesystem::remove_all(temp_dir);
 
     /* Read, check, and return the replacement form. */
     S::Ptr replacement_form = S::read(generated_fdl, orig_form.file, orig_form.line);

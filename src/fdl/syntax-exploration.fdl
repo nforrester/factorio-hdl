@@ -81,24 +81,34 @@
     (arithmetic (a i) b in-sig / half-deadband-width out-sig)
     (decider b (b o) out-sig > 0 out-sig one))
 
+;(defpart main ()
+;    (green a)
+;    (green b)
+;    (green c)
+;    (green d)
+;    (green e)
+;
+;    (constant a ((sig:signal-a 42) (sig:signal-b 346) (sig:signal-c -3)))
+;    (constant b ((sig:signal-a 7) (sig:signal-d 11) (sig:signal-e 4)))
+;    (constant c ((sig:signal-f 47) (sig:signal-b 2) (sig:signal-g 8)))
+;    (constant d ((sig:signal-a 1) (sig:signal-b 2) (sig:signal-c 3)))
+;    (constant e ((sig:signal-z 22) (sig:signal-y -9) (sig:signal-x 4)))
+;
+;    (green o)
+;    (green control)
+;    (mux-5-circuits a b c d e o control sig:signal-a)
+;
+;    (constant control ((sig:signal-a 1) (sig:signal-c 1) (sig:signal-t 1) (sig:signal-r 1)))
+;    (constant o ((sig:signal-o 1))))
+
 (defpart main ()
-    (green a)
-    (green b)
-    (green c)
-    (green d)
-    (green e)
-
-    (constant a ((sig:signal-a 42) (sig:signal-b 346) (sig:signal-c -3)))
-    (constant b ((sig:signal-a 7) (sig:signal-d 11) (sig:signal-e 4)))
-    (constant c ((sig:signal-f 47) (sig:signal-b 2) (sig:signal-g 8)))
-    (constant d ((sig:signal-a 1) (sig:signal-b 2) (sig:signal-c 3)))
-    (constant e ((sig:signal-z 22) (sig:signal-y -9) (sig:signal-x 4)))
-
+    (green i)
     (green o)
     (green control)
-    (mux-5-circuits a b c d e o control sig:signal-a)
+    (demux-signals i o control sig:signal-a sig:signal-a)
 
-    (constant control ((sig:signal-a 1) (sig:signal-c 1) (sig:signal-t 1) (sig:signal-r 1)))
+    (constant i ((sig:signal-a 42)))
+    (constant control ((sig:signal-a 1)))
     (constant o ((sig:signal-o 1))))
 
 (defpart buffer

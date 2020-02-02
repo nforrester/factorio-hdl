@@ -1,5 +1,3 @@
-(load "autogen.scm")
-
 (define nth
   (lambda (n xs)
     (if (eqv? 0 n)
@@ -24,7 +22,9 @@
           (signal input-sig))
       
          (red duplicated-input)
-         (arithmetic i duplicated-input input-sig * 1 everything)
+         ,@(map (lambda (sig)
+                  `(arithmetic i duplicated-input input-sig * 1 ,sig))
+                all-signals)
       
          ; duplicated-input-most is like duplicated-input but with sig0 replaced with
          ; the value of control-sig from control
