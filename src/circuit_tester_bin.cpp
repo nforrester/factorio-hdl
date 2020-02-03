@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <filesystem>
 
 int main(int argc, char ** argv)
 {
@@ -53,7 +54,8 @@ int main(int argc, char ** argv)
             {
                 throw S::ParseError(s->file, s->line, "Expected (load <filename>)");
             }
-            filename = test_form.at(1)->as_string()->s;
+            filename = std::filesystem::path(test_file_name).replace_filename(
+                test_form.at(1)->as_string()->s);
             continue;
         }
 
@@ -111,7 +113,9 @@ int main(int argc, char ** argv)
                     "Expected (test-type fixed-latency <int>)");
             }
 
-            latency = test_form.at(2)->as_int()->v;
+            /* + 1 because the constant combinators used for test input add a cycle
+             * of latency. */
+            latency = test_form.at(2)->as_int()->v + 1;
         }
 
         if (command == "part-under-test")
@@ -292,6 +296,7 @@ int main(int argc, char ** argv)
 
     int remaining_output_delay = latency;
     auto in = test_inputs.begin();
+    auto in_delayed = test_inputs.begin();
     auto out = test_outputs.begin();
     int time = 0;
     int errors = 0;
@@ -299,39 +304,55 @@ int main(int argc, char ** argv)
     {
         if (in != test_inputs.end())
         {
-            auto v = in->begin();
-            auto f = test_input_format.begin();
-            while (v != in->end())
+            auto input_value = in->begin();
+            auto input_value_format = test_input_format.begin();
+            while (input_value != in->end())
             {
-                CircuitValues & values = f->first->entity->constants;
-                values.add(f->second, *v - values.get(f->second));
-                std::cout << values << " ";
+                CircuitValues & values = input_value_format->first->entity->constants;
+                values.add(input_value_format->second,
+                           *input_value - values.get(input_value_format->second));
 
-                ++v;
-                ++f;
+                ++input_value;
+                ++input_value_format;
             }
         }
-        std::cout << "---===> ";
 
         if (remaining_output_delay == 0)
         {
-            auto v = out->begin();
-            auto f = test_output_format.begin();
-            while (v != out->end())
+            auto delayed_input_value = in_delayed->begin();
+            auto input_value_format = test_input_format.begin();
+            while (delayed_input_value != in_delayed->end())
             {
-                CircuitValues values = fac.read(f->first->entity->port("out"));
+                CircuitValues values;
+                values.add(input_value_format->second, *delayed_input_value);
                 std::cout << values << " ";
-                if (*v != values.get(f->second))
+
+                ++delayed_input_value;
+                ++input_value_format;
+            }
+
+            std::cout << "---===> ";
+
+            auto output_value = out->begin();
+            auto output_value_format = test_output_format.begin();
+            while (output_value != out->end())
+            {
+                CircuitValues values = fac.read(
+                    output_value_format->first->entity->port("out"));
+                std::cout << values << " ";
+                if (*output_value != values.get(output_value_format->second))
                 {
-                    std::cout << "Test failure at (t = " << time << ").\n";
+                    std::cout << "Test failure at (t = " << time << ").";
                     ++errors;
                 }
 
-                ++v;
-                ++f;
+                ++output_value;
+                ++output_value_format;
             }
         }
         std::cout << "\n";
+
+        fac.tick();
 
         if (in != test_inputs.end())
         {
@@ -339,6 +360,7 @@ int main(int argc, char ** argv)
         }
         if (remaining_output_delay == 0)
         {
+            ++in_delayed;
             ++out;
         }
         else

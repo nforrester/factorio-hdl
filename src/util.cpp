@@ -6,6 +6,10 @@
 std::string read_file(std::string const & filename)
 {
     std::ifstream f(filename);
-    assert(f.good());
-    return std::string { std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>() };
+    if (!f.good())
+    {
+        throw std::runtime_error("Unable to open '" + filename + "'");
+    }
+    return std::string { std::istreambuf_iterator<char>(f),
+                         std::istreambuf_iterator<char>() };
 }
