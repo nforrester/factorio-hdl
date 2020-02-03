@@ -157,22 +157,11 @@ std::vector<Fdl::Arg> Fdl::gather_new_part_args(
                 continue;
             }
 
-            if (signals.count(word))
+            if (signals.count(word) ||
+                word.starts_with("sig:"))
             {
-                new_part_args.emplace_back(signals.at(word));
-                continue;
-            }
-
-            if (word.starts_with("sig:"))
-            {
-                try
-                {
-                    new_part_args.emplace_back(get_signal_id_from_lower_case(word.substr(4)));
-                }
-                catch (std::out_of_range & e)
-                {
-                    throw S::ParseError(s.file, s.line, "No such signal: " + word);
-                }
+                new_part_args.emplace_back(signal_from_symbol(
+                    *s.as_symbol(), signals));
                 continue;
             }
 

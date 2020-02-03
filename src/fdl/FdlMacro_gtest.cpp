@@ -14,7 +14,7 @@ TEST(MacroTest, Test)
 
     S::PtrV ast = S::consume(fdl, "<test-stimulus>", 1);
 
-    Fdl::expand_all_macros(ast);
+    Fdl::expand_all_macros(ast, "fake.scm");
 
     std::string expected =
         "("

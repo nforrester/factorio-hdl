@@ -18,5 +18,5 @@ namespace Fdl
 
     void expand_these_macros(MacroMap const & macros, S::Ptr & ast_node);
 
-    void expand_all_macros(S::PtrV & ast);
+    void expand_all_macros(S::PtrV & ast, std::string const & filepath);
 }

@@ -413,7 +413,14 @@ SignalId get_signal_id_from_lower_case(std::string const & name)
         lower_case_map[lower_key] = kv.second;
     }
 
-    return lower_case_map.at(name);
+    try
+    {
+        return lower_case_map.at(name);
+    }
+    catch (std::out_of_range & e)
+    {
+        throw std::runtime_error(FILE_LINE + ": " + name);
+    }
 }
 
 std::string get_signal_name_lower_case(SignalId id)

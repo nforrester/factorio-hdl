@@ -21,7 +21,7 @@ Fdl::Entity::Entity(Factorio & factorio,
     {
         check_valid_top_level_form(*form);
     }
-    expand_all_macros(ast);
+    expand_all_macros(ast, fdl_filename);
     std::unordered_map<std::string, S::PtrV const *> defparts = ast_to_defparts(ast);
 
     _part = &_new_entity<InstantiatedPart>(
