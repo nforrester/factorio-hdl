@@ -4,6 +4,36 @@
 
 using namespace Blueprint;
 
+/*
+ * adjacent combinators are 1 block apart
+ * combinators with one space in between are 2 block apart
+ * 
+ * for combinators of size 2, distance is measured from closest port,
+ * not necessarily the port you're connecting to!
+ * 
+ * combinator -> combinator = 10 blocks apart
+ * combinator -> steel pole = 10 blocks apart
+ * steel pole -> steel pole =  9 blocks apart
+ * 
+ * Quarter circle combinator-combinator maximum range map:
+ * 
+ *   0123456789A
+ * 
+ * A XX
+ * 9   XXXX
+ * 8       X
+ * 7        X
+ * 6         X
+ * 5          X
+ * 4          X
+ * 3          X
+ * 2          X
+ * 1           X
+ * 0 X         X
+ * 
+ *   0123456789A
+ */
+
 TEST(ConnectionDistance, InRangeOfConstantCombinator)
 {
     EXPECT_TRUE(close_enough_for_direct_connection(0, 0, 1, 1, 10,  0, 1, 1));

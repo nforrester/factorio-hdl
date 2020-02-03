@@ -6,7 +6,8 @@ def bins(deps = []):
         native.cc_binary(name = src[:-8],
                          srcs = [src],
                          deps = deps,
-                         copts = common_copts)
+                         copts = common_copts,
+                         visibility = ["//visibility:public"])
 
 def gtests(deps = [], extra_data = dict()):
     test_srcs = native.glob(["**/*_gtest.cpp"])

@@ -69,7 +69,25 @@ namespace Blueprint {
      * 6 medium electric poles will be added.
      *
      * Constant combinators whose signals are all 0
-     * are assumed to mark exernal interfaces. */
+     * are assumed to mark exernal interfaces.
+     *
+     * 6x7 cell surrounded by steel poles.
+     * All entities can be wired to all others
+     * except the diagonally opposite power poles to each other.
+     * P = Power pole
+     * X = combinator (or half of one)
+     * I = interface combinator
+     *
+     *     P      P
+     *     IXXXXXX
+     *     IXXXXXX
+     *     IXXXXXX
+     *     PXXXXXXP
+     *     IXXXXXX
+     *     IXXXXXX
+     *     IXXXXXX
+     *     P      P
+     */
     void arrange_blueprint_6x7_cell(
         LayoutState & layout_state,
         std::vector<LayoutState::EntityState*> const & top_cell_entity_states,

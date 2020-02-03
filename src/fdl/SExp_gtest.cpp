@@ -229,19 +229,6 @@ TEST(SExpTest, Errors)
     }
 }
 
-TEST(SExpTest, BigFile)
-{
-    std::string filename = "src/fdl/syntax-exploration.fdl";
-    std::vector<S::Ptr> ast = S::consume(read_file(filename), filename, 1);
-    ASSERT_LT(10u, ast.size());
-
-    for (auto const & e : ast)
-    {
-        EXPECT_NE("", e->file);
-        EXPECT_NE(0u, e->line);
-    }
-}
-
 int main(int argc, char ** argv)
 {
 	::testing::InitGoogleTest(&argc, argv);

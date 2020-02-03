@@ -13,7 +13,6 @@ gtests(
     deps = [":factorio_lib"],
     extra_data =
     {
-        "fdl/SExp_gtest": ["fdl/syntax-exploration.fdl"],
         "fdl/FdlMacro_gtest": ["fdl/FdlMacro_gtest.scm"],
     },
 )
