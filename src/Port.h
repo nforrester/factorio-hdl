@@ -22,6 +22,7 @@ public:
 
     void connect(WireColor wire, CircuitId id)
     {
+        std::cout << "CONNECT TO " << id << "\n";
         CircuitId & w = _wires[wire];
         assert(w == invalid_circuit_id);
         w = id;
@@ -34,6 +35,7 @@ public:
 
     void disconnect(WireColor wire)
     {
+        std::cout << "DISCONNECT\n";
         _wires[wire] = invalid_circuit_id;
     }
 

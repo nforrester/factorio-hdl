@@ -1,4 +1,4 @@
-(load "syntax-exploration.fdl")
+(load "hysteresis.fdl")
 (green input i)
 (green output o)
 (part-under-test (hysteresis i o sig:signal-a sig:signal-b 50 10))

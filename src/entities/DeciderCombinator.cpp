@@ -51,6 +51,7 @@ void DeciderCombinator::_common_init()
 
 void DeciderCombinator::tick(CircuitManager & circuits) const
 {
+    std::cout << "DECID TICK START\n";
     CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
@@ -150,7 +151,9 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
         }
     }
 
+    std::cout << "DECID: " << in << " -> " << out << "\n";
     _out_port.write(circuits, out);
+    std::cout << "DECID TICK END\n";
 }
 
 bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const

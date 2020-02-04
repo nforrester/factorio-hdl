@@ -858,7 +858,14 @@ void Fdl::InstantiatedPart::connect_all(
 
         if (port.color == Color::yellow)
         {
-            _set_port(port.name, inside_port);
+            if (final_wire_colors.at(port.name).size() == 2)
+            {
+                _set_port(port.name, inside_port);
+            }
+            else
+            {
+                _set_port(port.name, inside_port, *final_wire_colors.at(port.name).begin());
+            }
         }
         else if (port.color == Color::red)
         {

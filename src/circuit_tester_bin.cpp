@@ -27,12 +27,14 @@ int main(int argc, char ** argv)
 
     struct TestPort
     {
+        std::string name;
         WireColor color;
         bool input;
         SignalValue value;
         ConstantCombinator * entity = nullptr;
     };
-    std::unordered_map<std::string, TestPort> test_ports;
+    std::map<std::string, TestPort> test_ports;
+    std::vector<std::string> test_port_names;
 
     std::vector<std::pair<TestPort *, SignalId>> test_input_format;
     std::vector<std::pair<TestPort *, SignalId>> test_output_format;
@@ -84,17 +86,17 @@ int main(int argc, char ** argv)
             TestPort test_port;
             test_port.color = command == "green" ? Wire::green : Wire::red;
             test_port.input = "input" == test_form.at(1)->as_symbol()->s;
+            test_port.name = test_form.at(2)->as_symbol()->s;
 
-            std::string name = test_form.at(2)->as_symbol()->s;
-
-            if (test_ports.count(name))
+            if (test_ports.count(test_port.name))
             {
                 throw S::ParseError(
                     s->file,
                     s->line,
-                    "Duplicate test port: " + name);
+                    "Duplicate test port: " + test_port.name);
             }
-            test_ports[name] = test_port;
+            test_ports[test_port.name] = test_port;
+            test_port_names.push_back(test_port.name);
 
             continue;
         }
@@ -116,6 +118,7 @@ int main(int argc, char ** argv)
             /* + 1 because the constant combinators used for test input add a cycle
              * of latency. */
             latency = test_form.at(2)->as_int()->v + 1;
+            continue;
         }
 
         if (command == "part-under-test")
@@ -284,7 +287,10 @@ int main(int argc, char ** argv)
                                         "Wrong number of outputs.");
                 }
             }
+            continue;
         }
+
+        throw S::ParseError(s->file, s->line, "Unrecognized command: " + command);
     }
 
     assert(parts_created);
@@ -321,33 +327,55 @@ int main(int argc, char ** argv)
         {
             auto delayed_input_value = in_delayed->begin();
             auto input_value_format = test_input_format.begin();
+            std::unordered_map<std::string, CircuitValues> delayed_input_values;
             while (delayed_input_value != in_delayed->end())
             {
-                CircuitValues values;
-                values.add(input_value_format->second, *delayed_input_value);
-                std::cout << values << " ";
+                delayed_input_values[input_value_format->first->name].add(
+                    input_value_format->second, *delayed_input_value);
 
                 ++delayed_input_value;
                 ++input_value_format;
             }
 
-            std::cout << "---===> ";
-
             auto output_value = out->begin();
             auto output_value_format = test_output_format.begin();
+            bool errors_this_cycle = false;
             while (output_value != out->end())
             {
                 CircuitValues values = fac.read(
                     output_value_format->first->entity->port("out"));
-                std::cout << values << " ";
                 if (*output_value != values.get(output_value_format->second))
                 {
-                    std::cout << "Test failure at (t = " << time << ").";
+                    errors_this_cycle = true;
                     ++errors;
                 }
 
                 ++output_value;
                 ++output_value_format;
+            }
+
+            for (std::string const & tp_name : test_port_names)
+            {
+                TestPort & test_port = test_ports.at(tp_name);
+                if (test_port.input)
+                {
+                    std::cout << delayed_input_values.at(tp_name) << " ";
+                }
+            }
+            std::cout << "---===> ";
+            for (std::string const & tp_name : test_port_names)
+            {
+                TestPort & test_port = test_ports.at(tp_name);
+                if (!test_port.input)
+                {
+                    CircuitValues values = fac.read(
+                        test_ports.at(tp_name).entity->port("out"));
+                    std::cout << values << " ";
+                }
+            }
+            if (errors_this_cycle)
+            {
+                std::cout << "Test failure at (t = " << time << ").";
             }
         }
         std::cout << "\n";

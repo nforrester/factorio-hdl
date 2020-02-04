@@ -1,0 +1,11 @@
+(load "util.fdl")
+(green input i)
+(green output o)
+(part-under-test (buffer-without-signal i o sig:signal-b))
+(test-type fixed-latency 1)
+
+(test (((i sig:signal-a) (i sig:signal-b) (i sig:signal-c))
+       ((o sig:signal-a) (o sig:signal-b) (o sig:signal-c)))
+  ((1 2 3) (1 0 3))
+  ((9 8 7) (9 0 7))
+  ((-3 47 1701) (-3 0 1701)))

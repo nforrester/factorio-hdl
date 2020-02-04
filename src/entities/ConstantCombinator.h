@@ -14,6 +14,7 @@ public:
 
     void tick(CircuitManager & circuits) const override
     {
+        std::cout << "CONST: -> " << constants << "\n";
         _port.write(circuits, constants);
     }
 

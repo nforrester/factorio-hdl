@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
-
 #include "CircuitValues.h"
+
+#include <vector>
+#include <iostream> // TODO remove
 
 using CircuitId = size_t;
 CircuitId constexpr invalid_circuit_id = std::numeric_limits<CircuitId>::max();
@@ -24,12 +25,15 @@ public:
 
     CircuitValues const & read(CircuitId id) const
     {
+        std::cout << "CIRCUIT " << id << "? " << _circuits.at(id) << "\n";
         return _circuits.at(id);
     }
 
     void write(CircuitId id, CircuitValues const & values)
     {
+        std::cout << "CIRCUIT " << id << ": " << _next.at(id) << " + " << values << " = ";
         _next.at(id).add(values);
+        std::cout << _next.at(id) << "\n";
     }
 
     bool stable()
@@ -43,6 +47,12 @@ public:
         for (CircuitValues & c : _next)
         {
             c.clear();
+        }
+
+        int i = 0;
+        for (auto const & c : _circuits)
+        {
+            std::cout << "circuit " << i++ << ": " << c << "\n";
         }
     }
 

@@ -66,21 +66,6 @@
 ;     (signal result)
 ;     (decider-output-type output-type)))
 
-(defpart hysteresis
-    ((in red i)
-     (out red o)
-     (signal in-sig)
-     (signal out-sig)
-     (int set-point)
-     (int half-deadband-width))
-
-    (green a)
-    (green b)
-    (int negative-set-point (* -1 set-point))
-    (constant a ((in-sig negative-set-point)))
-    (arithmetic (a i) b in-sig / half-deadband-width out-sig)
-    (decider b (b o) out-sig > 0 out-sig one))
-
 ;(defpart main ()
 ;    (green a)
 ;    (green b)
@@ -110,62 +95,6 @@
     (constant i ((sig:signal-a 42)))
     (constant control ((sig:signal-a 1)))
     (constant o ((sig:signal-o 1))))
-
-(defpart buffer
-    ((in yellow i)
-     (out yellow o))
-    (decider i o each != 0 each input-count))
-
-(defpart buffer-without-signal
-    ((in yellow i)
-     (out yellow o)
-     (signal sig))
-    (buffer i o)
-    (arithmetic i o sig * -1 sig))
-
-(defpart buffer-only-signal
-    ((in yellow i)
-     (out yellow o)
-     (signal sig))
-    (decider i o sig != 0 sig input-count))
-
-(defpart signal-exchanger
-    ((in yellow a-in)
-     (in yellow b-in)
-     (out yellow a-out)
-     (out yellow b-out)
-     (signal sig))
-    (buffer-without-signal a-in a-out sig)
-    (buffer-without-signal b-in b-out sig)
-    (buffer-only-signal a-in b-out sig)
-    (buffer-only-signal b-in a-out sig))
-
-(defpart relay
-    ((in yellow i)
-     (out yellow o)
-     (in yellow control)
-     (signal control-sig))
-
-    ; i-most is like i but with control-sig replaced with its value from control.
-    (red i-most)
-    (buffer-without-signal i i-most control-sig)
-    (buffer-only-signal control i-most control-sig)
-
-    ; i-one has control-sig from i and the value of control-sig
-    ; from control moved to a different signal.
-    (red i-one)
-    (signal not-control-sig (notsigs control-sig))
-    (buffer-only-signal i i-one control-sig)
-    (decider control i-one control-sig != 0 not-control-sig one)
-
-    (red o-most)
-    (arithmetic i-most o-most each * control-sig each)
-
-    (red o-one)
-    (arithmetic i-one o-one each * not-control-sig each)
-
-    (buffer-without-signal o-most o control-sig)
-    (buffer-only-signal o-one o control-sig))
 
 ; Probably mismatched latency between inputs and control
 (defpart mux-5-circuits

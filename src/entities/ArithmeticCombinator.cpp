@@ -32,6 +32,7 @@ void ArithmeticCombinator::_common_init()
 
 void ArithmeticCombinator::tick(CircuitManager & circuits) const
 {
+    std::cout << "ARITH TICK START\n";
     CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
@@ -72,7 +73,9 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
         }
     }
 
+    std::cout << "ARITH: " << in << " -> " << out << "\n";
     _out_port.write(circuits, out);
+    std::cout << "ARITH TICK END\n";
 }
 
 namespace

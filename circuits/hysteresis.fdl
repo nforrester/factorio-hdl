@@ -1,0 +1,14 @@
+(defpart hysteresis
+    ((in red i)
+     (out red o)
+     (signal in-sig)
+     (signal out-sig)
+     (int set-point)
+     (int half-deadband-width))
+
+    (green a)
+    (green b)
+    (int negative-set-point (* -1 set-point))
+    (constant a ((in-sig negative-set-point)))
+    (arithmetic (a i) b in-sig / half-deadband-width out-sig)
+    (decider b (b o) out-sig > 0 out-sig one))
