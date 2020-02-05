@@ -3,7 +3,7 @@
 (green output o)
 (green input c)
 (part-under-test (relay i o c sig:signal-c))
-(test-type fixed-latency 3)
+(test-type fixed-latency 2)
 
 (test (((i sig:signal-a) (i sig:signal-b) (i sig:signal-c) (i sig:signal-d) (i sig:signal-e) (i sig:signal-f) (c sig:signal-c))
        ((o sig:signal-a) (o sig:signal-b) (o sig:signal-c) (o sig:signal-d) (o sig:signal-e) (o sig:signal-f)))

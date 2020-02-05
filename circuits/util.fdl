@@ -45,11 +45,8 @@
     (buffer-only-signal i i-one control-sig)
     (decider control i-one control-sig != 0 not-control-sig one)
 
-    (red o-most)
-    (arithmetic i-most o-most each * control-sig each)
+    (arithmetic i-most o each * control-sig each)
+    (arithmetic i-most o control-sig * -1 control-sig)
 
-    (red o-one)
-    (arithmetic i-one o-one each * not-control-sig each)
-
-    (buffer-without-signal o-most o control-sig)
-    (buffer-only-signal o-one o control-sig))
+    (arithmetic i-one o each * not-control-sig each)
+    (arithmetic i-one o not-control-sig * -1 not-control-sig))
