@@ -2,3 +2,6 @@
 
 (defmacro defpart-mux-n-circuits "circuits/muxes.scm")
 (defpart-mux-n-circuits 6)
+
+(defmacro defpart-demux-n-circuits "circuits/muxes.scm")
+(defpart-demux-n-circuits 6)

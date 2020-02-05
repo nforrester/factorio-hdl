@@ -35,7 +35,7 @@ Fdl::ast_to_defparts(S::PtrV const & ast)
             throw S::ParseError(
                 s->file,
                 s->line,
-                "Expected: (defpart <symbol> (<list>...) <list>...)");
+                "Expected: (defpart <symbol> (<list>...) <list>...). Got: " + s->write());
         }
 
         std::string const & name = defpart.at(1)->as_symbol()->s;

@@ -96,59 +96,6 @@
     (constant control ((sig:signal-a 1)))
     (constant o ((sig:signal-o 1))))
 
-; Probably mismatched latency between inputs and control
-(defpart mux-5-circuits
-    ((in yellow in0)
-     (in yellow in1)
-     (in yellow in2)
-     (in yellow in3)
-     (in yellow in4)
-     (out yellow o)
-     (in yellow control)
-     (signal control-sig))
-
-    (red control0)
-    (red control1)
-    (red control2)
-    (red control3)
-    (red control4)
-
-    (decider control control0 control-sig == 0 control-sig one)
-    (decider control control1 control-sig == 1 control-sig one)
-    (decider control control2 control-sig == 2 control-sig one)
-    (decider control control3 control-sig == 3 control-sig one)
-    (decider control control4 control-sig == 4 control-sig one)
-
-    (relay in0 o control0 control-sig)
-    (relay in1 o control1 control-sig)
-    (relay in2 o control2 control-sig)
-    (relay in3 o control3 control-sig)
-    (relay in4 o control4 control-sig))
-
-; Probably mismatched latency between inputs and control
-; TODO Develop automated test for this
-(defpart demux-5-circuits
-    ((in yellow i)
-     (out yellow out0)
-     (out yellow out1)
-     (out yellow out2)
-     (out yellow out3)
-     (out yellow out4)
-     (in yellow control)
-     (signal control-sig))
-
-    (decider control control0 control-sig == 0 control-sig one)
-    (decider control control1 control-sig == 1 control-sig one)
-    (decider control control2 control-sig == 2 control-sig one)
-    (decider control control3 control-sig == 3 control-sig one)
-    (decider control control4 control-sig == 4 control-sig one)
-
-    (relay i out0 control0 control-sig)
-    (relay i out1 control1 control-sig)
-    (relay i out2 control2 control-sig)
-    (relay i out3 control3 control-sig)
-    (relay i out4 control4 control-sig))
-
 ; Designed so that control-sig and any other signal can be the same.
 (defpart mux-5-signals
     ((in yellow i)
