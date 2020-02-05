@@ -13,10 +13,11 @@ TEST(CircuitTest, HysteresisGreenDeadBandHalf3)
 
     Factorio fac;
 
-    auto & c = fac.new_entity<ConstantCombinator>();
+    auto & c = fac.new_entity<ConstantCombinator>("constant > ");
     c.constants.add(Signal::iron_plate, 0);
 
-    auto & h = fac.new_entity<Hysteresis>(Signal::iron_plate,
+    auto & h = fac.new_entity<Hysteresis>("hysteresis > ",
+                                          Signal::iron_plate,
                                           Signal::copper_plate,
                                           10,
                                           3,
@@ -82,10 +83,11 @@ TEST(CircuitTest, HysteresisRedDeadBandHalf4)
 
     Factorio fac;
 
-    auto & c = fac.new_entity<ConstantCombinator>();
+    auto & c = fac.new_entity<ConstantCombinator>("constant > ");
     c.constants.add(Signal::iron_plate, 0);
 
-    auto & h = fac.new_entity<Hysteresis>(Signal::iron_plate,
+    auto & h = fac.new_entity<Hysteresis>("hysteresis > ",
+                                          Signal::iron_plate,
                                           Signal::copper_plate,
                                           10,
                                           4,

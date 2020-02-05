@@ -4,23 +4,27 @@
 #include "DeciderCombinator.h"
 
 Hysteresis::Hysteresis(Factorio & factorio,
+                       std::string const & log_leader,
                        SignalId in,
                        SignalId out,
                        SignalValue dead_band_center_point,
                        SignalValue dead_band_half_width,
                        WireColor interface_color):
-    Composite(factorio)
+    Composite(factorio, log_leader)
 {
-    auto & c = _new_entity<ConstantCombinator>();
+    auto & c = _new_entity<ConstantCombinator>(
+        log_leader + "constant > ");
     c.constants.add(in, -dead_band_center_point);
 
     auto & a = _new_entity<ArithmeticCombinator>(
+        log_leader + "arithmetic > ",
         in,
         ArithmeticCombinator::Op::DIV,
         dead_band_half_width,
         out);
 
     auto & d = _new_entity<DeciderCombinator>(
+        log_leader + "decider > ",
         out,
         DeciderCombinator::Op::GT,
         SignalValue(0),

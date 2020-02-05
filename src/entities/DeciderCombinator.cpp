@@ -1,8 +1,17 @@
 #include "DeciderCombinator.h"
 #include "src/blueprint/Blueprint.h"
 
-DeciderCombinator::DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out, bool write_input_count):
-    Entity(factorio),
+DeciderCombinator::DeciderCombinator(
+        Factorio & factorio,
+        std::string const & log_leader,
+        SignalId lhs,
+        Op op,
+        SignalId rhs,
+        SignalId out,
+        bool write_input_count):
+    Entity(factorio, log_leader),
+    _in_port(log_leader + "in > "),
+    _out_port(log_leader + "out > "),
     _lhs(lhs),
     _op(op),
     _rhs(rhs),
@@ -14,8 +23,17 @@ DeciderCombinator::DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, S
     _common_init();
 }
 
-DeciderCombinator::DeciderCombinator(Factorio & factorio, SignalId lhs, Op op, SignalValue rhs_const, SignalId out, bool write_input_count):
-    Entity(factorio),
+DeciderCombinator::DeciderCombinator(
+        Factorio & factorio,
+        std::string const & log_leader,
+        SignalId lhs,
+        Op op,
+        SignalValue rhs_const,
+        SignalId out,
+        bool write_input_count):
+    Entity(factorio, log_leader),
+    _in_port(log_leader + "in > "),
+    _out_port(log_leader + "out > "),
     _lhs(lhs),
     _op(op),
     _rhs(LogicSignal::constant),
@@ -51,7 +69,7 @@ void DeciderCombinator::_common_init()
 
 void DeciderCombinator::tick(CircuitManager & circuits) const
 {
-    std::cout << "DECID TICK START\n";
+    std::cout << _log_leader << "Start tick\n";
     CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
@@ -151,9 +169,9 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
         }
     }
 
-    std::cout << "DECID: " << in << " -> " << out << "\n";
+    std::cout << _log_leader << in << " -> " << out << "\n";
     _out_port.write(circuits, out);
-    std::cout << "DECID TICK END\n";
+    std::cout << _log_leader << "End tick\n";
 }
 
 bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const

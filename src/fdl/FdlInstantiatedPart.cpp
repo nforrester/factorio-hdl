@@ -10,13 +10,13 @@
 
 Fdl::InstantiatedPart::InstantiatedPart(
         Factorio & factorio,
+        std::string const & log_leader,
         std::string const & part_type,
         std::vector<Arg> const & provided_args,
         std::string const & instantiation_file,
         size_t instantiation_line,
-        std::unordered_map<std::string, S::PtrV const *> const & defparts,
-        std::string const & log_leader):
-    Composite(factorio)
+        std::unordered_map<std::string, S::PtrV const *> const & defparts):
+    Composite(factorio, log_leader)
 {
     _log_leader = log_leader;
     _part_type = part_type;
@@ -44,7 +44,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         _outside_ports.push_back(out);
 
-        ConstantCombinator * constant = &_new_entity<ConstantCombinator>();
+        ConstantCombinator * constant = &_new_entity<ConstantCombinator>(log_leader);
         constant->constants = std::get<CircuitValues>(provided_args.at(1));
         _entity = constant;
 
@@ -91,6 +91,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         if (std::holds_alternative<SignalId>(provided_args.at(4)))
         {
             _entity = &_new_entity<ArithmeticCombinator>(
+                log_leader,
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<ArithmeticCombinator::Op>(provided_args.at(3)),
                 std::get<SignalId>(provided_args.at(4)),
@@ -99,6 +100,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         else
         {
             _entity = &_new_entity<ArithmeticCombinator>(
+                log_leader,
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<ArithmeticCombinator::Op>(provided_args.at(3)),
                 std::get<SignalValue>(provided_args.at(4)),
@@ -150,6 +152,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         if (std::holds_alternative<SignalId>(provided_args.at(4)))
         {
             _entity = &_new_entity<DeciderCombinator>(
+                log_leader,
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<DeciderCombinator::Op>(provided_args.at(3)),
                 std::get<SignalId>(provided_args.at(4)),
@@ -159,6 +162,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
         else
         {
             _entity = &_new_entity<DeciderCombinator>(
+                log_leader,
                 std::get<SignalId>(provided_args.at(2)),
                 std::get<DeciderCombinator::Op>(provided_args.at(3)),
                 std::get<SignalValue>(provided_args.at(4)),
@@ -540,12 +544,12 @@ Fdl::InstantiatedPart::InstantiatedPart(
 
             /* Add a new part. */
             InstantiatedPart & new_part = _new_entity<InstantiatedPart>(
+                _log_leader + (*body_form)->write() + " > ",
                 type,
                 gather_new_part_args(**body_form, signals, ints, wire_names),
                 l->file,
                 l->line,
-                defparts,
-                _log_leader + type + " " + std::to_string(_parts.size()) + " > ");
+                defparts);
 
             /* Attach wires. */
             size_t const part_idx = _parts.size();
@@ -600,8 +604,7 @@ Fdl::InstantiatedPart::InstantiatedPart(
                             definitely_norm_colors = true;
                         }
                         if (inside_port.color == Color::red)
-                        {
-                            definitely_flip_colors = true;
+                        { definitely_flip_colors = true;
                         }
                     }
                     else
@@ -725,6 +728,7 @@ void Fdl::InstantiatedPart::connect_all(
                    colors_of_outside_wires.at(p.outside_wires.at(1)));
             continue;
         }
+        assert(p.outside_wires.size() == 1);
 
         std::set<WireColor> connected_colors;
         for (std::string const & outside_wire_name : p.outside_wires)
@@ -833,19 +837,18 @@ void Fdl::InstantiatedPart::connect_all(
             if (!first_port)
             {
                 std::cerr << _log_leader << "HUB   "
-                          << part._part_type << " " << ippp.first << " " << ippp.second
+                          << part._part_type << " " << ippp.first << " " << port.name
                           << "\n";
                 first_port = part.ports().at(port.name);
                 continue;
             }
-            std::cerr << _log_leader << "SPOKE "
-                      << part._part_type << " " << ippp.first << " " << ippp.second;
             for (WireColor color : final_wire_colors.at(wire_name))
             {
-                std::cerr << (color == ::Wire::green ? " (green)" : " (red)");
+                std::cerr << _log_leader << "SPOKE "
+                          << part._part_type << " " << ippp.first << " " << port.name
+                          << (color == ::Wire::green ? " (green)" : " (red)") << "\n";
                 _connect(color, *first_port, *part.ports().at(port.name));
             }
-            std::cerr << "\n";
         }
     }
 
@@ -854,16 +857,22 @@ void Fdl::InstantiatedPart::connect_all(
         size_t part_idx, port_idx;
         std::tie(part_idx, port_idx) = _inside_wires.at(port.name).inside_ports.front();
         InstantiatedPart & inside_part = *_parts.at(part_idx);
-        ::Port & inside_port = *inside_part.ports().at(inside_part._outside_ports.at(port_idx).name);
+        std::string const & inside_port_name = inside_part._outside_ports.at(port_idx).name;
+        ::Port & inside_port = *inside_part.ports().at(inside_port_name);
 
+        std::cerr << _log_leader << "SET PORT " << port.name << " = "
+                  << inside_part._part_type << " " << part_idx << " " << inside_port_name;
         if (port.color == Color::yellow)
         {
             if (final_wire_colors.at(port.name).size() == 2)
             {
+                std::cerr << " (yellow)\n";
                 _set_port(port.name, inside_port);
             }
             else
             {
+                std::cerr << " (" << (*final_wire_colors.at(port.name).begin() ==
+                                      ::Wire::green ? "green" : "red") << ")\n";
                 _set_port(port.name, inside_port, *final_wire_colors.at(port.name).begin());
             }
         }
@@ -871,10 +880,12 @@ void Fdl::InstantiatedPart::connect_all(
         {
             if (definitely_flip_colors)
             {
+                std::cerr << " (green)\n";
                 _set_port(port.name, inside_port, ::Wire::green);
             }
             else
             {
+                std::cerr << " (red)\n";
                 _set_port(port.name, inside_port, ::Wire::red);
             }
         }
@@ -883,10 +894,12 @@ void Fdl::InstantiatedPart::connect_all(
             assert(port.color == Color::green);
             if (definitely_flip_colors)
             {
+                std::cerr << " (red)\n";
                 _set_port(port.name, inside_port, ::Wire::red);
             }
             else
             {
+                std::cerr << " (green)\n";
                 _set_port(port.name, inside_port, ::Wire::green);
             }
         }

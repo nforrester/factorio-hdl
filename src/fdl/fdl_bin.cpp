@@ -11,6 +11,7 @@ int main(int argc, char ** argv)
     Factorio fac;
 
     Entity & fdl = fac.new_entity<Fdl::Entity>(
+        "main > ",
         "main",
         std::vector<Fdl::Arg>(),
         std::unordered_map<std::string, std::set<WireColor>>(),

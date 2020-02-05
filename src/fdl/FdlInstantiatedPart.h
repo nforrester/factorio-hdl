@@ -16,12 +16,12 @@ class Fdl::InstantiatedPart: public Composite
 public:
     InstantiatedPart(
         Factorio & factorio,
+        std::string const & log_leader,
         std::string const & part_type,
         std::vector<Arg> const & provided_args,
         std::string const & instantiation_file,
         size_t instantiation_line,
-        std::unordered_map<std::string, S::PtrV const *> const & defparts,
-        std::string const & log_leader);
+        std::unordered_map<std::string, S::PtrV const *> const & defparts);
 
     void connect_all(std::unordered_map<std::string, std::set<WireColor>> const & colors_of_outside_wires);
 

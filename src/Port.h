@@ -15,14 +15,16 @@ WireColor other_color(WireColor wire);
 class Port
 {
 public:
-    Port()
+    Port(std::string const & log_leader): _log_leader(log_leader)
     {
+        std::cout << _log_leader << "Created Port.\n";
         _wires.fill(invalid_circuit_id);
     }
 
     void connect(WireColor wire, CircuitId id)
     {
-        std::cout << "CONNECT TO " << id << "\n";
+        std::cout << _log_leader << "Port connected to circuit " << id
+                  << " (" << (wire == Wire::green ? "green" : "red") << ")\n";
         CircuitId & w = _wires[wire];
         assert(w == invalid_circuit_id);
         w = id;
@@ -35,7 +37,8 @@ public:
 
     void disconnect(WireColor wire)
     {
-        std::cout << "DISCONNECT\n";
+        std::cout << _log_leader << "Port disconnected from circuit " << _wires[wire]
+                  << " (" << (wire == Wire::green ? "green" : "red") << ")\n";
         _wires[wire] = invalid_circuit_id;
     }
 
@@ -46,4 +49,6 @@ public:
 
 private:
     std::array<CircuitId, num_wire_colors> _wires;
+
+    std::string const _log_leader;
 };

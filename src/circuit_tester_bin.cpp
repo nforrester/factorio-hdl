@@ -147,7 +147,9 @@ int main(int argc, char ** argv)
             for (auto const & np : test_ports)
             {
                 wire_colors[np.first].insert(np.second.color);
-                test_ports.at(np.first).entity = &fac.new_entity<ConstantCombinator>();
+                test_ports.at(np.first).entity = &fac.new_entity<ConstantCombinator>(
+                    "(" + std::string(np.second.color == Wire::green ? "green" : "red") + " " +
+                    np.second.name + ") > ");
             }
 
             std::unordered_set<std::string> wire_names;
@@ -157,6 +159,7 @@ int main(int argc, char ** argv)
             }
 
             Fdl::Entity & part_under_test = fac.new_entity<Fdl::Entity>(
+                s->write() + " > ",
                 test_form.at(1)->as_list()->l.front()->as_symbol()->s,
                 Fdl::gather_new_part_args(*test_form.at(1),
                                           std::unordered_map<std::string, SignalId>(),
@@ -174,6 +177,7 @@ int main(int argc, char ** argv)
                     TestPort const & test_port = test_ports.at(test_port_name);
                     Port & outer_port = *test_port.entity->ports().at("out");
                     fac.connect(test_port.color, outer_port, inner_port);
+                    std::cout << "Connect test port " << test_port.name << " to " << np.first << "\n";
                 }
             }
 
@@ -300,6 +304,12 @@ int main(int argc, char ** argv)
 
     fac.build();
 
+    std::cout << "\n";
+    std::cout << "================================================================================\n";
+    std::cout << "Beginning test.\n";
+    std::cout << "================================================================================\n";
+    std::cout << "\n";
+
     int remaining_output_delay = latency;
     auto in = test_inputs.begin();
     auto in_delayed = test_inputs.begin();
@@ -354,15 +364,16 @@ int main(int argc, char ** argv)
                 ++output_value_format;
             }
 
+            std::ostringstream out;
             for (std::string const & tp_name : test_port_names)
             {
                 TestPort & test_port = test_ports.at(tp_name);
                 if (test_port.input)
                 {
-                    std::cout << delayed_input_values.at(tp_name) << " ";
+                    out << delayed_input_values.at(tp_name) << " ";
                 }
             }
-            std::cout << "---===> ";
+            out << "---===> ";
             for (std::string const & tp_name : test_port_names)
             {
                 TestPort & test_port = test_ports.at(tp_name);
@@ -370,14 +381,20 @@ int main(int argc, char ** argv)
                 {
                     CircuitValues values = fac.read(
                         test_ports.at(tp_name).entity->port("out"));
-                    std::cout << values << " ";
+                    out << values << " ";
                 }
             }
             if (errors_this_cycle)
             {
-                std::cout << "Test failure at (t = " << time << ").";
+                out << "Test failure at (t = " << time << ").";
             }
+            std::cout << out.str() << "\n";
         }
+
+        std::cout << "\n";
+        std::cout << "................................................................................\n";
+        std::cout << "Tick.\n";
+        std::cout << "................................................................................\n";
         std::cout << "\n";
 
         fac.tick();
@@ -396,6 +413,12 @@ int main(int argc, char ** argv)
             --remaining_output_delay;
         }
         ++time;
+
+        std::cout << "\n";
+        std::cout << "--------------------------------------------------------------------------------\n";
+        std::cout << "Ticked.\n";
+        std::cout << "--------------------------------------------------------------------------------\n";
+        std::cout << "\n";
     }
 
     if (errors > 0)

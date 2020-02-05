@@ -7,6 +7,7 @@ class Hysteresis: public Composite
 public:
     /* Actual dead band width is (dead_band_half_width * 2 - 1) */
     Hysteresis(Factorio & factorio,
+               std::string const & log_leader,
                SignalId in,
                SignalId out,
                SignalValue dead_band_center_point,

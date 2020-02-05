@@ -5,7 +5,9 @@
 class ConstantCombinator: public Entity
 {
 public:
-    ConstantCombinator(Factorio & factorio): Entity(factorio)
+    ConstantCombinator(Factorio & factorio, std::string const & log_leader):
+        Entity(factorio, log_leader),
+        _port(log_leader + "out > ")
     {
         _set_port("out", _port);
     }
@@ -14,7 +16,7 @@ public:
 
     void tick(CircuitManager & circuits) const override
     {
-        std::cout << "CONST: -> " << constants << "\n";
+        std::cout << _log_leader << "Write " << constants << "\n";
         _port.write(circuits, constants);
     }
 

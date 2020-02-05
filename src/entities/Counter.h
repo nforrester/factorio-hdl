@@ -7,12 +7,14 @@ class Counter: public Composite
 {
 public:
     Counter(Factorio & factorio,
+            std::string const & log_leader,
             SignalId out,
             SignalValue rate,
             WireColor interface_color):
-        Composite(factorio)
+        Composite(factorio, log_leader)
     {
         auto & a = _new_entity<ArithmeticCombinator>(
+            log_leader + "arithmetic > ",
             out,
             ArithmeticCombinator::Op::ADD,
             rate,

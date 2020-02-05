@@ -6,7 +6,7 @@
 TEST(CircuitTest, Counter1Green)
 {
     Factorio fac;
-    auto & c = fac.new_entity<Counter>(Signal::iron_plate, 1, Wire::green);
+    auto & c = fac.new_entity<Counter>("counter > ", Signal::iron_plate, 1, Wire::green);
     fac.lock(Wire::green, c.port("out"));
     fac.build();
     EXPECT_FALSE(fac.run_until_stable(100));
@@ -16,7 +16,7 @@ TEST(CircuitTest, Counter1Green)
 TEST(CircuitTest, CounterMinus3Red)
 {
     Factorio fac;
-    auto & c = fac.new_entity<Counter>(Signal::iron_plate, -3, Wire::red);
+    auto & c = fac.new_entity<Counter>("counter > ", Signal::iron_plate, -3, Wire::red);
     fac.lock(Wire::red, c.port("out"));
     fac.build();
     EXPECT_FALSE(fac.run_until_stable(100));

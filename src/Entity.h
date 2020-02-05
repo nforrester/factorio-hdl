@@ -50,7 +50,9 @@ public:
     virtual int to_blueprint_entity(Blueprint::Entity & bpe) const = 0;
 
 protected:
-    Entity(Factorio & factorio): _factorio(factorio)
+    Entity(Factorio & factorio, std::string const & log_leader):
+        _log_leader(log_leader),
+        _factorio(factorio)
     {
         // This is undone in Composite's constructor.
         _primitive_constituents.push_back(this);
@@ -63,6 +65,8 @@ protected:
 
     void _set_port(std::string const & name, Port & port);
     void _set_port(std::string const & name, Port & port, WireColor interface_color);
+
+    std::string const _log_leader;
 
 private:
     Factorio & _factorio;

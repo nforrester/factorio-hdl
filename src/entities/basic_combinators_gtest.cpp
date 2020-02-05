@@ -9,7 +9,7 @@ TEST(CircuitTest, ConstantCombinator)
 {
     Factorio fac;
 
-    auto & c = fac.new_entity<ConstantCombinator>();
+    auto & c = fac.new_entity<ConstantCombinator>("constant >");
 
     c.constants.add(Signal::iron_plate, 10);
     c.constants.add(Signal::copper_plate, 3);
@@ -66,11 +66,12 @@ TEST(CircuitTest, DeciderCombinator)
             {
                 Factorio fac;
 
-                auto & c = fac.new_entity<ConstantCombinator>();
+                auto & c = fac.new_entity<ConstantCombinator>("constant > ");
                 c.constants.add(Signal::iron_plate, lhs);
                 c.constants.add(Signal::copper_plate, rhs);
 
                 auto & d = fac.new_entity<DeciderCombinator>(
+                    "decider > ",
                     Signal::iron_plate,
                     ops[i],
                     Signal::copper_plate,
@@ -126,11 +127,12 @@ TEST(CircuitTest, ArithmeticCombinator)
         {
             Factorio fac;
 
-            auto & c = fac.new_entity<ConstantCombinator>();
+            auto & c = fac.new_entity<ConstantCombinator>("constant > ");
             c.constants.add(Signal::iron_plate, lhs);
             c.constants.add(Signal::copper_plate, rhs);
 
             auto & d = fac.new_entity<ArithmeticCombinator>(
+                "arithmetic > ",
                 Signal::iron_plate,
                 ops[i],
                 Signal::copper_plate,

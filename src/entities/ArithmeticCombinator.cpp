@@ -3,15 +3,41 @@
 
 #include <cmath>
 
-ArithmeticCombinator::ArithmeticCombinator(Factorio & factorio, SignalId lhs, Op op, SignalId rhs, SignalId out):
-    Entity(factorio), _lhs(lhs), _op(op), _rhs(rhs), _out(out), _rhs_const(0)
+ArithmeticCombinator::ArithmeticCombinator(
+        Factorio & factorio,
+        std::string const & log_leader,
+        SignalId lhs,
+        Op op,
+        SignalId rhs,
+        SignalId out):
+    Entity(factorio, log_leader),
+    _in_port(log_leader + "in > "),
+    _out_port(log_leader + "out > "),
+    _lhs(lhs),
+    _op(op),
+    _rhs(rhs),
+    _out(out),
+    _rhs_const(0)
 {
     assert(_rhs < num_signals);
     _common_init();
 }
 
-ArithmeticCombinator::ArithmeticCombinator(Factorio & factorio, SignalId lhs, Op op, SignalValue rhs_const, SignalId out):
-    Entity(factorio), _lhs(lhs), _op(op), _rhs(LogicSignal::constant), _out(out), _rhs_const(rhs_const)
+ArithmeticCombinator::ArithmeticCombinator(
+        Factorio & factorio,
+        std::string const & log_leader,
+        SignalId lhs,
+        Op op,
+        SignalValue rhs_const,
+        SignalId out):
+    Entity(factorio, log_leader),
+    _in_port(log_leader + "in > "),
+    _out_port(log_leader + "out > "),
+    _lhs(lhs),
+    _op(op),
+    _rhs(LogicSignal::constant),
+    _out(out),
+    _rhs_const(rhs_const)
 {
     _common_init();
 }
@@ -32,7 +58,7 @@ void ArithmeticCombinator::_common_init()
 
 void ArithmeticCombinator::tick(CircuitManager & circuits) const
 {
-    std::cout << "ARITH TICK START\n";
+    std::cout << _log_leader << "Start tick\n";
     CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
@@ -73,9 +99,9 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
         }
     }
 
-    std::cout << "ARITH: " << in << " -> " << out << "\n";
+    std::cout << _log_leader << in << " -> " << out << "\n";
     _out_port.write(circuits, out);
-    std::cout << "ARITH TICK END\n";
+    std::cout << _log_leader << "End tick\n";
 }
 
 namespace

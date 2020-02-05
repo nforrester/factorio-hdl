@@ -18,7 +18,9 @@ public:
     }
 
 protected:
-    Composite(Factorio & factorio): Entity(factorio), _factorio(factorio)
+    Composite(Factorio & factorio, std::string const & log_leader):
+        Entity(factorio, log_leader),
+        _factorio(factorio)
     {
         assert(_primitive_constituents.size() == 1);
         assert(_primitive_constituents.at(0) == this);

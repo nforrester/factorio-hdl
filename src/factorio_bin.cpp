@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
         Blueprint::Entity const & e = ie.second;
         if (e.name == Signal::constant_combinator)
         {
-            auto & c = fac.new_entity<ConstantCombinator>();
+            auto & c = fac.new_entity<ConstantCombinator>("constant " + std::to_string(e.id) + " > ");
             for (auto const & f : std::get<Blueprint::Entity::Filters>(
                                       *e.control_behavior).filters)
             {
@@ -44,6 +44,7 @@ int main(int argc, char ** argv)
             if (dc.rhs_signal.has_value())
             {
                 d = &fac.new_entity<DeciderCombinator>(
+                    "decider " + std::to_string(e.id) + " > ",
                     dc.lhs->name,
                     dc.op,
                     dc.rhs_signal->name,
@@ -54,6 +55,7 @@ int main(int argc, char ** argv)
             {
                 assert(dc.rhs_const.has_value());
                 d = &fac.new_entity<DeciderCombinator>(
+                    "decider " + std::to_string(e.id) + " > ",
                     dc.lhs->name,
                     dc.op,
                     *dc.rhs_const,
@@ -71,6 +73,7 @@ int main(int argc, char ** argv)
             if (ac.rhs_signal.has_value())
             {
                 a = &fac.new_entity<ArithmeticCombinator>(
+                    "arithmetic " + std::to_string(e.id) + " > ",
                     ac.lhs->name,
                     ac.op,
                     ac.rhs_signal->name,
@@ -80,6 +83,7 @@ int main(int argc, char ** argv)
             {
                 assert(ac.rhs_const.has_value());
                 a = &fac.new_entity<ArithmeticCombinator>(
+                    "arithmetic " + std::to_string(e.id) + " > ",
                     ac.lhs->name,
                     ac.op,
                     *ac.rhs_const,
@@ -90,12 +94,12 @@ int main(int argc, char ** argv)
         }
         else if (e.name == Signal::iron_chest) // TODO need a more disciplined approach?
         {
-            auto & c = fac.new_entity<ConstantCombinator>();
+            auto & c = fac.new_entity<ConstantCombinator>("iron_chest > ");
             ports_for_entities[e.id].push_back(&c.port("out"));
         }
         else if (e.name == Signal::medium_electric_pole) // TODO need a more disciplined approach?
         {
-            auto & c = fac.new_entity<ConstantCombinator>();
+            auto & c = fac.new_entity<ConstantCombinator>("medium_electric_pole > ");
             ports_for_entities[e.id].push_back(&c.port("out"));
         }
         else

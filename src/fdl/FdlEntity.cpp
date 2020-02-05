@@ -9,12 +9,13 @@
 #include <cstdlib>
 
 Fdl::Entity::Entity(Factorio & factorio,
+                    std::string const & log_leader,
                     std::string const & part_type,
                     std::vector<Arg> const & provided_args,
                     std::unordered_map<std::string, std::set<WireColor>> const &
                         colors_of_outside_wires,
                     std::string const & fdl_filename):
-    Composite(factorio)
+    Composite(factorio, log_leader)
 {
     S::PtrV ast = S::consume(read_file(fdl_filename), fdl_filename, 1);
     for (auto const & form : ast)
@@ -25,26 +26,29 @@ Fdl::Entity::Entity(Factorio & factorio,
     std::unordered_map<std::string, S::PtrV const *> defparts = ast_to_defparts(ast);
 
     _part = &_new_entity<InstantiatedPart>(
-        part_type, provided_args, __FILE__, __LINE__, defparts, part_type + " 0 > ");
+        log_leader,
+        part_type,
+        provided_args,
+        __FILE__,
+        __LINE__,
+        defparts);
 
     _part->connect_all(colors_of_outside_wires);
 
-    size_t port_idx = 0;
-    for (auto const & np : _part->ports())
+    for (size_t port_idx = 0; port_idx < _part->_outside_ports.size(); ++port_idx)
     {
-        std::string const & name = np.first;
-        Port & port = *np.second;
+        InstantiatedPart::Port const & port_info = _part->_outside_ports.at(port_idx);
+        Port & port = *_part->ports().at(port_info.name);
         std::set<WireColor> interf = _part->port_interface_colors(port);
         if (interf.size() == 2)
         {
-            _set_port(name, port);
+            _set_port(port_info.name, port);
         }
         else
         {
             assert(interf.size() == 1);
-            _set_port(name, port, *interf.begin());
+            _set_port(port_info.name, port, *interf.begin());
         }
-        _port_to_metadata[&port] = &_part->_outside_ports.at(port_idx);
-        ++port_idx;
+        _port_to_metadata[&port] = &port_info;
     }
 }

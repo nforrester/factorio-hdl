@@ -25,13 +25,13 @@ public:
 
     CircuitValues const & read(CircuitId id) const
     {
-        std::cout << "CIRCUIT " << id << "? " << _circuits.at(id) << "\n";
+        std::cout << _log_leader << id << "? " << _circuits.at(id) << "\n";
         return _circuits.at(id);
     }
 
     void write(CircuitId id, CircuitValues const & values)
     {
-        std::cout << "CIRCUIT " << id << ": " << _next.at(id) << " + " << values << " = ";
+        std::cout << _log_leader << id << ": " << _next.at(id) << " + " << values << " = ";
         _next.at(id).add(values);
         std::cout << _next.at(id) << "\n";
     }
@@ -43,6 +43,7 @@ public:
 
     void finish_tick()
     {
+        std::cout << _log_leader << "Finish Tick.\n";
         _circuits = _next;
         for (CircuitValues & c : _next)
         {
@@ -52,7 +53,7 @@ public:
         int i = 0;
         for (auto const & c : _circuits)
         {
-            std::cout << "circuit " << i++ << ": " << c << "\n";
+            std::cout << _log_leader << "Values on " << i++ << ": " << c << "\n";
         }
     }
 
@@ -65,4 +66,5 @@ public:
 private:
     std::vector<CircuitValues> _circuits;
     std::vector<CircuitValues> _next;
+    std::string const _log_leader = "CircuitManager > ";
 };
