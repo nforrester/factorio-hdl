@@ -315,7 +315,7 @@ int main(int argc, char ** argv)
     auto in_delayed = test_inputs.begin();
     auto out = test_outputs.begin();
     int time = 0;
-    int errors = 0;
+    int lines_with_errors = 0;
     while (out != test_outputs.end())
     {
         if (in != test_inputs.end())
@@ -357,7 +357,6 @@ int main(int argc, char ** argv)
                 if (*output_value != values.get(output_value_format->second))
                 {
                     errors_this_cycle = true;
-                    ++errors;
                 }
 
                 ++output_value;
@@ -387,6 +386,7 @@ int main(int argc, char ** argv)
             if (errors_this_cycle)
             {
                 out << "Test failure at (t = " << time << ").";
+                ++lines_with_errors;
             }
             std::cout << out.str() << "\n";
         }
@@ -421,9 +421,9 @@ int main(int argc, char ** argv)
         std::cout << "\n";
     }
 
-    if (errors > 0)
+    if (lines_with_errors > 0)
     {
-        std::cout << "Failed on " << errors << " lines.\n";
+        std::cout << "Failed on " << lines_with_errors << " lines.\n";
         return 1;
     }
 

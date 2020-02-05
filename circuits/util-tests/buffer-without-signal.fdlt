@@ -1,4 +1,4 @@
-(load "util.fdl")
+(load "../util.fdl")
 (green input i)
 (green output o)
 (part-under-test (buffer-without-signal i o sig:signal-b))

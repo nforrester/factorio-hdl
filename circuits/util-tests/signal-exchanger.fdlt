@@ -1,0 +1,13 @@
+(load "../util.fdl")
+(green input a)
+(green input b)
+(green output x)
+(green output y)
+(part-under-test (signal-exchanger a b x y sig:signal-c))
+(test-type fixed-latency 1)
+
+(test (((a sig:signal-a) (a sig:signal-b) (a sig:signal-c) (b sig:signal-a) (b sig:signal-j) (b sig:signal-c))
+       ((x sig:signal-a) (x sig:signal-b) (x sig:signal-c) (y sig:signal-a) (y sig:signal-j) (y sig:signal-c)))
+  ((1 2 3 4 5 6) (1 2 6 4 5 3))
+  ((9 8 7 6 5 4) (9 8 4 6 5 7))
+  ((-3 47 1701 314159 1414 271828182) (-3 47 271828182 314159 1414 1701)))

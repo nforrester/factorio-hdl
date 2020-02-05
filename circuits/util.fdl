@@ -16,15 +16,6 @@
      (signal sig))
     (decider i o sig != 0 sig input-count))
 
-(defpart bwos-wrap
-    ((in yellow a-in)
-     (in yellow b-in)
-     (out yellow a-out)
-     (out yellow b-out)
-     (signal sig))
-    (buffer-without-signal a-in a-out sig)
-    (buffer-without-signal b-in b-out sig))
-
 (defpart signal-exchanger
     ((in yellow a-in)
      (in yellow b-in)
