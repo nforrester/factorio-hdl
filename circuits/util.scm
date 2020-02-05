@@ -37,3 +37,10 @@
   (lambda (base-name n)
     (for (range n) (lambda (i)
         (strings->symbol (symbol->string base-name) (number->string i))))))
+
+; Like lambda, but destructures a list into the argument list.
+(defmacro lambda+ (args . body)
+  (let ((args-sym (gentemp)))
+    `(lambda (,args-sym)
+       ((flip apply) ,args-sym
+         (lambda ,args ,@body)))))

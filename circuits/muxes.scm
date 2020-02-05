@@ -10,8 +10,8 @@
           (signal control-sig))
 
          ,@(for (zip in-wires (range n))
-             (lambda (args) ((flip apply) args (lambda (in-wire i)
-               `(relay-equal ,in-wire o control control-sig ,i)))))))))
+             (lambda+ (in-wire i)
+               `(relay-equal ,in-wire o control control-sig ,i)))))))
 
 (define defpart-demux-n-circuits
   (lambda (n)
@@ -23,5 +23,5 @@
           (signal control-sig))
 
          ,@(for (zip out-wires (range n))
-             (lambda (args) ((flip apply) args (lambda (out-wire i)
-               `(relay-equal i ,out-wire control control-sig ,i)))))))))
+             (lambda+ (out-wire index)
+               `(relay-equal i ,out-wire control control-sig ,index)))))))
