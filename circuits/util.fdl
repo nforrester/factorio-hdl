@@ -27,26 +27,35 @@
     (buffer-only-signal a-in b-out sig)
     (buffer-only-signal b-in a-out sig))
 
-(defpart relay
+(defpart relay-equal
     ((in yellow i)
      (out yellow o)
      (in yellow control)
-     (signal control-sig))
+     (signal control-sig)
+     (int on-value))
 
     ; i-most is like i but with control-sig replaced with its value from control.
     (red i-most)
     (buffer-without-signal i i-most control-sig)
-    (buffer-only-signal control i-most control-sig)
+    (decider control i-most control-sig == on-value control-sig one)
 
     ; i-one has control-sig from i and the value of control-sig
     ; from control moved to a different signal.
     (red i-one)
     (signal not-control-sig (notsigs control-sig))
     (buffer-only-signal i i-one control-sig)
-    (decider control i-one control-sig != 0 not-control-sig one)
+    (decider control i-one control-sig == on-value not-control-sig one)
 
     (arithmetic i-most o each * control-sig each)
     (arithmetic i-most o control-sig * -1 control-sig)
 
     (arithmetic i-one o each * not-control-sig each)
     (arithmetic i-one o not-control-sig * -1 not-control-sig))
+
+(defpart relay
+    ((in yellow i)
+     (out yellow o)
+     (in yellow control)
+     (signal control-sig))
+
+    (relay-equal i o control control-sig 1))
