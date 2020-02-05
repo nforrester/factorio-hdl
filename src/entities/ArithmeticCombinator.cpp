@@ -1,5 +1,6 @@
 #include "ArithmeticCombinator.h"
 #include "src/blueprint/Blueprint.h"
+#include "src/debug.h"
 
 #include <cmath>
 
@@ -58,7 +59,7 @@ void ArithmeticCombinator::_common_init()
 
 void ArithmeticCombinator::tick(CircuitManager & circuits) const
 {
-    std::cout << _log_leader << "Start tick\n";
+    debug(1) << _log_leader << "Start tick\n";
     CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
@@ -99,9 +100,9 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
         }
     }
 
-    std::cout << _log_leader << in << " -> " << out << "\n";
+    debug(1) << _log_leader << in << " -> " << out << "\n";
     _out_port.write(circuits, out);
-    std::cout << _log_leader << "End tick\n";
+    debug(1) << _log_leader << "End tick\n";
 }
 
 namespace

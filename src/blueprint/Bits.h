@@ -1,8 +1,8 @@
 #pragma once
 
-#include <algorithm>
+#include "src/debug.h"
 
-#include <iostream> // TODO remove
+#include <algorithm>
 
 class Bits
 {

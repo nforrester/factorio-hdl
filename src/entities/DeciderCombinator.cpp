@@ -1,5 +1,6 @@
 #include "DeciderCombinator.h"
 #include "src/blueprint/Blueprint.h"
+#include "src/debug.h"
 
 DeciderCombinator::DeciderCombinator(
         Factorio & factorio,
@@ -69,7 +70,7 @@ void DeciderCombinator::_common_init()
 
 void DeciderCombinator::tick(CircuitManager & circuits) const
 {
-    std::cout << _log_leader << "Start tick\n";
+    debug(1) << _log_leader << "Start tick\n";
     CircuitValues const in = _in_port.read(circuits);
     CircuitValues out;
 
@@ -132,6 +133,10 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
                     }
                 }
             }
+            else
+            {
+                assert(false);
+            }
 
             if (_out == LogicSignal::everything)
             {
@@ -169,9 +174,9 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
         }
     }
 
-    std::cout << _log_leader << in << " -> " << out << "\n";
+    debug(1) << _log_leader << in << " -> " << out << "\n";
     _out_port.write(circuits, out);
-    std::cout << _log_leader << "End tick\n";
+    debug(1) << _log_leader << "End tick\n";
 }
 
 bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const

@@ -3,11 +3,9 @@
 #include "zlib_easy.h"
 #include "JsonDigester.h"
 #include "src/util.h"
+#include "src/debug.h"
 
-#include <cassert>
 #include <algorithm>
-
-#include <iostream>
 
 namespace {
     // TODO fix var names
@@ -515,7 +513,6 @@ Blueprint::Blueprint::Blueprint(std::string const & blueprint_string)
         d.digest(j, bp);
     });
 
-    //std::cout << json::parse(blueprint_string_to_raw_json(blueprint_string)).dump(4) << "\n";
     d.digest(json::parse(blueprint_string_to_raw_json(blueprint_string)), *this);
 }
 

@@ -6,8 +6,8 @@
 #include "entities/Hysteresis.h"
 #include "blueprint/Blueprint.h"
 #include "util.h"
+#include "src/debug.h"
 
-#include <iostream>
 #include <sstream>
 #include <unistd.h>
 
@@ -15,8 +15,8 @@ int main(int argc, char ** argv)
 {
     assert(argc == 2);
 
-    std::cout << json::parse(blueprint_string_to_raw_json(argv[1])).dump(4) << "\n\n\n";
-    std::cout.flush();
+    info(0) << json::parse(blueprint_string_to_raw_json(argv[1])).dump(4) << "\n\n\n";
+    info(0).flush();
 
     Blueprint::Blueprint blueprint(argv[1]);
 
@@ -141,7 +141,7 @@ int main(int argc, char ** argv)
 
     fac.build();
 
-    std::cout << "Begin\n";
+    info(0) << "Begin\n";
 
     bool stable = false;
     for (int i = 0; true; ++i)
@@ -153,18 +153,18 @@ int main(int argc, char ** argv)
             std::string entity_space;
             entity_space.insert(0, entity_label.str().size(), ' ');
 
-            std::cout << entity_label.str() << " (green): ";
+            info(0) << entity_label.str() << " (green): ";
             for (Port const * p : eps.second)
             {
-                std::cout << fac.read(*p, Wire::green) << " ";
+                info(0) << fac.read(*p, Wire::green) << " ";
             }
-            std::cout << "\n";
-            std::cout << entity_space << "   (red): ";
+            info(0) << "\n";
+            info(0) << entity_space << "   (red): ";
             for (Port const * p : eps.second)
             {
-                std::cout << fac.read(*p, Wire::red) << " ";
+                info(0) << fac.read(*p, Wire::red) << " ";
             }
-            std::cout << "\n";
+            info(0) << "\n";
         }
 
         if (i == 1000 || stable)
@@ -173,19 +173,19 @@ int main(int argc, char ** argv)
         }
 
         stable = fac.tick();
-        std::cout << "\nTick.\n";
+        info(0) << "\nTick.\n";
     }
 
-    std::cout << "\n";
+    info(0) << "\n";
     if (stable)
     {
-        std::cout << "Stable.";
+        info(0) << "Stable.";
     }
     else
     {
-        std::cout << "Did not stabilize before timeout.";
+        info(0) << "Did not stabilize before timeout.";
     }
-    std::cout << "\n";
+    info(0) << "\n";
 
     return 0;
 }

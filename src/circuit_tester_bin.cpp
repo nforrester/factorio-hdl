@@ -5,8 +5,8 @@
 #include "fdl/util.h"
 #include "blueprint/util.h"
 #include "entities/ConstantCombinator.h"
+#include "src/debug.h"
 
-#include <iostream>
 #include <sstream>
 #include <filesystem>
 
@@ -176,7 +176,7 @@ int main(int argc, char ** argv)
                     TestPort const & test_port = test_ports.at(test_port_name);
                     Port & outer_port = *test_port.entity->ports().at("out");
                     fac.connect(test_port.color, outer_port, inner_port);
-                    std::cout << "Connect test port " << test_port.name << " to " << np.first << "\n";
+                    debug(1) << "Connect test port " << test_port.name << " to " << np.first << "\n";
                 }
             }
 
@@ -303,11 +303,11 @@ int main(int argc, char ** argv)
 
     fac.build();
 
-    std::cout << "\n";
-    std::cout << "================================================================================\n";
-    std::cout << "Beginning test.\n";
-    std::cout << "================================================================================\n";
-    std::cout << "\n";
+    info(1) << "\n";
+    info(1) << "================================================================================\n";
+    info(1) << "Beginning test.\n";
+    info(1) << "================================================================================\n";
+    info(1) << "\n";
 
     int remaining_output_delay = latency;
     auto in = test_inputs.begin();
@@ -387,14 +387,14 @@ int main(int argc, char ** argv)
                 out << "Test failure at (t = " << time << ").";
                 ++lines_with_errors;
             }
-            std::cout << out.str() << "\n";
+            info(1) << out.str() << "\n";
         }
 
-        std::cout << "\n";
-        std::cout << "................................................................................\n";
-        std::cout << "Tick.\n";
-        std::cout << "................................................................................\n";
-        std::cout << "\n";
+        info(1) << "\n";
+        info(1) << "................................................................................\n";
+        info(1) << "Tick.\n";
+        info(1) << "................................................................................\n";
+        info(1) << "\n";
 
         fac.tick();
 
@@ -413,16 +413,16 @@ int main(int argc, char ** argv)
         }
         ++time;
 
-        std::cout << "\n";
-        std::cout << "--------------------------------------------------------------------------------\n";
-        std::cout << "Ticked.\n";
-        std::cout << "--------------------------------------------------------------------------------\n";
-        std::cout << "\n";
+        info(1) << "\n";
+        info(1) << "--------------------------------------------------------------------------------\n";
+        info(1) << "Ticked.\n";
+        info(1) << "--------------------------------------------------------------------------------\n";
+        info(1) << "\n";
     }
 
     if (lines_with_errors > 0)
     {
-        std::cout << "Failed on " << lines_with_errors << " lines.\n";
+        info(0) << "Failed on " << lines_with_errors << " lines.\n";
         return 1;
     }
 

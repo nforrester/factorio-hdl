@@ -1,9 +1,9 @@
 #pragma once
 
 #include "CircuitValues.h"
+#include "debug.h"
 
 #include <vector>
-#include <iostream> // TODO remove
 
 using CircuitId = size_t;
 CircuitId constexpr invalid_circuit_id = std::numeric_limits<CircuitId>::max();
@@ -25,15 +25,15 @@ public:
 
     CircuitValues const & read(CircuitId id) const
     {
-        std::cout << _log_leader << id << "? " << _circuits.at(id) << "\n";
+        debug(1) << _log_leader << id << "? " << _circuits.at(id) << "\n";
         return _circuits.at(id);
     }
 
     void write(CircuitId id, CircuitValues const & values)
     {
-        std::cout << _log_leader << id << ": " << _next.at(id) << " + " << values << " = ";
+        debug(1) << _log_leader << id << ": " << _next.at(id) << " + " << values << " = ";
         _next.at(id).add(values);
-        std::cout << _next.at(id) << "\n";
+        debug(1) << _next.at(id) << "\n";
     }
 
     bool stable()
@@ -43,7 +43,7 @@ public:
 
     void finish_tick()
     {
-        std::cout << _log_leader << "Finish Tick.\n";
+        debug(1) << _log_leader << "Finish Tick.\n";
         _circuits = _next;
         for (CircuitValues & c : _next)
         {
@@ -53,7 +53,7 @@ public:
         int i = 0;
         for (auto const & c : _circuits)
         {
-            std::cout << _log_leader << "Values on " << i++ << ": " << c << "\n";
+            debug(1) << _log_leader << "Values on " << i++ << ": " << c << "\n";
         }
     }
 

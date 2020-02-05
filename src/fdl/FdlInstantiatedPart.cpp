@@ -2,10 +2,9 @@
 #include "FdlEntity.h"
 #include "src/entities/ConstantCombinator.h"
 #include "src/util.h"
+#include "src/debug.h"
 
 #include <unordered_set>
-#include <cassert>
-#include <iostream>
 #include <functional>
 
 Fdl::InstantiatedPart::InstantiatedPart(
@@ -533,8 +532,8 @@ Fdl::InstantiatedPart::InstantiatedPart(
         }
         else
         {
-            std::cerr << _log_leader << "NEW "
-                      << type << " " << _parts.size() << "\n";
+            debug(1) << _log_leader << "NEW "
+                     << type << " " << _parts.size() << "\n";
 
             std::unordered_set<std::string> wire_names;
             for (auto const & nw : _inside_wires)
@@ -836,17 +835,17 @@ void Fdl::InstantiatedPart::connect_all(
             Port const & port = part._outside_ports.at(ippp.second);
             if (!first_port)
             {
-                std::cerr << _log_leader << "HUB   "
-                          << part._part_type << " " << ippp.first << " " << port.name
-                          << "\n";
+                debug(1) << _log_leader << "HUB   "
+                         << part._part_type << " " << ippp.first << " " << port.name
+                         << "\n";
                 first_port = part.ports().at(port.name);
                 continue;
             }
             for (WireColor color : final_wire_colors.at(wire_name))
             {
-                std::cerr << _log_leader << "SPOKE "
-                          << part._part_type << " " << ippp.first << " " << port.name
-                          << (color == ::Wire::green ? " (green)" : " (red)") << "\n";
+                debug(1) << _log_leader << "SPOKE "
+                         << part._part_type << " " << ippp.first << " " << port.name
+                         << (color == ::Wire::green ? " (green)" : " (red)") << "\n";
                 _connect(color, *first_port, *part.ports().at(port.name));
             }
         }
@@ -860,19 +859,19 @@ void Fdl::InstantiatedPart::connect_all(
         std::string const & inside_port_name = inside_part._outside_ports.at(port_idx).name;
         ::Port & inside_port = *inside_part.ports().at(inside_port_name);
 
-        std::cerr << _log_leader << "SET PORT " << port.name << " = "
-                  << inside_part._part_type << " " << part_idx << " " << inside_port_name;
+        debug(1) << _log_leader << "SET PORT " << port.name << " = "
+                 << inside_part._part_type << " " << part_idx << " " << inside_port_name;
         if (port.color == Color::yellow)
         {
             if (final_wire_colors.at(port.name).size() == 2)
             {
-                std::cerr << " (yellow)\n";
+                debug(1) << " (yellow)\n";
                 _set_port(port.name, inside_port);
             }
             else
             {
-                std::cerr << " (" << (*final_wire_colors.at(port.name).begin() ==
-                                      ::Wire::green ? "green" : "red") << ")\n";
+                debug(1) << " (" << (*final_wire_colors.at(port.name).begin() ==
+                                     ::Wire::green ? "green" : "red") << ")\n";
                 _set_port(port.name, inside_port, *final_wire_colors.at(port.name).begin());
             }
         }
@@ -880,12 +879,12 @@ void Fdl::InstantiatedPart::connect_all(
         {
             if (definitely_flip_colors)
             {
-                std::cerr << " (green)\n";
+                debug(1) << " (green)\n";
                 _set_port(port.name, inside_port, ::Wire::green);
             }
             else
             {
-                std::cerr << " (red)\n";
+                debug(1) << " (red)\n";
                 _set_port(port.name, inside_port, ::Wire::red);
             }
         }
@@ -894,12 +893,12 @@ void Fdl::InstantiatedPart::connect_all(
             assert(port.color == Color::green);
             if (definitely_flip_colors)
             {
-                std::cerr << " (red)\n";
+                debug(1) << " (red)\n";
                 _set_port(port.name, inside_port, ::Wire::red);
             }
             else
             {
-                std::cerr << " (green)\n";
+                debug(1) << " (green)\n";
                 _set_port(port.name, inside_port, ::Wire::green);
             }
         }

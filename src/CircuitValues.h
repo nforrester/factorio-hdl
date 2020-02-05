@@ -1,9 +1,9 @@
 #pragma once
 
 #include "signals.h"
+#include "util.h"
 
 #include <unordered_map>
-#include <cassert>
 #include <ostream>
 
 class CircuitValues

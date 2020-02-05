@@ -1,6 +1,7 @@
 #pragma once
 
 #include "src/Entity.h"
+#include "src/debug.h"
 
 class ConstantCombinator: public Entity
 {
@@ -16,7 +17,7 @@ public:
 
     void tick(CircuitManager & circuits) const override
     {
-        std::cout << _log_leader << "Write " << constants << "\n";
+        debug(1) << _log_leader << "Write " << constants << "\n";
         _port.write(circuits, constants);
     }
 

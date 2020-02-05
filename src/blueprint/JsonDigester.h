@@ -1,5 +1,7 @@
 #pragma once
 
+#include "src/util.h"
+
 #include "json.hpp"
 
 #include <functional>

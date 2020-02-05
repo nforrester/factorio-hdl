@@ -212,7 +212,8 @@ std::optional<ArithmeticCombinator::Op> Fdl::arith_op_from_string(std::string co
     if (word == "&") { return ArithmeticCombinator::Op::AND; }
     if (word == "|") { return ArithmeticCombinator::Op::OR; }
     if (word == "^") { return ArithmeticCombinator::Op::XOR; }
-    return std::optional<ArithmeticCombinator::Op>();
+    std::optional<ArithmeticCombinator::Op> nothing;
+    return nothing;
 }
 
 SignalId Fdl::signal_from_symbol(

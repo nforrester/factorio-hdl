@@ -1,8 +1,8 @@
 #include "SExp.h"
+#include "src/util.h"
 
 #include <unordered_set>
 #include <unordered_map>
-#include <cassert>
 #include <sstream>
 
 S::List * S::Exp::as_list()

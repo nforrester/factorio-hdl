@@ -1,7 +1,7 @@
 #include "src/Factorio.h"
+#include "src/debug.h"
 #include "FdlEntity.h"
 
-#include <iostream>
 #include <sstream>
 
 int main(int argc, char ** argv)
@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
 
     fac.build();
 
-    std::cout << fac.get_blueprint_string(fdl, argv[1]) << "\n";
+    info(0) << fac.get_blueprint_string(fdl, argv[1]) << "\n";
 
     return 0;
 }

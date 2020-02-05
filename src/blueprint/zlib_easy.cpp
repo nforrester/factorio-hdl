@@ -1,8 +1,8 @@
 /* Adapted from https://zlib.net/zlib_how.html */
 
 #include "zlib_easy.h"
+#include "src/util.h"
 
-#include <cassert>
 #include <cstring>
 #include <array>
 #include <zlib.h>

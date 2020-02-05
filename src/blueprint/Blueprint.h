@@ -1,5 +1,6 @@
 #pragma once
 
+#include "src/util.h"
 #include "json.hpp"
 #include "util.h"
 #include "src/entities/ArithmeticCombinator.h"

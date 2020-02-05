@@ -1,7 +1,6 @@
 #include "util.h"
 
 #include <fstream>
-#include <cassert>
 
 std::string read_file(std::string const & filename)
 {

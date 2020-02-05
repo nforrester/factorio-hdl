@@ -5,3 +5,13 @@
 
 (defmacro defpart-demux-n-circuits "circuits/muxes.scm")
 (defpart-demux-n-circuits 6)
+
+(defmacro defpart-mux-n-signals "circuits/muxes.scm")
+(defpart-mux-n-signals 6)
+
+(defmacro defpart-demux-n-signals "circuits/muxes.scm")
+(defpart-demux-n-signals 6)
+(defpart-demux-n-signals 258)
+
+(defmacro defpart-demux-all-signals "circuits/muxes.scm")
+(defpart-demux-all-signals)

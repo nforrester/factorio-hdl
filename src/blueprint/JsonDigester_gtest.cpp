@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "JsonDigester.h"
+#include "src/util.h"
 
 #include "json.hpp"
 

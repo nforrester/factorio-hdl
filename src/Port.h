@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CircuitManager.h"
+#include "debug.h"
 
 using WireColor = int_fast8_t;
 namespace Wire
@@ -17,14 +18,14 @@ class Port
 public:
     Port(std::string const & log_leader): _log_leader(log_leader)
     {
-        std::cout << _log_leader << "Created Port.\n";
+        debug(1) << _log_leader << "Created Port.\n";
         _wires.fill(invalid_circuit_id);
     }
 
     void connect(WireColor wire, CircuitId id)
     {
-        std::cout << _log_leader << "Port connected to circuit " << id
-                  << " (" << (wire == Wire::green ? "green" : "red") << ")\n";
+        debug(1) << _log_leader << "Port connected to circuit " << id
+                 << " (" << (wire == Wire::green ? "green" : "red") << ")\n";
         CircuitId & w = _wires[wire];
         assert(w == invalid_circuit_id);
         w = id;
@@ -37,8 +38,8 @@ public:
 
     void disconnect(WireColor wire)
     {
-        std::cout << _log_leader << "Port disconnected from circuit " << _wires[wire]
-                  << " (" << (wire == Wire::green ? "green" : "red") << ")\n";
+        debug(1) << _log_leader << "Port disconnected from circuit " << _wires[wire]
+                 << " (" << (wire == Wire::green ? "green" : "red") << ")\n";
         _wires[wire] = invalid_circuit_id;
     }
 
