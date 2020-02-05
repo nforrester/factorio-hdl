@@ -1,15 +1,4 @@
-(define nth
-  (lambda (n xs)
-    (if (eqv? 0 n)
-      (car xs)
-      (nth (- n 1) (cdr xs)))))
-
-(define len
-  (letrec ((help (lambda (n xs)
-                    (if (equal? xs ())
-                      n
-                      (help (+ 1 n) (cdr xs))))))
-    (lambda (xs) (help 0 xs))))
+(load "circuits/util.scm")
 
 (define gen-demux-signals
   (lambda ()

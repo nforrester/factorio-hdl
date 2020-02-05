@@ -56,8 +56,7 @@ int main(int argc, char ** argv)
             {
                 throw S::ParseError(s->file, s->line, "Expected (load <filename>)");
             }
-            filename = std::filesystem::path(test_file_name).replace_filename(
-                test_form.at(1)->as_string()->s);
+            filename = test_form.at(1)->as_string()->s;
             continue;
         }
 

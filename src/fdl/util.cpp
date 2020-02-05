@@ -1,4 +1,5 @@
 #include "util.h"
+#include "src/util.h"
 #include "src/blueprint/util.h"
 
 void Fdl::check_valid_top_level_form(S::Exp & form)
@@ -242,5 +243,54 @@ SignalId Fdl::signal_from_symbol(
             symbol.file,
             symbol.line,
             "Not a signal: " + symbol.s);
+    }
+}
+
+void Fdl::expand_all_loads(S::PtrV & ast)
+{
+    std::unordered_set<std::string> loaded_files;
+
+    auto it = ast.begin();
+    while (it != ast.end())
+    {
+        S::List * l = (*it)->as_list();
+        auto & ll = l->l;
+        if (ll.front()->as_symbol() && ll.front()->as_symbol()->s == "load")
+        {
+            if (ll.size() != 2 || !ll.at(1)->as_string())
+            {
+                throw S::ParseError(
+                    l->file,
+                    l->line,
+                    "Expected (load <string:fdl_file>).");
+            }
+
+            std::string const & filename = ll.at(1)->as_string()->s;
+            it = ast.erase(it);
+
+            if (loaded_files.count(filename) != 0)
+            {
+                continue;
+            }
+            loaded_files.insert(filename);
+            S::PtrV loaded_forms = S::consume(read_file(filename), filename, 1);
+            bool first = true;
+            auto insertion_position = it;
+            for (auto loaded_form = loaded_forms.begin();
+                 loaded_form != loaded_forms.end();
+                 ++loaded_form)
+            {
+                check_valid_top_level_form(**loaded_form);
+                insertion_position = ast.insert(insertion_position, std::move(*loaded_form));
+                if (first)
+                {
+                    it = insertion_position;
+                }
+            }
+        }
+        else
+        {
+            ++it;
+        }
     }
 }

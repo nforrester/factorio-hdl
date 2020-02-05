@@ -41,4 +41,6 @@ namespace Fdl
     SignalId signal_from_symbol(
         S::Symbol const & symbol,
         std::unordered_map<std::string, SignalId> const & signals);
+
+    void expand_all_loads(S::PtrV & ast);
 }

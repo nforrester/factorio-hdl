@@ -1,4 +1,4 @@
-(load "../util.fdl")
+(load "circuits/util.fdl")
 (green input a)
 (green input b)
 (green output x)

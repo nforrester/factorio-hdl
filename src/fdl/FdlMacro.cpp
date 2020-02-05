@@ -136,7 +136,7 @@ void Fdl::expand_all_macros(S::PtrV & ast, std::string const & filepath)
 
             Macro macro;
             macro.scheme_function = ll.at(1)->as_symbol()->s;
-            macro.scheme_file = std::filesystem::path(filepath).replace_filename(ll.at(2)->as_string()->s);
+            macro.scheme_file = ll.at(2)->as_string()->s;
             if (macros.count(macro.scheme_function))
             {
                 throw S::ParseError(

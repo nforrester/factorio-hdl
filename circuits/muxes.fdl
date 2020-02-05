@@ -1,0 +1,4 @@
+(load "circuits/util.fdl")
+
+(defmacro defpart-mux-n-circuits "circuits/muxes.scm")
+(defpart-mux-n-circuits 6)
