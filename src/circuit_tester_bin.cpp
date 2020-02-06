@@ -14,6 +14,7 @@ int main(int argc, char ** argv)
 {
     assert(argc == 2);
     std::string const test_file_name = argv[1];
+    info(0) << "Running test: " << test_file_name << "\n";
 
     Factorio fac;
 
@@ -387,7 +388,7 @@ int main(int argc, char ** argv)
                 out << "Test failure at (t = " << time << ").";
                 ++lines_with_errors;
             }
-            info(1) << out.str() << "\n";
+            info(0) << out.str() << "\n";
         }
 
         info(1) << "\n";
@@ -425,6 +426,7 @@ int main(int argc, char ** argv)
         info(0) << "Failed on " << lines_with_errors << " lines.\n";
         return 1;
     }
+    info(0) << "Success!\n";
 
     return 0;
 }
