@@ -36,12 +36,20 @@
   (buffer filters filters-delayed)
   (arithmetic filters-delayed (lo-in hi-in) each << 16 each)
 
+  (green lo-out-unmasked)
+  (red hi-out-unmasked)
+  (decider lo-in lo-out-unmasked each > 0xffff each input-count)
+  (decider hi-in hi-out-unmasked each > 0xffff each input-count)
+
   (green lo-out)
   (red hi-out)
-  (decider lo-in lo-out each > 0xffff each input-count)
-  (decider hi-in hi-out each > 0xffff each input-count)
+  (arithmetic lo-out-unmasked lo-out each & 0xffff each)
+  (arithmetic hi-out-unmasked hi-out each & 0xffff each)
 
   (join-bits-from-two lo-out hi-out values-out))
+
+(defmacro defpart-constant-all-ones "circuits/latch.scm")
+(defpart-constant-all-ones)
 
 ; i is 1 or 0 for every single signal.
 ; o is the opposite.
@@ -50,13 +58,15 @@
    (out yellow o))
 
   (red all-ones)
-  (decider () all-ones sig:signal-a == 0 everything one)
+  (constant-all-ones all-ones)
 
-  (decider (all-ones i) o each == 2 each one))
+  (decider (all-ones i) o each == 1 each one))
 
 ; take-new-values is 1 or 0 for every single signal.
 ; The latch operates independently on all signals simultaneously.
 ; Effectively, this is 258 independently controllable banks of 32 D-Latches.
+; When setting values, you MUST keep the input values and the
+; set signals stable for 5 ticks.
 (defpart latch
   ((in yellow values-in)
    (out red values-out)
@@ -72,5 +82,5 @@
   (buffer values-in values-in-delayed)
 
   (green old-values)
-  (filter-all values-in-delayed values-out take-new-values-delayed)
+  (filter-all values-in-delayed (old-values values-out) take-new-values-delayed)
   (filter-all old-values (old-values values-out) take-old-values-delayed))
