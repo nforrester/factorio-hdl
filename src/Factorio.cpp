@@ -164,6 +164,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         Blueprint::LayoutState::EntityState & es = layout_state.entity_states.front();
         es.primitive = true;
         es.blueprint_entity = &blueprint.entities.at(be.id);
+        es.total_interface_area = 1;
         layout_state.entity_states_by_blueprint_entity[es.blueprint_entity] = &es;
         layout_state.entity_states_by_id[be.id] = &es;
         top_level_entity_state.direct_constituents.push_back(&es);
@@ -173,26 +174,33 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
     std::vector<std::vector<Blueprint::LayoutState::EntityState*>> entities_that_fit_in_cells;
     entities_that_fit_in_cells.emplace_back();
     size_t constexpr cell_area = 6 * 7;
+    size_t constexpr cell_interface_area = 6;
     size_t current_cell_available_area = cell_area;
+    size_t current_cell_available_interface_area = cell_interface_area;
     std::forward_list<Blueprint::LayoutState::EntityState*> entities_that_might_not_fit_in_cells;
     entities_that_might_not_fit_in_cells.push_front(&top_level_entity_state);
     while (!entities_that_might_not_fit_in_cells.empty())
     {
         Blueprint::LayoutState::EntityState * this_one = entities_that_might_not_fit_in_cells.front();
         entities_that_might_not_fit_in_cells.pop_front();
-        if (this_one->total_non_interface_area <= current_cell_available_area)
+        if (this_one->total_non_interface_area <= current_cell_available_area &&
+            this_one->total_interface_area <= current_cell_available_interface_area)
         {
             entities_that_fit_in_cells.back().push_back(this_one);
             current_cell_available_area -= this_one->total_non_interface_area;
+            current_cell_available_interface_area -= this_one->total_interface_area;
             continue;
         }
         /* Don't break up this entity if it will fit completely in the next cell. */
-        if (this_one->total_non_interface_area <= cell_area)
+        if (this_one->total_non_interface_area <= cell_area &&
+            this_one->total_interface_area <= cell_interface_area)
         {
             current_cell_available_area = cell_area;
+            current_cell_available_interface_area = cell_interface_area;
             entities_that_fit_in_cells.emplace_back();
             entities_that_fit_in_cells.back().push_back(this_one);
             current_cell_available_area -= this_one->total_non_interface_area;
+            current_cell_available_interface_area -= this_one->total_interface_area;
             continue;
         }
         for (Blueprint::LayoutState::EntityState * dc : this_one->direct_constituents)
