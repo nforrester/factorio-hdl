@@ -90,14 +90,26 @@
              (lambda+ (sig index)
                `(decider duplicated-input-most o sig0 == ,index ,sig input-count)))))))
 
+(define defpart-mux-all-signals
+  (lambda ()
+    `(defpart mux-all-signals
+       ((in yellow i)
+        (out yellow o)
+        (in yellow control)
+        (signal control-sig)
+        (signal output-sig))
+
+       (,(strings->symbol "mux-" (number->string (len all-signals)) "-signals")
+        i o control control-sig output-sig ,@all-signals))))
+
 (define defpart-demux-all-signals
   (lambda ()
-    (let ((sig0 (car all-signals)))
-      `(defpart demux-all-signals
-         ((in yellow i)
-          (out yellow o)
-          (in yellow control)
-          (signal control-sig)
-          (signal input-sig))
+    `(defpart demux-all-signals
+       ((in yellow i)
+        (out yellow o)
+        (in yellow control)
+        (signal control-sig)
+        (signal input-sig))
 
-         (demux-258-signals i o control control-sig input-sig ,@all-signals)))))
+       (,(strings->symbol "demux-" (number->string (len all-signals)) "-signals")
+        i o control control-sig input-sig ,@all-signals))))

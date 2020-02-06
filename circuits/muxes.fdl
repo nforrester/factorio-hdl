@@ -8,10 +8,14 @@
 
 (defmacro defpart-mux-n-signals "circuits/muxes.scm")
 (defpart-mux-n-signals 6)
+(defpart-mux-n-signals 258)
 
 (defmacro defpart-demux-n-signals "circuits/muxes.scm")
 (defpart-demux-n-signals 6)
 (defpart-demux-n-signals 258)
+
+(defmacro defpart-mux-all-signals "circuits/muxes.scm")
+(defpart-mux-all-signals)
 
 (defmacro defpart-demux-all-signals "circuits/muxes.scm")
 (defpart-demux-all-signals)
