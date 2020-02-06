@@ -1,0 +1,13 @@
+(load "circuits/latch.fdl")
+(green input lo)
+(green input hi)
+(green output o)
+(part-under-test (join-bits-from-two lo hi o))
+(test-type fixed-latency 2)
+
+(test (((hi sig:signal-a) (lo sig:signal-a) (hi sig:signal-b) (lo sig:signal-b))
+       ((o sig:signal-a) (o sig:signal-b)))
+  ((0x0000 0x0000 0xffff 0xffff) (0x00000000 -0x00000001))
+  ((0x7fff 0xffff 0x8000 0x0000) (0x7fffffff -0x80000000))
+  ((0x0246 0x8ace 0x8000 0x0001) (0x02468ace -0x7fffffff))
+  ((0x1357 0x9bdf 0x8000 0x0002) (0x13579bdf -0x7ffffffe)))

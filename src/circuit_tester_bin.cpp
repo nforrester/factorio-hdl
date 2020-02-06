@@ -216,8 +216,13 @@ int main(int argc, char ** argv)
                 S::PtrV & l = p->as_list()->l;
                 std::string const & port_name = l.at(0)->as_symbol()->s;
                 S::Symbol const & signal_sym = *l.at(1)->as_symbol();
+                TestPort & test_port = test_ports.at(port_name);
+                if (!test_port.input)
+                {
+                    throw S::ParseError(s->file, s->line, "Output used as input: " + port_name);
+                }
                 test_input_format.emplace_back(
-                    &test_ports.at(port_name),
+                    &test_port,
                     Fdl::signal_from_symbol(signal_sym, {}));
             }
 
@@ -238,8 +243,13 @@ int main(int argc, char ** argv)
                 S::PtrV & l = p->as_list()->l;
                 std::string const & port_name = l.at(0)->as_symbol()->s;
                 S::Symbol const & signal_sym = *l.at(1)->as_symbol();
+                TestPort & test_port = test_ports.at(port_name);
+                if (test_port.input)
+                {
+                    throw S::ParseError(s->file, s->line, "Input used as output: " + port_name);
+                }
                 test_output_format.emplace_back(
-                    &test_ports.at(port_name),
+                    &test_port,
                     Fdl::signal_from_symbol(signal_sym, {}));
             }
 
