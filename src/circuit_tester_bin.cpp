@@ -10,13 +10,46 @@
 #include <sstream>
 #include <filesystem>
 
+class TestCircuit: public Composite
+{
+public:
+    TestCircuit(Factorio & factorio, std::string const & log_leader):
+        Composite(factorio, log_leader)
+    {
+    }
+
+    template <typename T, typename... Args>
+    requires std::derived_from<T, Entity>
+    T & new_entity(Args&&... args)
+    {
+        return _new_entity<T>(std::forward<Args>(args)...);
+    }
+
+    void set_port(std::string const & name, Port & port, WireColor interface_color)
+    {
+        _set_port(name, port, interface_color);
+    }
+
+    void connect(WireColor color, Port & a, Port & b)
+    {
+        _connect(color, a, b);
+    }
+};
+
 int main(int argc, char ** argv)
 {
-    assert(argc == 2);
+    assert(argc >= 2);
+    assert(argc <= 3);
     std::string const test_file_name = argv[1];
+    int line_to_generate_blueprint_string_for = std::numeric_limits<int>::lowest();
+    if (argc >= 3)
+    {
+        line_to_generate_blueprint_string_for = std::stoi(argv[2]);
+    }
     info(0) << "Running test: " << test_file_name << "\n";
 
     Factorio fac;
+    TestCircuit & test_circuit = fac.new_entity<TestCircuit>(test_file_name);
 
     S::PtrV test_description =
         S::consume(read_file(test_file_name), test_file_name, 1);
@@ -147,9 +180,12 @@ int main(int argc, char ** argv)
             for (auto const & np : test_ports)
             {
                 wire_colors[np.first].insert(np.second.color);
-                test_ports.at(np.first).entity = &fac.new_entity<ConstantCombinator>(
+                test_ports.at(np.first).entity = &test_circuit.new_entity<ConstantCombinator>(
                     "(" + std::string(np.second.color == Wire::green ? "green" : "red") + " " +
                     np.second.name + ") > ");
+                test_circuit.set_port(np.second.name,
+                                      test_ports.at(np.first).entity->port("out"),
+                                      np.second.color);
             }
 
             std::unordered_set<std::string> wire_names;
@@ -158,7 +194,7 @@ int main(int argc, char ** argv)
                 wire_names.insert(np.first);
             }
 
-            Fdl::Entity & part_under_test = fac.new_entity<Fdl::Entity>(
+            Fdl::Entity & part_under_test = test_circuit.new_entity<Fdl::Entity>(
                 s->write() + " > ",
                 test_form.at(1)->as_list()->l.front()->as_symbol()->s,
                 Fdl::gather_new_part_args(*test_form.at(1),
@@ -176,7 +212,7 @@ int main(int argc, char ** argv)
                 {
                     TestPort const & test_port = test_ports.at(test_port_name);
                     Port & outer_port = *test_port.entity->ports().at("out");
-                    fac.connect(test_port.color, outer_port, inner_port);
+                    test_circuit.connect(test_port.color, outer_port, inner_port);
                     debug(1) << "Connect test port " << test_port.name << " to " << np.first << "\n";
                 }
             }
@@ -320,6 +356,8 @@ int main(int argc, char ** argv)
     info(1) << "================================================================================\n";
     info(1) << "\n";
 
+    std::string blueprint_string;
+
     int remaining_output_delay = latency;
     auto in = test_inputs.begin();
     auto in_delayed = test_inputs.begin();
@@ -399,6 +437,20 @@ int main(int argc, char ** argv)
                 ++lines_with_errors;
             }
             info(0) << out.str() << "\n";
+        }
+
+        if (line_to_generate_blueprint_string_for == time + 1 &&
+            in != test_inputs.end())
+        {
+            blueprint_string = fac.get_blueprint_string(
+                test_circuit,
+                test_file_name + " (line " +
+                std::to_string(line_to_generate_blueprint_string_for) + ")");
+        }
+        if (line_to_generate_blueprint_string_for + latency == time + 1)
+        {
+            info(0) << "Blueprint string for the above line: "
+                    << blueprint_string << "\n";
         }
 
         info(1) << "\n";
