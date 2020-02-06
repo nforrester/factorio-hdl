@@ -151,6 +151,74 @@ TEST(CircuitTest, ArithmeticCombinator)
     }
 }
 
+TEST(CircuitTest, ArithmeticCombinatorBitShifts)
+{
+    std::array<ArithmeticCombinator::Op, 2> ops = {
+        ArithmeticCombinator::Op::LSH,
+        ArithmeticCombinator::Op::RSH,
+    };
+
+    using int2 = std::array<SignalValue, 2>;
+
+    SignalValue constexpr workaround = -0x80000000; // TODO workaround for narrowing conversion warning. Figure this out.
+
+    std::vector<std::tuple<SignalValue, SignalValue, int2>> test_cases;
+    test_cases.emplace_back( 0x00000000,  0, int2({ 0x00000000,  0x00000000}));
+    test_cases.emplace_back( 0x00000001,  0, int2({ 0x00000001,  0x00000001}));
+    test_cases.emplace_back( 0x00000001,  1, int2({ 0x00000002,  0x00000000}));
+    test_cases.emplace_back( 0x00000001,  2, int2({ 0x00000004,  0x00000000}));
+    test_cases.emplace_back( 0x00000001, 16, int2({ 0x00010000,  0x00000000}));
+    test_cases.emplace_back( 0x00000001, 30, int2({ 0x40000000,  0x00000000}));
+    test_cases.emplace_back( 0x00000001, 31, int2({ workaround,  0x00000000}));
+    test_cases.emplace_back( 0x00000001, 32, int2({ 0x00000001,  0x00000001}));
+    test_cases.emplace_back( 0x7fffffff,  0, int2({ 0x7fffffff,  0x7fffffff}));
+    test_cases.emplace_back( 0x7fffffff,  1, int2({-0x00000002,  0x3fffffff}));
+    test_cases.emplace_back( 0x7fffffff,  2, int2({-0x00000004,  0x1fffffff}));
+    test_cases.emplace_back( 0x7fffffff, 16, int2({-0x00010000,  0x00007fff}));
+    test_cases.emplace_back( 0x7fffffff, 30, int2({-0x40000000,  0x00000001}));
+    test_cases.emplace_back( 0x7fffffff, 31, int2({ workaround,  0x00000000}));
+    test_cases.emplace_back( 0x7fffffff, 32, int2({ 0x7fffffff,  0x7fffffff}));
+    test_cases.emplace_back(-0x00000001,  0, int2({-0x00000001, -0x00000001}));
+    test_cases.emplace_back(-0x00000001,  1, int2({-0x00000002, -0x00000001}));
+    test_cases.emplace_back(-0x00000001,  2, int2({-0x00000004, -0x00000001}));
+    test_cases.emplace_back(-0x00000001, 16, int2({-0x00010000, -0x00000001}));
+    test_cases.emplace_back(-0x00000001, 30, int2({-0x40000000, -0x00000001}));
+    test_cases.emplace_back(-0x00000001, 31, int2({ workaround, -0x00000001}));
+    test_cases.emplace_back(-0x00000001, 32, int2({-0x00000001, -0x00000001}));
+
+    for (auto const & test_case : test_cases)
+    {
+        SignalValue lhs, rhs;
+        int2 results;
+        std::tie(lhs, rhs, results) = test_case;
+        for (int i = 0; i < 2; ++i)
+        {
+            Factorio fac;
+
+            auto & c = fac.new_entity<ConstantCombinator>("constant > ");
+            c.constants.add(Signal::iron_plate, lhs);
+            c.constants.add(Signal::copper_plate, rhs);
+
+            auto & d = fac.new_entity<ArithmeticCombinator>(
+                "arithmetic > ",
+                Signal::iron_plate,
+                ops[i],
+                Signal::copper_plate,
+                Signal::iron_plate);
+
+            fac.connect(Wire::green, c.port("out"), d.port("in"));
+            fac.lock(Wire::green, d.port("out"));
+
+            fac.build();
+
+            EXPECT_TRUE(fac.run_until_stable(3));
+
+            EXPECT_EQ(results.at(i), fac.read(d.port("out")).get(Signal::iron_plate))
+                << lhs << " " << i << " " << rhs << " " << results.at(i);
+        }
+    }
+}
+
 int main(int argc, char ** argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
