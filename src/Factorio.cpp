@@ -305,6 +305,31 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         }
     }
 
+    for (std::pair<int, Port const *> id_and_port : interface_id_to_port_map)
+    {
+        Blueprint::Entity & be = blueprint.entities.at(id_and_port.first);
+        Port const * port = id_and_port.second;
+        assert(port);
+
+        BPPortInfo const & pmpi = port_map.at(const_cast<Port*>(port));
+        assert(pmpi.port);
+
+        BPPortInfo interface_port_info;
+        interface_port_info.entity_id = be.id;
+        interface_port_info.port_num = 1;
+
+        for (WireColor w : entity.port_interface_colors(*port))
+        {
+            assert(w == Wire::red || w == Wire::green);
+            interface_port_info.circuits.emplace_back(port->circuit_id(w), w);
+        }
+
+        be.ports[1] = Blueprint::Entity::Port();
+        interface_port_info.port = &be.ports.at(1);
+
+        ports_to_wire_up.push_back(interface_port_info);
+    }
+
     std::unordered_map<CircuitId, std::vector<BPPortInfo>> network_membership;
     std::set<std::tuple<size_t, int, CircuitId>> unwired_ports;
     std::set<std::tuple<size_t, int, CircuitId>> wired_ports;
@@ -455,30 +480,6 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
             take_desperate_measures = true;
         }
     } while (unwired_ports.size() > 0);
-
-    /* Wire up the labeled interface combinators. */
-    for (std::pair<int, Port const *> id_and_port : interface_id_to_port_map)
-    {
-        Blueprint::Entity & be = blueprint.entities.at(id_and_port.first);
-        Port const * port = id_and_port.second;
-        assert(port);
-
-        Blueprint::Entity::Port interface_bpp;
-        BPPortInfo const & pmpi = port_map.at(const_cast<Port*>(port));
-        assert(pmpi.port);
-
-        for (WireColor w : entity.port_interface_colors(*port))
-        {
-            assert(w == Wire::red || w == Wire::green);
-            auto & bpp_wires = w == Wire::red ? pmpi.port->red : pmpi.port->green;
-            auto & int_wires = w == Wire::red ? interface_bpp.red : interface_bpp.green;
-
-            bpp_wires.emplace_back(be.id, 1);
-            int_wires.emplace_back(pmpi.entity_id, pmpi.port_num);
-        }
-
-        be.ports[1] = interface_bpp;
-    }
 
     return blueprint.to_blueprint_string();
 }
