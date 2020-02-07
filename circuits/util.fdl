@@ -59,3 +59,6 @@
      (signal control-sig))
 
     (relay-equal i o control control-sig 1))
+
+(defmacro defpart-constant-all-ones "circuits/util-fdl.scm")
+(defpart-constant-all-ones)

@@ -29,6 +29,28 @@
       ()
       (cons (map car lists) (apply zip (map cdr lists))))))
 
+(define take
+  (lambda (n xs)
+    (if (eq? xs ())
+      ()
+      (if (eqv? 0 n)
+        ()
+        (cons (car xs) (take (- n 1) (cdr xs)))))))
+
+(define drop
+  (lambda (n xs)
+    (if (eq? xs ())
+      ()
+      (if (eqv? 0 n)
+        xs
+        (drop (- n 1) (cdr xs))))))
+
+(define chunks-of
+  (lambda (n xs)
+    (if (eq? xs ())
+      ()
+      (cons (take n xs) (chunks-of n (drop n xs))))))
+
 (define strings->symbol
   (lambda strings
     (string->symbol (apply string-append strings))))
