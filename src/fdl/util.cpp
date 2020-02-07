@@ -287,6 +287,7 @@ void Fdl::expand_all_loads(S::PtrV & ast)
                 {
                     it = insertion_position;
                 }
+                ++insertion_position;
             }
         }
         else
