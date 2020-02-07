@@ -63,7 +63,7 @@ struct S::String: public S::Exp
 
     std::string s;
 
-    std::string write() const override { throw std::runtime_error("Not implemented."); }
+    std::string write() const override;
 };
 
 struct S::Int: public S::Exp

@@ -277,6 +277,25 @@ std::string S::List::write() const
     return out.str();
 }
 
+std::string S::String::write() const
+{
+    std::string result;
+    for (char c : s)
+    {
+        for (auto const & kv : string_escape_map) // TODO this is inefficient
+        {
+            if (kv.second == c)
+            {
+                result += '\\';
+                c = kv.first;
+                break;
+            }
+        }
+        result += c;
+    }
+    return result;
+}
+
 S::PtrV S::consume(std::string const & input, std::string const & filename, size_t line)
 {
     std::string_view view(input.data(), input.size());
