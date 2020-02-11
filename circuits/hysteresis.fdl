@@ -1,3 +1,5 @@
+; Smallest known hysteresis implementation.
+; You specify a set point and half the width of the deadband.
 (defpart hysteresis
     ((in red i)
      (out red o)
@@ -12,3 +14,53 @@
     (constant a ((in-sig negative-set-point)))
     (arithmetic (a i) b in-sig / half-deadband-width out-sig)
     (decider b (b o) out-sig > 0 out-sig one))
+
+; Hysteresis implemented with no arithmetic combinators.
+; You specify a set point and half the width of the deadband.
+(defpart hysteresis-no-arith
+    ((in red i)
+     (out red o)
+     (signal in-sig)
+     (signal out-sig)
+     (int set-point)
+     (int half-deadband-width))
+
+    (int thresh-hi (+ set-point half-deadband-width))
+    (int thresh-lo (- set-point half-deadband-width))
+
+    (hysteresis-by-thresholds i o in-sig out-sig thresh-lo thresh-hi))
+
+; Hysteresis implemented with no arithmetic combinators.
+; You must specify the thresholds directly (the minimum and maximum values
+; that will cause a state change).
+(defpart hysteresis-by-thresholds
+    ((in red i)
+     (out red o)
+     (signal in-sig)
+     (signal out-sig)
+     (int thresh-lo)
+     (int thresh-hi))
+
+    (green force-lo-value-provider)
+
+    (constant force-lo-value-provider ((out-sig -1)))
+
+    (red state-transition)
+    (decider
+      (i force-lo-value-provider)
+      state-transition
+      in-sig <= thresh-lo
+      out-sig input-count)
+    (decider
+      i
+      state-transition
+      in-sig >= thresh-hi
+      out-sig one)
+
+    (green feedback)
+
+    (decider
+      (feedback state-transition)
+      (feedback o)
+      out-sig > 0
+      out-sig one))
