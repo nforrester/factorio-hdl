@@ -50,13 +50,21 @@
 
 ; i is 1 or 0 for every single signal.
 ; o is the opposite.
+; invert-all is much bigger than invert-all*.
 (defpart invert-all
   ((in green i)
    (out yellow o))
-
   (red all-ones)
   (constant-all-ones all-ones)
+  (invert-all* i o all-ones))
 
+; just like invert-all, except that
+; all-ones is the output of constant-all-ones
+; (a big part we can deduplicate).
+(defpart invert-all*
+  ((in green i)
+   (out yellow o)
+   (in red all-ones))
   (decider (all-ones i) o each == 1 each one))
 
 ; take-new-values is 1 or 0 for every single signal.
@@ -64,13 +72,26 @@
 ; Effectively, this is 258 independently controllable banks of 32 D-Latches.
 ; When setting values, you MUST keep the input values and the
 ; set signals stable for 5 ticks.
+; latch is somewhat larger than latch*.
 (defpart latch
   ((in yellow values-in)
    (out red values-out)
    (in red take-new-values))
+  (green all-ones)
+  (constant-all-ones all-ones)
+  (latch* values-in values-out take-new-values all-ones))
+
+; just like latch, except that
+; all-ones is the output of constant-all-ones
+; (a big part we can deduplicate).
+(defpart latch*
+  ((in yellow values-in)
+   (out red values-out)
+   (in red take-new-values)
+   (in green all-ones))
 
   (green take-old-values-delayed)
-  (invert-all take-new-values take-old-values-delayed)
+  (invert-all* take-new-values take-old-values-delayed all-ones)
 
   (green take-new-values-delayed)
   (buffer take-new-values take-new-values-delayed)

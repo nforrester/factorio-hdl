@@ -1,0 +1,5 @@
+(load "circuits/muxes.fdl")
+(load "circuits/latch.fdl")
+
+(defmacro defpart-memory-n "circuits/muxes.scm")
+(defpart-memory-n 3)
