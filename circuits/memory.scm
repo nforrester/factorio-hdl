@@ -121,58 +121,67 @@
 ; If you write a register you must wait 5 ticks before trying to read it again.
 (define defpart-memory-n
   (lambda (num-cells)
-    `(defpart ,(strings->symbol "memory-" (number->string num-cells))
-       ((in yellow address)
-        (in yellow write)
-        (in yellow data-in)
-        (out yellow data-out)
-        (signal address-signal)
-        (signal write-signal)
-        (signal data-in-signal)
-        (signal data-out-signal))
+    (let ((dual-mux-all-signals-n-circuits
+            (strings->symbol "dual-mux-all-signals-" (number->string num-cells) "-circuits"))
+          (dual-demux-all-signals-n-circuits
+            (strings->symbol "dual-demux-all-signals-" (number->string num-cells) "-circuits")))
+      `(defpart ,(strings->symbol "memory-" (number->string num-cells))
+         ((in yellow address)
+          (in yellow write)
+          (in yellow data-in)
+          (out yellow data-out)
+          (signal address-signal)
+          (signal write-signal)
+          (signal data-in-signal)
+          (signal data-out-signal))
 
-       ,@(for (range num-cells)
-           (lambda (index)
-             `(green ,(sym-for-idx 'data-in-cell index))))
-       (,(strings->symbol "dual-demux-all-signals-" (number->string num-cells) "-circuits")
-          address
-          data-in
-          ,@(for (range num-cells)
-              (lambda (index)
-                (sym-for-idx 'data-in-cell index)))
-          address-signal
-          data-in-signal)
-
-       ,@(for (range num-cells)
-           (lambda (index)
-             `(green ,(sym-for-idx 'write-cell index))))
-       (,(strings->symbol "dual-demux-all-signals-" (number->string num-cells) "-circuits")
-          address
-          write
-          ,@(for (range num-cells)
-              (lambda (index)
-                (sym-for-idx 'write-cell index)))
-          address-signal
-          write-signal)
-
-       (red all-ones)
-       (constant-all-ones all-ones)
-
-       ,@(apply append
-           (for (range num-cells)
+         ; Demux data-in to the registers.
+         ,@(for (range num-cells)
              (lambda (index)
-               `((green ,(sym-for-idx 'data-out-cell index))
-                 (latch*
-                  ,(sym-for-idx 'data-in-cell index)
-                  ,(sym-for-idx 'data-out-cell index)
-                  ,(sym-for-idx 'write-cell index)
-                  all-ones)))))
+               `(green ,(sym-for-idx 'data-in-cell index))))
+         (,dual-demux-all-signals-n-circuits
+            address
+            data-in
+            ,@(for (range num-cells)
+                (lambda (index)
+                  (sym-for-idx 'data-in-cell index)))
+            address-signal
+            data-in-signal)
 
-       (,(strings->symbol "dual-mux-all-signals-" (number->string num-cells) "-circuits")
-          address
-          ,@(for (range num-cells)
-              (lambda (index)
-                (sym-for-idx 'data-out-cell index)))
-          data-out
-          address-signal
-          data-out-signal))))
+         ; Demux write to the registers.
+         ,@(for (range num-cells)
+             (lambda (index)
+               `(green ,(sym-for-idx 'write-cell index))))
+         (,dual-demux-all-signals-n-circuits
+            address
+            write
+            ,@(for (range num-cells)
+                (lambda (index)
+                  (sym-for-idx 'write-cell index)))
+            address-signal
+            write-signal)
+
+         ; Helper for latch*
+         (red all-ones)
+         (constant-all-ones all-ones)
+
+         ; The registers.
+         ,@(apply append
+             (for (range num-cells)
+               (lambda (index)
+                 `((green ,(sym-for-idx 'data-out-cell index))
+                   (latch*
+                    ,(sym-for-idx 'data-in-cell index)
+                    ,(sym-for-idx 'data-out-cell index)
+                    ,(sym-for-idx 'write-cell index)
+                    all-ones)))))
+
+         ; Mux data-out from the registers.
+         (,dual-mux-all-signals-n-circuits
+            address
+            ,@(for (range num-cells)
+                (lambda (index)
+                  (sym-for-idx 'data-out-cell index)))
+            data-out
+            address-signal
+            data-out-signal)))))
