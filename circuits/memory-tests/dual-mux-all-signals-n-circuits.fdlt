@@ -1,0 +1,31 @@
+(load "circuits/memory.fdl")
+(green input address)
+(green input i1)
+(green input i2)
+(green input i3)
+(green output o)
+(part-under-test (dual-mux-all-signals-3-circuits
+                   address
+                   i1
+                   i2
+                   i3
+                   o
+                   sig:signal-a
+                   sig:signal-d))
+(test-type fixed-latency 6)
+
+(test (((address sig:signal-a)
+        (i1 sig:wooden-chest) (i1 sig:iron-chest) (i1 sig:pipe)
+        (i2 sig:wooden-chest) (i2 sig:iron-chest) (i2 sig:pipe)
+        (i3 sig:wooden-chest) (i3 sig:iron-chest) (i3 sig:pipe))
+       ((o sig:signal-d)))
+  ((  0 1 2 3 4 5 6 7 8 9) (1))
+  ((  1 1 2 3 4 5 6 7 8 9) (2))
+  (( 24 1 2 3 4 5 6 7 8 9) (3))
+  (( 75 1 2 3 4 5 6 7 8 9) (0))
+  ((258 1 2 3 4 5 6 7 8 9) (4))
+  ((259 1 2 3 4 5 6 7 8 9) (5))
+  ((282 1 2 3 4 5 6 7 8 9) (6))
+  ((516 1 2 3 4 5 6 7 8 9) (7))
+  ((517 1 2 3 4 5 6 7 8 9) (8))
+  ((540 1 2 3 4 5 6 7 8 9) (9)))

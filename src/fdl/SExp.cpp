@@ -280,6 +280,7 @@ std::string S::List::write() const
 std::string S::String::write() const
 {
     std::string result;
+    result += '"';
     for (char c : s)
     {
         for (auto const & kv : string_escape_map) // TODO this is inefficient
@@ -293,6 +294,7 @@ std::string S::String::write() const
         }
         result += c;
     }
+    result += '"';
     return result;
 }
 

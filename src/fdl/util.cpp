@@ -2,6 +2,8 @@
 #include "src/util.h"
 #include "src/blueprint/util.h"
 
+#include <list>
+
 void Fdl::check_valid_top_level_form(S::Exp & form)
 {
     S::List * l = form.as_list();
@@ -251,8 +253,18 @@ void Fdl::expand_all_loads(S::PtrV & ast)
 {
     std::unordered_set<std::string> loaded_files;
 
-    auto it = ast.begin();
-    while (it != ast.end())
+    /* Make a list out of the vector because we're going to insert elements and
+     * don't want to invalidate iterators when we do so. */
+    std::list<S::Ptr> astl;
+    for (auto it = ast.begin();
+         it != ast.end();
+         ++it)
+    {
+        astl.emplace_back(std::move(*it));
+    }
+
+    auto it = astl.begin();
+    while (it != astl.end())
     {
         S::List * l = (*it)->as_list();
         auto & ll = l->l;
@@ -267,7 +279,7 @@ void Fdl::expand_all_loads(S::PtrV & ast)
             }
 
             std::string const & filename = ll.at(1)->as_string()->s;
-            it = ast.erase(it);
+            it = astl.erase(it);
 
             if (loaded_files.count(filename) != 0)
             {
@@ -282,11 +294,12 @@ void Fdl::expand_all_loads(S::PtrV & ast)
                  ++loaded_form)
             {
                 check_valid_top_level_form(**loaded_form);
-                insertion_position = ast.insert(insertion_position, std::move(*loaded_form));
+                insertion_position = astl.insert(insertion_position, std::move(*loaded_form));
                 if (first)
                 {
                     it = insertion_position;
                 }
+                first = false;
                 ++insertion_position;
             }
         }
@@ -294,5 +307,14 @@ void Fdl::expand_all_loads(S::PtrV & ast)
         {
             ++it;
         }
+    }
+
+    /* Rebuild the vector now that we're done inserting things. */
+    ast.clear();
+    for (auto it = astl.begin();
+         it != astl.end();
+         ++it)
+    {
+        ast.emplace_back(std::move(*it));
     }
 }

@@ -1,5 +1,11 @@
 (load "circuits/muxes.fdl")
 (load "circuits/latch.fdl")
 
-(defmacro defpart-memory-n "circuits/muxes.scm")
+(defmacro defpart-dual-mux-all-signals-n-circuits "circuits/memory.scm")
+(defpart-dual-mux-all-signals-n-circuits 3)
+
+(defmacro defpart-dual-demux-all-signals-n-circuits "circuits/memory.scm")
+(defpart-dual-demux-all-signals-n-circuits 3)
+
+(defmacro defpart-memory-n "circuits/memory.scm")
 (defpart-memory-n 3)

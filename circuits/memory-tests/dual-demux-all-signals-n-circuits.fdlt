@@ -1,0 +1,33 @@
+(load "circuits/memory.fdl")
+(green input address)
+(green input i)
+(green output o1)
+(green output o2)
+(green output o3)
+(part-under-test (dual-demux-all-signals-3-circuits
+                   address
+                   i
+                   o1
+                   o2
+                   o3
+                   sig:signal-a
+                   sig:signal-d))
+(test-type fixed-latency 5)
+
+(test (((address sig:signal-a) (i sig:signal-d))
+       ((o1 sig:wooden-chest) (o1 sig:iron-chest) (o1 sig:pipe)
+        (o2 sig:wooden-chest) (o2 sig:iron-chest) (o2 sig:pipe)
+        (o3 sig:wooden-chest) (o3 sig:iron-chest) (o3 sig:pipe)))
+  ((  0 1) (1 0 0 0 0 0 0 0 0))
+  ((  1 1) (0 1 0 0 0 0 0 0 0))
+  (( 24 1) (0 0 1 0 0 0 0 0 0))
+  ((258 1) (0 0 0 1 0 0 0 0 0))
+  ((259 1) (0 0 0 0 1 0 0 0 0))
+  ((282 1) (0 0 0 0 0 1 0 0 0))
+  ((516 1) (0 0 0 0 0 0 1 0 0))
+  ((517 1) (0 0 0 0 0 0 0 1 0))
+  ((540 1) (0 0 0 0 0 0 0 0 1))
+
+  (( 24 9) (0 0 9 0 0 0 0 0 0))
+  ((259 5) (0 0 0 0 5 0 0 0 0))
+  ((516 4) (0 0 0 0 0 0 4 0 0)))

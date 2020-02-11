@@ -37,13 +37,15 @@
           (signal output-sig)
           ,@(for signals (lambda (sig) `(signal ,sig))))
 
-         ; i-most is like i but with sig0 replaced with the value of control-sig from control
+         ; i-most is like i but with sig0 replaced with the value of control-sig from control.
+         ; delay 1
          (red i-most)
          (buffer-without-signal i i-most sig0)
          (arithmetic control i-most control-sig * 1 sig0)
 
          ; i-one has sig0 from i and the value of control-sig
          ; from control moved to a signal other than sig0.
+         ; delay 1
          (red i-one)
          (signal not-sig0 (notsigs sig0))
          (buffer-only-signal i i-one sig0)
@@ -51,12 +53,14 @@
 
          ; o-wrong-sig has only one active signal, and it has the value we want,
          ; but it's probably not the output signal.
+         ; delay 2
          (red o-wrong-sig)
          (decider i-one o-wrong-sig not-sig0 == 0 sig0 input-count)
          ,@(for (cdr (zip signals (range n)))
              (lambda+ (sig index)
                `(decider i-most o-wrong-sig sig0 == ,index ,sig input-count)))
 
+         ; delay 3
          (arithmetic o-wrong-sig o each * 1 output-sig)))))
 
 (define defpart-demux-n-signals
