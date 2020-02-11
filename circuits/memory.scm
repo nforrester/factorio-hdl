@@ -95,6 +95,30 @@
           which-circuit-delayed2
           address-signal))))
 
+; Define a memory with (* num-cells (len all-signals)) signed 32 bit int registers.
+; To write the value of a register:
+;   - Tick 0
+;     - Set address to the address of the register you want to set (0 indexed).
+;     - Set data-in to the value you wish to set.
+;     - Set write to 1.
+;     - Hold inputs stable for 5 ticks.
+;   - Tick 5
+;     - Values may now be changed.
+;     - You may not request to read the register until 5 ticks after this point.
+;   - Tick 10
+;     - You may now submit a read request for this register.
+; To read the value of a register:
+;   - Tick 0
+;     - Set address to the address of the register you want to read (0 indexed).
+;     - Set write to 0.
+;     - There is no special stability time requirement (1 tick required stability time).
+;     - The desired value will appear on data-out 6 ticks later.
+;   - Tick 6
+;     - The value of the register appears on data-out.
+; Read and write transactions may be submitted with no intervening delay
+; (their processing is pipelined).
+; You may read a register and then immediately write it.
+; If you write a register you must wait 5 ticks before trying to read it again.
 (define defpart-memory-n
   (lambda (num-cells)
     `(defpart ,(strings->symbol "memory-" (number->string num-cells))
