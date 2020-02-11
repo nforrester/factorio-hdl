@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
     std::vector<std::pair<TestPort *, SignalId>> test_input_format;
     std::vector<std::pair<TestPort *, SignalId>> test_output_format;
     std::vector<std::vector<SignalValue>> test_inputs;
-    std::vector<std::vector<SignalValue>> test_outputs;
+    std::vector<std::vector<std::optional<SignalValue>>> test_outputs;
 
     std::string filename;
     int latency = -1;
@@ -324,11 +324,19 @@ int main(int argc, char ** argv)
                 test_outputs.emplace_back();
                 for (S::Ptr const & out_exp : in_out_expressions.at(1)->as_list()->l)
                 {
-                    if (!out_exp->as_int())
+                    if (out_exp->as_int())
                     {
-                        throw S::ParseError(s->file, s->line, "Expected int.");
+                        test_outputs.back().emplace_back(out_exp->as_int()->v);
                     }
-                    test_outputs.back().push_back(out_exp->as_int()->v);
+                    else if (out_exp->as_symbol() && out_exp->as_symbol()->s == "*")
+                    {
+                        /* No constraints are imposed on this output right now. */
+                        test_outputs.back().emplace_back();
+                    }
+                    else
+                    {
+                        throw S::ParseError(s->file, s->line, "Expected int or *.");
+                    }
                 }
                 if (test_outputs.back().size() != test_output_format.size())
                 {
@@ -400,27 +408,30 @@ int main(int argc, char ** argv)
             bool errors_this_cycle = false;
             while (output_value != out->end())
             {
-                CircuitValues values = fac.read(
-                    output_value_format->first->entity->port("out"));
-                if (*output_value != values.get(output_value_format->second))
+                if (output_value->has_value())
                 {
-                    errors_this_cycle = true;
+                    CircuitValues values = fac.read(
+                        output_value_format->first->entity->port("out"));
+                    if (**output_value != values.get(output_value_format->second))
+                    {
+                        errors_this_cycle = true;
+                    }
                 }
 
                 ++output_value;
                 ++output_value_format;
             }
 
-            std::ostringstream out;
+            std::ostringstream console;
             for (std::string const & tp_name : test_port_names)
             {
                 TestPort & test_port = test_ports.at(tp_name);
                 if (test_port.input)
                 {
-                    out << delayed_input_values.at(tp_name) << " ";
+                    console << delayed_input_values.at(tp_name) << " ";
                 }
             }
-            out << "---===> ";
+            console << "---===> ";
             for (std::string const & tp_name : test_port_names)
             {
                 TestPort & test_port = test_ports.at(tp_name);
@@ -428,15 +439,15 @@ int main(int argc, char ** argv)
                 {
                     CircuitValues values = fac.read(
                         test_ports.at(tp_name).entity->port("out"));
-                    out << values << " ";
+                    console << values << " ";
                 }
             }
             if (errors_this_cycle)
             {
-                out << "Test failure at (t = " << time << ").";
+                console << "Test failure at (t = " << time << ").";
                 ++lines_with_errors;
             }
-            info(0) << out.str() << "\n";
+            info(0) << console.str() << "\n";
         }
 
         if (line_to_generate_blueprint_string_for == time + 1 &&

@@ -104,8 +104,8 @@
 ;     - Hold inputs stable for 5 ticks.
 ;   - Tick 5
 ;     - Values may now be changed.
-;     - You may not request to read the register until 5 ticks after this point.
-;   - Tick 10
+;     - You may not request to read the register until 6 ticks after this point.
+;   - Tick 11
 ;     - You may now submit a read request for this register.
 ; To read the value of a register:
 ;   - Tick 0
@@ -175,4 +175,4 @@
                 (sym-for-idx 'data-out-cell index)))
           data-out
           address-signal
-          write-signal))))
+          data-out-signal))))
