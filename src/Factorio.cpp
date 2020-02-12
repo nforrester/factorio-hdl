@@ -135,8 +135,9 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
         be.name = Signal::constant_combinator;
 
         // set label
-        be.control_behavior = Blueprint::Entity::Filters();
-        Blueprint::Entity::Filters & f = std::get<Blueprint::Entity::Filters>(*be.control_behavior);
+        be.control_behavior.emplace();
+        be.control_behavior->spec = Blueprint::Entity::Filters();
+        Blueprint::Entity::Filters & f = std::get<Blueprint::Entity::Filters>(*be.control_behavior->spec);
         size_t i = 0;
         for (char c : name)
         {
@@ -425,7 +426,8 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
                             Blueprint::Entity new_be;
                             new_be.id = blueprint.entities.size() + 1;
                             new_be.name = Signal::constant_combinator;
-                            new_be.control_behavior = Blueprint::Entity::Filters();
+                            new_be.control_behavior.emplace();
+                            new_be.control_behavior->spec = Blueprint::Entity::Filters();
                             new_be.position = {
                                 static_cast<double>(best_new_x),
                                 static_cast<double>(best_new_y),

@@ -14,7 +14,8 @@ namespace
             return false;
         }
         assert(e.control_behavior.has_value());
-        for (auto const & f : std::get<Blueprint::Entity::Filters>(*e.control_behavior).filters)
+        assert(e.control_behavior->spec.has_value());
+        for (auto const & f : std::get<Blueprint::Entity::Filters>(*e.control_behavior->spec).filters)
         {
             if (f.count != 0)
             {

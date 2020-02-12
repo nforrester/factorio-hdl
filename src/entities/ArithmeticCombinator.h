@@ -38,7 +38,7 @@ public:
 
     ArithmeticCombinator(ArithmeticCombinator const &) = delete;
 
-    void tick(CircuitManager & circuits) const override;
+    void tick(CircuitManager & circuits) override;
 
     int to_blueprint_entity(Blueprint::Entity & bpe) const override;
 

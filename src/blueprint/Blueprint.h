@@ -107,6 +107,18 @@ namespace Blueprint
             ArithmeticCombinator::Op op;
         };
 
+        struct CircuitCondition
+        {
+            CircuitCondition() {}
+            CircuitCondition(json const & j);
+            json to_json() const;
+
+            std::optional<Signal> lhs;
+            std::optional<Signal> rhs_signal;
+            std::optional<SignalValue> rhs_const;
+            DeciderCombinator::Op op;
+        };
+
         struct Filters
         {
             Filters() {}
@@ -128,7 +140,21 @@ namespace Blueprint
             std::vector<Filter> filters;
         };
 
-        std::optional<std::variant<DeciderConditions, ArithmeticConditions, Filters>> control_behavior;
+        struct ControlBehavior
+        {
+            ControlBehavior() {}
+            ControlBehavior(json const & j);
+            json to_json() const;
+
+            std::optional<std::variant<
+                DeciderConditions,
+                ArithmeticConditions,
+                CircuitCondition,
+                Filters>> spec;
+            bool use_colors = false;
+        };
+
+        std::optional<ControlBehavior> control_behavior;
 
         int direction = 1;
 

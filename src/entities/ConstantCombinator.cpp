@@ -5,8 +5,9 @@ int ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
     bpe.name = Signal::constant_combinator;
 
-    bpe.control_behavior = Blueprint::Entity::Filters();
-    auto & f = std::get<Blueprint::Entity::Filters>(*bpe.control_behavior);
+    bpe.control_behavior.emplace();
+    bpe.control_behavior->spec = Blueprint::Entity::Filters();
+    auto & f = std::get<Blueprint::Entity::Filters>(*bpe.control_behavior->spec);
 
     int i = 1;
     for (auto const & iv : constants)

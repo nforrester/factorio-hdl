@@ -576,29 +576,7 @@ Blueprint::Entity::Entity(json const & j)
 
     d.optional("control_behavior", [](json const & j, Entity & e)
     {
-        JsonDigester<Entity> d;
-
-        d.optional("arithmetic_conditions", [](json const & j, Entity & e)
-        {
-            assert(!e.control_behavior.has_value());
-            e.control_behavior = std::make_optional(ArithmeticConditions(j));
-        });
-
-        d.optional("decider_conditions", [](json const & j, Entity & e)
-        {
-            assert(!e.control_behavior.has_value());
-            e.control_behavior = std::make_optional(DeciderConditions(j));
-        });
-
-        d.optional("filters", [](json const & j, Entity & e)
-        {
-            assert(!e.control_behavior.has_value());
-            e.control_behavior = std::make_optional(Filters(j));
-        });
-
-        d.digest(j, e);
-
-        assert(e.control_behavior.has_value());
+        e.control_behavior = std::make_optional(j);
     });
 
     d.optional("direction", [](json const & j, Entity & e) { e.direction = j; });
@@ -630,8 +608,7 @@ json Blueprint::Entity::to_json() const
 
     if (control_behavior.has_value())
     {
-        j["control_behavior"] = std::visit([](auto && b) -> json { return b.to_json(); },
-                                           *control_behavior);
+        j["control_behavior"] = control_behavior->to_json();
     }
 
     if (direction != 1)
@@ -824,6 +801,54 @@ json Blueprint::Entity::DeciderConditions::to_json() const
     return j;
 }
 
+Blueprint::Entity::CircuitCondition::CircuitCondition(json const & j)
+{
+    JsonDigester<CircuitCondition> d;
+
+    d.require("first_signal", [](json const & j, CircuitCondition & a)
+    {
+        a.lhs = std::make_optional(j);
+    });
+
+    d.optional("second_signal", [](json const & j, CircuitCondition & a)
+    {
+        a.rhs_signal = std::make_optional(j);
+    });
+
+    d.optional("constant", [](json const & j, CircuitCondition & a)
+    {
+        a.rhs_const = std::make_optional(j);
+    });
+
+    d.require("comparator", [](json const & j, CircuitCondition & a)
+    {
+        a.op = get_decider_op(j);
+    });
+
+    d.digest(j, *this);
+
+    assert(rhs_signal.has_value() || rhs_const.has_value());
+}
+
+json Blueprint::Entity::CircuitCondition::to_json() const
+{
+    assert(lhs.has_value());
+
+    json j;
+    j["circuit_condition"]["first_signal"] = lhs->to_json();
+    if (rhs_signal.has_value())
+    {
+        j["circuit_condition"]["second_signal"] = rhs_signal->to_json();
+    }
+    else
+    {
+        assert(rhs_const.has_value());
+        j["circuit_condition"]["constant"] = *rhs_const;
+    }
+    j["circuit_condition"]["comparator"] = get_decider_op_name(op);
+    return j;
+}
+
 Blueprint::Entity::Filters::Filters(json const & j)
 {
     assert(j.is_array());
@@ -864,6 +889,56 @@ json Blueprint::Entity::Filters::Filter::to_json() const
     j["count"] = count;
     j["index"] = index;
     j["signal"] = signal->to_json();
+    return j;
+}
+
+Blueprint::Entity::ControlBehavior::ControlBehavior(json const & j)
+{
+    JsonDigester<ControlBehavior> d;
+
+    d.optional("arithmetic_conditions", [](json const & j, ControlBehavior & b)
+    {
+        assert(!b.spec.has_value());
+        b.spec = std::make_optional(ArithmeticConditions(j));
+    });
+
+    d.optional("decider_conditions", [](json const & j, ControlBehavior & b)
+    {
+        assert(!b.spec.has_value());
+        b.spec = std::make_optional(DeciderConditions(j));
+    });
+
+    d.optional("circuit_condition", [](json const & j, ControlBehavior & b)
+    {
+        assert(!b.spec.has_value());
+        b.spec = std::make_optional(CircuitCondition(j));
+    });
+
+    d.optional("filters", [](json const & j, ControlBehavior & b)
+    {
+        assert(!b.spec.has_value());
+        b.spec = std::make_optional(Filters(j));
+    });
+
+    d.optional("use_colors", [](json const & j, ControlBehavior & b)
+    {
+        b.use_colors = j;
+    });
+
+    d.digest(j, *this);
+
+    assert(spec.has_value());
+}
+
+json Blueprint::Entity::ControlBehavior::to_json() const
+{
+    json j = std::visit([](auto && b) -> json { return b.to_json(); }, *spec);
+
+    if (use_colors)
+    {
+        j["use_colors"] = true;
+    }
+
     return j;
 }
 

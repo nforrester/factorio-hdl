@@ -35,9 +35,11 @@ public:
 
     DeciderCombinator(DeciderCombinator const &) = delete;
 
-    void tick(CircuitManager & circuits) const override;
+    void tick(CircuitManager & circuits) override;
 
     int to_blueprint_entity(Blueprint::Entity & bpe) const override;
+
+    static bool operate(SignalValue lhs, Op op, SignalValue rhs);
 
 private:
     Port _in_port;

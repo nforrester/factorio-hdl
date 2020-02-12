@@ -8,7 +8,7 @@ class Composite: public Entity
 public:
     Composite(Composite const &) = delete;
 
-    void tick(CircuitManager & circuits) const override
+    void tick(CircuitManager & circuits) override
     {
     }
 

@@ -57,7 +57,7 @@ void ArithmeticCombinator::_common_init()
     _set_port("out", _out_port);
 }
 
-void ArithmeticCombinator::tick(CircuitManager & circuits) const
+void ArithmeticCombinator::tick(CircuitManager & circuits)
 {
     debug(1) << _log_leader << "Start tick\n";
     CircuitValues const in = _in_port.read(circuits);
@@ -156,8 +156,9 @@ int ArithmeticCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
     bpe.name = Signal::arithmetic_combinator;
 
-    bpe.control_behavior = Blueprint::Entity::ArithmeticConditions();
-    auto & ac = std::get<Blueprint::Entity::ArithmeticConditions>(*bpe.control_behavior);
+    bpe.control_behavior.emplace();
+    bpe.control_behavior->spec = Blueprint::Entity::ArithmeticConditions();
+    auto & ac = std::get<Blueprint::Entity::ArithmeticConditions>(*bpe.control_behavior->spec);
 
     ac.lhs = _lhs;
     ac.out = _out;

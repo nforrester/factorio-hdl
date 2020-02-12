@@ -68,7 +68,7 @@ void DeciderCombinator::_common_init()
     _set_port("out", _out_port);
 }
 
-void DeciderCombinator::tick(CircuitManager & circuits) const
+void DeciderCombinator::tick(CircuitManager & circuits)
 {
     debug(1) << _log_leader << "Start tick\n";
     CircuitValues const in = _in_port.read(circuits);
@@ -181,7 +181,12 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
 
 bool DeciderCombinator::_operate(SignalValue lhs, SignalValue rhs) const
 {
-    switch (_op)
+    return operate(lhs, _op, rhs);
+}
+
+bool DeciderCombinator::operate(SignalValue lhs, Op op, SignalValue rhs)
+{
+    switch (op)
     {
     case Op::GT:
         return lhs > rhs;
@@ -203,8 +208,9 @@ int DeciderCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {
     bpe.name = Signal::decider_combinator;
 
-    bpe.control_behavior = Blueprint::Entity::DeciderConditions();
-    auto & dc = std::get<Blueprint::Entity::DeciderConditions>(*bpe.control_behavior);
+    bpe.control_behavior.emplace();
+    bpe.control_behavior->spec = Blueprint::Entity::DeciderConditions();
+    auto & dc = std::get<Blueprint::Entity::DeciderConditions>(*bpe.control_behavior->spec);
 
     dc.lhs = _lhs;
     dc.out = _out;

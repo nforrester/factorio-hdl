@@ -15,7 +15,7 @@ public:
 
     ConstantCombinator(ConstantCombinator const &) = delete;
 
-    void tick(CircuitManager & circuits) const override
+    void tick(CircuitManager & circuits) override
     {
         debug(1) << _log_leader << "Write " << constants << "\n";
         _port.write(circuits, constants);

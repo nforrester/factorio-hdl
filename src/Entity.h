@@ -16,7 +16,7 @@ namespace Blueprint
 class Entity
 {
 public:
-    virtual void tick(CircuitManager & circuits) const = 0;
+    virtual void tick(CircuitManager & circuits) = 0;
 
     Port & port(std::string const & name) const
     {

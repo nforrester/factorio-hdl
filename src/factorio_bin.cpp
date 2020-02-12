@@ -2,6 +2,7 @@
 #include "entities/ArithmeticCombinator.h"
 #include "entities/DeciderCombinator.h"
 #include "entities/ConstantCombinator.h"
+#include "entities/SmallLamp.h"
 #include "entities/Counter.h"
 #include "entities/Hysteresis.h"
 #include "blueprint/Blueprint.h"
@@ -30,7 +31,7 @@ int main(int argc, char ** argv)
         {
             auto & c = fac.new_entity<ConstantCombinator>("constant " + std::to_string(e.id) + " > ");
             for (auto const & f : std::get<Blueprint::Entity::Filters>(
-                                      *e.control_behavior).filters)
+                                      *e.control_behavior->spec).filters)
             {
                 c.constants.add(f.signal->name, f.count);
             }
@@ -39,7 +40,7 @@ int main(int argc, char ** argv)
         else if (e.name == Signal::decider_combinator)
         {
             auto const & dc = std::get<Blueprint::Entity::DeciderConditions>(
-                *e.control_behavior);
+                *e.control_behavior->spec);
             DeciderCombinator * d;
             if (dc.rhs_signal.has_value())
             {
@@ -68,7 +69,7 @@ int main(int argc, char ** argv)
         else if (e.name == Signal::arithmetic_combinator)
         {
             auto const & ac = std::get<Blueprint::Entity::ArithmeticConditions>(
-                *e.control_behavior);
+                *e.control_behavior->spec);
             ArithmeticCombinator * a;
             if (ac.rhs_signal.has_value())
             {
@@ -91,6 +92,32 @@ int main(int argc, char ** argv)
             }
             ports_for_entities[e.id].push_back(&a->port("in"));
             ports_for_entities[e.id].push_back(&a->port("out"));
+        }
+        else if (e.name == Signal::small_lamp)
+        {
+            auto const & cc = std::get<Blueprint::Entity::CircuitCondition>(
+                *e.control_behavior->spec);
+            SmallLamp * l;
+            if (cc.rhs_signal.has_value())
+            {
+                l = &fac.new_entity<SmallLamp>(
+                    "lamp " + std::to_string(e.id) + " > ",
+                    cc.lhs->name,
+                    cc.op,
+                    cc.rhs_signal->name,
+                    e.control_behavior->use_colors);
+            }
+            else
+            {
+                assert(cc.rhs_const.has_value());
+                l = &fac.new_entity<SmallLamp>(
+                    "lamp " + std::to_string(e.id) + " > ",
+                    cc.lhs->name,
+                    cc.op,
+                    *cc.rhs_const,
+                    e.control_behavior->use_colors);
+            }
+            ports_for_entities[e.id].push_back(&l->port("in"));
         }
         else if (e.name == Signal::iron_chest) // TODO need a more disciplined approach?
         {
