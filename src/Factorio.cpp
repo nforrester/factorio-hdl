@@ -153,7 +153,7 @@ std::string Factorio::get_blueprint_string(Entity const & entity, std::string co
                 break;
             }
             ++i;
-            f.filters.emplace_back(0, i, static_cast<SignalId>(c - 'a') + Signal::letter_a);
+            f.filters.emplace_back(0, i, static_cast<SignalId>(c - 'a') + Signal::signal_A);
         }
 
         assert(blueprint.entities.count(be.id) == 0);

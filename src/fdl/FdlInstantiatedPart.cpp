@@ -186,9 +186,9 @@ Fdl::InstantiatedPart::InstantiatedPart(
     std::unordered_set<std::string> names_in_use;
 
     std::unordered_map<std::string, SignalId> signals;
-    signals["everything"] = LogicSignal::everything;
-    signals["anything"] = LogicSignal::anything;
-    signals["each"] = LogicSignal::each;
+    signals["everything"] = LogicSignal::signal_everything;
+    signals["anything"] = LogicSignal::signal_anything;
+    signals["each"] = LogicSignal::signal_each;
 
     std::unordered_map<std::string, SignalValue> ints;
 

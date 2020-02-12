@@ -45,12 +45,12 @@ ArithmeticCombinator::ArithmeticCombinator(
 
 void ArithmeticCombinator::_common_init()
 {
-    assert(_lhs < num_signals || _lhs == LogicSignal::each);
-    assert(_out < num_signals || _out == LogicSignal::each);
+    assert(_lhs < num_signals || _lhs == LogicSignal::signal_each);
+    assert(_out < num_signals || _out == LogicSignal::signal_each);
 
-    if (_lhs != LogicSignal::each)
+    if (_lhs != LogicSignal::signal_each)
     {
-        assert(_out != LogicSignal::each);
+        assert(_out != LogicSignal::signal_each);
     }
 
     _set_port("in", _in_port);
@@ -73,9 +73,9 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
         rhs = in.get(_rhs);
     }
 
-    if (_out == LogicSignal::each)
+    if (_out == LogicSignal::signal_each)
     {
-        assert(_lhs == LogicSignal::each);
+        assert(_lhs == LogicSignal::signal_each);
         for (auto const & p : in)
         {
             SignalId signal = p.first;
@@ -85,7 +85,7 @@ void ArithmeticCombinator::tick(CircuitManager & circuits) const
     }
     else
     {
-        if (_lhs != LogicSignal::each)
+        if (_lhs != LogicSignal::signal_each)
         {
             SignalValue lhs = in.get(_lhs);
             out.add(_out, _operate(lhs, rhs));

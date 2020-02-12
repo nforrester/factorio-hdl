@@ -48,20 +48,20 @@ DeciderCombinator::DeciderCombinator(
 void DeciderCombinator::_common_init()
 {
     assert(_lhs < num_signals ||
-           _lhs == LogicSignal::each ||
-           _lhs == LogicSignal::anything ||
-           _lhs == LogicSignal::everything);
+           _lhs == LogicSignal::signal_each ||
+           _lhs == LogicSignal::signal_anything ||
+           _lhs == LogicSignal::signal_everything);
     assert(_out < num_signals ||
-           _out == LogicSignal::each ||
-           _out == LogicSignal::everything);
+           _out == LogicSignal::signal_each ||
+           _out == LogicSignal::signal_everything);
 
-    if (_lhs != LogicSignal::each)
+    if (_lhs != LogicSignal::signal_each)
     {
-        assert(_out != LogicSignal::each);
+        assert(_out != LogicSignal::signal_each);
     }
     else
     {
-        assert(_out != LogicSignal::everything);
+        assert(_out != LogicSignal::signal_everything);
     }
 
     _set_port("in", _in_port);
@@ -84,9 +84,9 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
         rhs = in.get(_rhs);
     }
 
-    if (_out == LogicSignal::each)
+    if (_out == LogicSignal::signal_each)
     {
-        assert(_lhs == LogicSignal::each);
+        assert(_lhs == LogicSignal::signal_each);
         for (auto const & p : in)
         {
             SignalId signal = p.first;
@@ -99,7 +99,7 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
     }
     else
     {
-        if (_lhs != LogicSignal::each)
+        if (_lhs != LogicSignal::signal_each)
         {
             bool condition_met;
             if (_lhs < num_signals)
@@ -107,7 +107,7 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
                 SignalValue lhs = in.get(_lhs);
                 condition_met = _operate(lhs, rhs);
             }
-            else if (_lhs == LogicSignal::everything)
+            else if (_lhs == LogicSignal::signal_everything)
             {
                 condition_met = true;
                 for (auto const & p : in)
@@ -120,7 +120,7 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
                     }
                 }
             }
-            else if (_lhs == LogicSignal::anything)
+            else if (_lhs == LogicSignal::signal_anything)
             {
                 condition_met = false;
                 for (auto const & p : in)
@@ -138,7 +138,7 @@ void DeciderCombinator::tick(CircuitManager & circuits) const
                 assert(false);
             }
 
-            if (_out == LogicSignal::everything)
+            if (_out == LogicSignal::signal_everything)
             {
                 if (condition_met)
                 {
