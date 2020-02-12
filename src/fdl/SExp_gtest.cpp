@@ -82,6 +82,34 @@ TEST(SExpTest, Ints)
     }
 }
 
+TEST(SExpTest, UnsignedInts)
+{
+    std::vector<std::string> ints =
+    {
+        "0u",
+        "1u",
+        "42u",
+        "1234567890u",
+        "012345670u",
+        "0x12345678u",
+        "0xabcdefu",
+        "0XABCDEFu",
+        "0x7fffffffu",
+        "0xffffffffu",
+    };
+
+    for (std::string const & input : ints)
+    {
+        S::Ptr e = S::read(input, "<test-stimulus>", 1);
+        ASSERT_TRUE(e);
+        EXPECT_TRUE(e->as_int());
+        EXPECT_EQ(stoull(input, nullptr, 0), static_cast<uint32_t>(e->as_int()->v));
+
+        EXPECT_NE("", e->file);
+        EXPECT_NE(0u, e->line);
+    }
+}
+
 TEST(SExpTest, Strings)
 {
     std::vector<std::string> strings =
@@ -199,10 +227,13 @@ TEST(SExpTest, Errors)
 {
     std::vector<std::pair<std::string, std::string>> tests =
     {
-        {"10000000000000000000000000000000000000000000000000000000000000000000000000000000", "<test-stimulus>:1: This integer is too long: \"10000000000000000000000000000000000000000000000000000000000000000000000000000000\"."},
-        {"-10000000000000000000000000000000000000000000000000000000000000000000000000000000", "<test-stimulus>:1: This integer is too long: \"-10000000000000000000000000000000000000000000000000000000000000000000000000000000\"."},
-        {"0x80000000", "<test-stimulus>:1: This integer is too long: \"0x80000000\"."},
-        {"-0x80000001", "<test-stimulus>:1: This integer is too long: \"-0x80000001\"."},
+        {"10000000000000000000000000000000000000000000000000000000000000000000000000000000", "<test-stimulus>:1: This integer is out of range: \"10000000000000000000000000000000000000000000000000000000000000000000000000000000\"."},
+        {"-10000000000000000000000000000000000000000000000000000000000000000000000000000000", "<test-stimulus>:1: This integer is out of range: \"-10000000000000000000000000000000000000000000000000000000000000000000000000000000\"."},
+        {"0x80000000", "<test-stimulus>:1: This integer is out of range: \"0x80000000\"."},
+        {"-0x80000001", "<test-stimulus>:1: This integer is out of range: \"-0x80000001\"."},
+        {"10000000000000000000000000000000000000000000000000000000000000000000000000000000u", "<test-stimulus>:1: This integer is out of range: \"10000000000000000000000000000000000000000000000000000000000000000000000000000000u\"."},
+        {"0x100000000u", "<test-stimulus>:1: This integer is out of range: \"0x100000000u\"."},
+        {"-0x1u", "<test-stimulus>:1: This integer is out of range: \"-0x1u\"."},
         {"0x1x1", "<test-stimulus>:1: Not a valid integer: \"0x1x1\"."},
         {"-3f", "<test-stimulus>:1: Not a valid integer: \"-3f\"."},
         {"-3-", "<test-stimulus>:1: Character '-' is not valid in an int."},

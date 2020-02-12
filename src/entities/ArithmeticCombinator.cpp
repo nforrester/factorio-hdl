@@ -127,11 +127,11 @@ SignalValue ArithmeticCombinator::operate(
     switch (op)
     {
     case Op::ADD:
-        return lhs + rhs;
+        return static_cast<uint32_t>(lhs) + static_cast<uint32_t>(rhs);
     case Op::SUB:
-        return lhs - rhs;
+        return static_cast<uint32_t>(lhs) - static_cast<uint32_t>(rhs);
     case Op::MUL:
-        return lhs * rhs;
+        return static_cast<uint32_t>(lhs) * static_cast<uint32_t>(rhs);
     case Op::DIV:
         return rhs == 0 ? 0 : lhs / rhs;
     case Op::MOD:

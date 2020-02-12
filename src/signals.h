@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <limits>
 
-// TODO make rollover defined behavior
 using SignalValue = int32_t;
 
 using SignalId = uint_fast16_t;

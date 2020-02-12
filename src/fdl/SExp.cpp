@@ -144,17 +144,32 @@ S::Ptr S::read(std::string_view & input, std::string const & file, size_t & line
         {
             std::string_view input_at_start_of_number = input;
             std::string_view numeric_string;
+            bool unsigned_requested = false;
             while (!input.empty() && !post_atomic_chars.count(input.front()))
             {
-                bool first = numeric_string.size() == 0;
-                if (!((first && numeric_start_chars.count(input.front())) ||
-                      (!first && numeric_tail_chars.count(input.front()))))
+                if (unsigned_requested)
                 {
-                    throw ParseError(file, line, std::string("Character '") + input.front() + "' is not valid in an int.");
+                    throw ParseError(file, line, "In an int, the character 'u' is only valid at the end.");
                 }
+                if (input.front() == 'u')
+                {
+                    unsigned_requested = true;
+                }
+                else
+                {
+                    bool first = numeric_string.size() == 0;
+                    if (!((first && numeric_start_chars.count(input.front())) ||
+                          (!first && numeric_tail_chars.count(input.front()))))
+                    {
+                        throw ParseError(
+                            file,
+                            line,
+                            std::string("Character '") + input.front() + "' is not valid in an int.");
+                    }
 
-                numeric_string = std::string_view(input_at_start_of_number.data(),
-                                                  numeric_string.size() + 1);
+                    numeric_string = std::string_view(input_at_start_of_number.data(),
+                                                      numeric_string.size() + 1);
+                }
                 input.remove_prefix(1);
             }
             try
@@ -165,12 +180,27 @@ S::Ptr S::read(std::string_view & input, std::string const & file, size_t & line
                 {
                     throw std::invalid_argument("");
                 }
-                if (parsed > std::numeric_limits<SignalValue>::max() ||
-                    parsed < std::numeric_limits<SignalValue>::lowest())
+
+                Ptr e;
+                if (unsigned_requested)
                 {
-                    throw std::out_of_range("");
+                    static_assert(std::same_as<int32_t, SignalValue>);
+                    if (parsed > std::numeric_limits<uint32_t>::max() ||
+                        parsed < 0)
+                    {
+                        throw std::out_of_range("");
+                    }
+                    e = std::make_unique<Int>(static_cast<SignalValue>(static_cast<uintmax_t>(parsed)));
                 }
-                Ptr e = std::make_unique<Int>(static_cast<SignalValue>(parsed));
+                else
+                {
+                    if (parsed > std::numeric_limits<SignalValue>::max() ||
+                        parsed < std::numeric_limits<SignalValue>::lowest())
+                    {
+                        throw std::out_of_range("");
+                    }
+                    e = std::make_unique<Int>(static_cast<SignalValue>(parsed));
+                }
                 e->file = file;
                 e->line = line;
                 return e;
@@ -181,7 +211,7 @@ S::Ptr S::read(std::string_view & input, std::string const & file, size_t & line
             }
             catch (std::out_of_range & e)
             {
-                throw ParseError(file, line, "This integer is too long: \"" + std::string(numeric_string) + "\".");
+                throw ParseError(file, line, "This integer is out of range: \"" + std::string(numeric_string) + (unsigned_requested ? "u" : "") + "\".");
             }
         }
 
