@@ -17,6 +17,7 @@
 
 ; Hysteresis implemented with no arithmetic combinators.
 ; You specify a set point and half the width of the deadband.
+; in-sig MUST be different from out-sig.
 (defpart hysteresis-no-arith
     ((in red i)
      (out red o)
@@ -33,6 +34,7 @@
 ; Hysteresis implemented with no arithmetic combinators.
 ; You must specify the thresholds directly (the minimum and maximum values
 ; that will cause a state change).
+; in-sig MUST be different from out-sig.
 (defpart hysteresis-by-thresholds
     ((in red i)
      (out red o)
