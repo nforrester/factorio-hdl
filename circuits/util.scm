@@ -66,3 +66,16 @@
     `(lambda (,args-sym)
        ((flip apply) ,args-sym
          (lambda ,args ,@body)))))
+
+(define assert
+  (lambda (bool message)
+    (if (not bool)
+      (raise (error message)))))
+
+(define lookup
+  (lambda (alist key)
+    (letrec ((loop (lambda (xs)
+                     (if (eqv? (caar xs) key)
+                       (cadr xs)
+                       (loop (cdr xs))))))
+      (loop alist))))
