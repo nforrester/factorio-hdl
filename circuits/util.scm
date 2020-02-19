@@ -76,6 +76,6 @@
   (lambda (alist key)
     (letrec ((loop (lambda (xs)
                      (if (eqv? (caar xs) key)
-                       (cadr xs)
+                       (cadar xs)
                        (loop (cdr xs))))))
       (loop alist))))
