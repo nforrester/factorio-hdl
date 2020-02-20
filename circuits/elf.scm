@@ -114,3 +114,67 @@
                     (section-header-table-entries ,section-header-table-entries)
                     (section-header-table-entry-with-section-names ,section-header-table-entry-with-section-names)
                     . ,header-head))))))))))
+
+(define read-elf-program-headers
+  (lambda (filepath header)
+    (read-elf-with filepath header
+      (lambda (current-file-position next-char next next-n next-word seek)
+        (letrec ((program-header-size (lookup header 'program-header-table-entry-size))
+                 (n-bits (lookup header 'n-bits))
+                 (loop (lambda (num-remaining program-headers)
+                         (if (eqv? num-remaining 0)
+                           program-headers
+                           (let ((start-pos (current-file-position))
+                                 (segment-type (next-n 4)))
+                             (if (eqv? n-bits 64) (next-n 4)) ; Ignore p_flags (64 bit position).
+                             (let ((file-address (next-word))
+                                   (virt-mem-address (next-word))
+                                   (phys-mem-address (next-word))
+                                   (file-size (next-word))
+                                   (mem-size (next-word)))
+                               (if (eqv? n-bits 32) (next-n 4)) ; Ignore p_flags (32 bit position).
+                               (next-word) ; Ignore p_align
+                               (assert (eqv? (current-file-position) (+ start-pos program-header-size)) "Consumed an unexpected number of bytes so far.")
+                               (loop (- num-remaining 1)
+                                     (cons
+                                       `((file-address ,file-address)
+                                         (virt-mem-address ,virt-mem-address)
+                                         (phys-mem-address ,phys-mem-address)
+                                         (file-size ,file-size)
+                                         (mem-size ,mem-size)
+                                         (segment-type ,segment-type))
+                                       program-headers))))))))
+          (seek (lookup header 'program-header-table-offset))
+          (sort-by-key (lambda (entry) (lookup entry 'file-address)) (loop (lookup header 'program-header-table-entries) ())))))))
+
+(define read-elf-program-segments
+  (lambda (filepath)
+    (let* ((header (read-elf-header filepath))
+           (program-headers (read-elf-program-headers filepath header)))
+      (read-elf-with filepath header
+        (lambda (current-file-position next-char next next-n next-word seek)
+          (letrec ((loop-over-segments
+                     (lambda (result-segments-reversed remaining-program-headers)
+                       (if (eq? remaining-program-headers ())
+                         (reverse-list result-segments-reversed)
+                         (letrec ((loop-over-words
+                                    (lambda (result-words-reversed num-words-remaining)
+                                      (if (eqv? num-words-remaining 0)
+                                        (reverse-list result-words-reversed)
+                                        (loop-over-words
+                                          (cons (next-word) result-words-reversed)
+                                          (- num-words-remaining 1)))))
+                                  (program-header (car remaining-program-headers))
+                                  (file-size (lookup program-header 'file-size))
+                                  (mem-size (lookup program-header 'mem-size)))
+                           (seek (lookup program-header 'file-address))
+                           (let ((segment (loop-over-words () (/ file-size (lookup header 'bytes-per-word)))))
+                             (if (eqv? file-size 0)
+                               (begin (assert (> mem-size 0) "Empty segment.")
+                                      (set! (segment) (list (replicate mem-size 0))))
+                               (assert (eqv? file-size mem-size) "Memory and file sizes differ unexpectedly."))
+                             (loop-over-segments (cons segment result-segments-reversed) (cdr remaining-program-headers))))))))
+            (loop-over-segments () program-headers)))))))
+
+; NOTE: Some segments, like .bss, need to be writable!
+; TODO: Deal with section overlaps!

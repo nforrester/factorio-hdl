@@ -79,3 +79,50 @@
                        (cadar xs)
                        (loop (cdr xs))))))
       (loop alist))))
+
+(define reverse-list
+  (lambda (fwd)
+    (letrec ((loop (lambda (fwd rev)
+                     (if (eq? fwd ())
+                       rev
+                       (loop (cdr fwd) (cons (car fwd) rev))))))
+      (loop fwd ()))))
+
+(define remove-first-equal
+  (lambda (x elems)
+    (letrec ((loop (lambda (result xs found)
+                     (if (eq? xs ())
+                       result
+                       (if (or found (not (equal? x (car xs))))
+                         (loop (cons (car xs) result) (cdr xs) found)
+                         (loop result (cdr xs) #t))))))
+      (reverse-list (loop () elems #f)))))
+
+; insertion sort - O(n^2)
+(define sort-by-key
+  (lambda (key-fun elems)
+    (letrec ((find-max (lambda (max-key max-val xs)
+                         (if (eq? xs ())
+                           max-val
+                           (let* ((val (car xs))
+                                  (key (key-fun val)))
+                             (if (> key max-key)
+                               (find-max key val (cdr xs))
+                               (find-max max-key max-val (cdr xs)))))))
+             (loop (lambda (sorted unsorted)
+                     (if (eq? unsorted ())
+                       sorted
+                       (let ((max-val (find-max (key-fun (car unsorted))
+                                                (car unsorted)
+                                                (cdr unsorted))))
+                         (loop (cons max-val sorted)
+                               (remove-first-equal max-val unsorted)))))))
+      (loop () elems))))
+
+(define replicate
+  (lambda (n x)
+    (letrec ((loop (lambda (result remaining)
+                     (if (eqv? remaining 0)
+                       result
+                       (loop (cons x result) (- remaining 1))))))
+      (loop () n))))
