@@ -7,3 +7,7 @@ http_archive(
     build_file = "//:gtest.BUILD",
     strip_prefix = "googletest-release-1.10.0",
 )
+
+register_toolchains(
+    "//target:rv32i-freestanding-toolchain",
+)
