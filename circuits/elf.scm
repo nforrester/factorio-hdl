@@ -125,25 +125,35 @@
                          (if (eqv? num-remaining 0)
                            program-headers
                            (let ((start-pos (current-file-position))
-                                 (segment-type (next-n 4)))
-                             (if (eqv? n-bits 64) (next-n 4)) ; Ignore p_flags (64 bit position).
+                                 (segment-type (next-n 4))
+                                 (p-flags-raw 0))
+                             (if (eqv? n-bits 64) (set! (p-flags-raw) (list (next-n 4)))) ; Ignore p_flags (64 bit position).
                              (let ((file-address (next-word))
                                    (virt-mem-address (next-word))
                                    (phys-mem-address (next-word))
                                    (file-size (next-word))
                                    (mem-size (next-word)))
-                               (if (eqv? n-bits 32) (next-n 4)) ; Ignore p_flags (32 bit position).
-                               (next-word) ; Ignore p_align
-                               (assert (eqv? (current-file-position) (+ start-pos program-header-size)) "Consumed an unexpected number of bytes so far.")
-                               (loop (- num-remaining 1)
-                                     (cons
-                                       `((file-address ,file-address)
-                                         (virt-mem-address ,virt-mem-address)
-                                         (phys-mem-address ,phys-mem-address)
-                                         (file-size ,file-size)
-                                         (mem-size ,mem-size)
-                                         (segment-type ,segment-type))
-                                       program-headers))))))))
+                               (if (eqv? n-bits 32) (set! (p-flags-raw) (list (next-n 4)))) ; Ignore p_flags (32 bit position).
+                               (assert (eqv? 0 (logxor #x7 (logior #x7 p-flags-raw))) "Unknown p_flags.")
+                               (let ((p-flags ())
+                                     (pf-r 4)
+                                     (pf-w 2)
+                                     (pf-x 1))
+                                 (if (< 0 (logand pf-r p-flags-raw)) (set! (p-flags) (list (cons 'r p-flags))))
+                                 (if (< 0 (logand pf-w p-flags-raw)) (set! (p-flags) (list (cons 'w p-flags))))
+                                 (if (< 0 (logand pf-x p-flags-raw)) (set! (p-flags) (list (cons 'x p-flags))))
+                                 (next-word) ; Ignore p_align
+                                 (assert (eqv? (current-file-position) (+ start-pos program-header-size)) "Consumed an unexpected number of bytes so far.")
+                                 (loop (- num-remaining 1)
+                                       (cons
+                                         `((file-address ,file-address)
+                                           (virt-mem-address ,virt-mem-address)
+                                           (phys-mem-address ,phys-mem-address)
+                                           (file-size ,file-size)
+                                           (mem-size ,mem-size)
+                                           (segment-type ,segment-type)
+                                           (p-flags ,p-flags))
+                                         program-headers)))))))))
           (seek (lookup header 'program-header-table-offset))
           (sort-by-key (lambda (entry) (lookup entry 'file-address)) (loop (lookup header 'program-header-table-entries) ())))))))
 
