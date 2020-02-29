@@ -156,11 +156,11 @@
           (letrec ((loop-over-segments
                      (lambda (result-segments-reversed remaining-program-headers)
                        (if (eq? remaining-program-headers ())
-                         (reverse-list result-segments-reversed)
+                         (reverse result-segments-reversed)
                          (letrec ((loop-over-words
                                     (lambda (result-words-reversed num-words-remaining)
                                       (if (eqv? num-words-remaining 0)
-                                        (reverse-list result-words-reversed)
+                                        (reverse result-words-reversed)
                                         (loop-over-words
                                           (cons (next-word) result-words-reversed)
                                           (- num-words-remaining 1)))))

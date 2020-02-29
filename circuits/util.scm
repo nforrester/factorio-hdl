@@ -80,14 +80,6 @@
                        (loop (cdr xs))))))
       (loop alist))))
 
-(define reverse-list
-  (lambda (fwd)
-    (letrec ((loop (lambda (fwd rev)
-                     (if (eq? fwd ())
-                       rev
-                       (loop (cdr fwd) (cons (car fwd) rev))))))
-      (loop fwd ()))))
-
 (define remove-first-equal
   (lambda (x elems)
     (letrec ((loop (lambda (result xs found)
@@ -96,7 +88,7 @@
                        (if (or found (not (equal? x (car xs))))
                          (loop (cons (car xs) result) (cdr xs) found)
                          (loop result (cdr xs) #t))))))
-      (reverse-list (loop () elems #f)))))
+      (reverse (loop () elems #f)))))
 
 ; insertion sort - O(n^2)
 (define sort-by-key
@@ -125,4 +117,30 @@
                      (if (eqv? remaining 0)
                        result
                        (loop (cons x result) (- remaining 1))))))
+      (loop () n))))
+
+(define to-hex
+  (lambda (n)
+    (letrec ((loop (lambda (hex remaining)
+                     (let* ((low-nibble (logand #xf remaining))
+                            (next-digit (case low-nibble
+                                          ((#x0) #\0)
+                                          ((#x1) #\1)
+                                          ((#x2) #\2)
+                                          ((#x3) #\3)
+                                          ((#x4) #\4)
+                                          ((#x5) #\5)
+                                          ((#x6) #\6)
+                                          ((#x7) #\7)
+                                          ((#x8) #\8)
+                                          ((#x9) #\9)
+                                          ((#xa) #\a)
+                                          ((#xb) #\b)
+                                          ((#xc) #\c)
+                                          ((#xd) #\d)
+                                          ((#xe) #\e)
+                                          ((#xf) #\f))))
+                       (if (eqv? remaining 0)
+                         (list->string hex)
+                         (loop (cons next-digit hex) (arithmetic-shift remaining -4)))))))
       (loop () n))))
