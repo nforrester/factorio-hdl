@@ -10,7 +10,6 @@
 #include "src/debug.h"
 
 #include <sstream>
-#include <unistd.h>
 
 int main(int argc, char ** argv)
 {
