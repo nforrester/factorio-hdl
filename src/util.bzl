@@ -21,7 +21,7 @@ def gtests(deps = [], extra_data = dict()):
     for src in test_srcs:
         name = src[:-4]
         bin_name = name + "_bin"
-        data = dict()
+        data = []
         if name in extra_data.keys():
             data = extra_data[name]
         native.cc_binary(name = bin_name + "_host",

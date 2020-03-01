@@ -1,4 +1,4 @@
-(load "util.scm")
+(load "circuits/util.scm")
 
 (define read-binary-with
   (lambda (filepath reader)
@@ -178,13 +178,61 @@
                                   (file-size (lookup program-header 'file-size))
                                   (mem-size (lookup program-header 'mem-size)))
                            (seek (lookup program-header 'file-address))
-                           (let ((segment (loop-over-words () (/ file-size (lookup header 'bytes-per-word)))))
+                           (let ((segment-words (loop-over-words () (/ file-size (lookup header 'bytes-per-word)))))
                              (if (eqv? file-size 0)
                                (begin (assert (> mem-size 0) "Empty segment.")
-                                      (set! (segment) (list (replicate mem-size 0))))
+                                      (set! (segment-words) (list (replicate mem-size 0))))
                                (assert (eqv? file-size mem-size) "Memory and file sizes differ unexpectedly."))
-                             (loop-over-segments (cons segment result-segments-reversed) (cdr remaining-program-headers))))))))
+                             (assert (eqv? (lookup program-header 'virt-mem-address) (lookup program-header 'phys-mem-address))
+                                     "Virtual and physical memory addresses differ. I don't know what to do about that.")
+                             (loop-over-segments (cons `((start-address ,(lookup program-header 'virt-mem-address))
+                                                         (p-flags ,(lookup program-header 'p-flags))
+                                                         (words ,segment-words))
+                                                       result-segments-reversed)
+                                                 (cdr remaining-program-headers))))))))
             (loop-over-segments () program-headers)))))))
 
-; NOTE: Some segments, like .bss, need to be writable!
-; TODO: Deal with section overlaps!
+; TODO: Deal with section overlaps properly!
+(define assert-program-segments-not-overlapping
+  (lambda (program-segments)
+    (assert (> 2 (len program-segments))
+            "You need to actually implement a check for overlapping segments instead of just hoping there's at most one segment.")))
+
+; TODO: Some segments, like .bss, need to be writable!
+(define assert-program-segments-not-writable
+  (lambda (program-segments)
+    (letrec ((loop (lambda (segments)
+                     (let ((segment (car segments)))
+                       (assert (not (memq 'w (lookup segment 'p-flags))) "You need to add support for writable program segments.")))))
+      (loop program-segments))))
+
+(define defpart-rom-of-elf
+  (lambda (part-name filepath)
+    (letrec ((program-segments (read-elf-program-segments filepath))
+             (seg-part-name (lambda (index)
+                              (sym-for-idx
+                                (strings->symbol (symbol->string part-name) "-segment-") index)))
+             (rom-segments
+               (lambda (parts index remaining-segments)
+                 (if (eq? () remaining-segments)
+                   parts
+                   (let ((segment (car remaining-segments)))
+                     (rom-segments (cons `(defpart-rom
+                                            ,(seg-part-name index)
+                                            ,(/ (lookup segment 'start-address) 4)
+                                            ,(map unsigned-literal-if-pos (lookup segment 'words)))
+                                         parts)
+                                   (+ 1 index)
+                                   (cdr remaining-segments)))))))
+      (assert-program-segments-not-overlapping program-segments)
+      (assert-program-segments-not-writable program-segments)
+      `(begin
+         (defpart ,part-name
+           ((in yellow address)
+            (out yellow data-out)
+            (signal address-signal)
+            (signal data-out-signal))
+           ,@(for (range (len program-segments))
+               (lambda (index)
+                 `(,(seg-part-name index) address data-out address-signal data-out-signal))))
+         ,@(rom-segments () 0 program-segments)))))

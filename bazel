@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bazel "$1" --platforms=//target:factorio-riscv "${@:2}"

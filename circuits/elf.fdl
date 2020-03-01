@@ -1,0 +1,14 @@
+(load "circuits/memory.fdl")
+
+(defmacro defpart-rom-of-elf "circuits/elf.scm")
+
+(defpart-rom-of-elf memory-test-elf "target/memory-test")
+
+(defpart memory-test-elf-byte-addressable
+  ((in yellow address-bytes)
+   (out yellow data-out)
+   (signal address-signal)
+   (signal data-out-signal))
+  (green address)
+  (arithmetic address-bytes address address-signal / 4 address-signal)
+  (memory-test-elf address data-out address-signal data-out-signal))

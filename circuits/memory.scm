@@ -1,13 +1,9 @@
 (load "circuits/util.scm")
 
-(define sym-for-idx
-  (lambda (base-symbol index)
-    (strings->symbol (symbol->string base-symbol) (number->string index))))
-
 (define defpart-dual-mux-all-signals-n-circuits-offset-by-m
   (lambda (num-circuits address-offset)
     (assert (eqv? 0 (remainder address-offset (len all-signals)))
-            (string-append "RAM address offset must be aligned to "
+            (string-append "Memoary address offset must be aligned to "
                            (number->string (len all-signals)) " word intervals."))
     (let ((circuit-offset (quotient address-offset (len all-signals))))
       `(begin
@@ -62,7 +58,7 @@
 (define defpart-dual-demux-all-signals-n-circuits-offset-by-m
   (lambda (num-circuits address-offset)
     (assert (eqv? 0 (remainder address-offset (len all-signals)))
-            (string-append "RAM address offset must be aligned to "
+            (string-append "Memoary address offset must be aligned to "
                            (number->string (len all-signals)) " word intervals."))
     (let ((circuit-offset (quotient address-offset (len all-signals))))
       `(begin
@@ -217,8 +213,15 @@
 
 (define defpart-rom
   (lambda (part-name start-address words)
+    (letrec ((align (lambda ()
+                      (if (not (eqv? 0 (remainder start-address (len all-signals))))
+                        (begin
+                          (set! (start-address) (list (- start-address 1)))
+                          (set! (words) (list (cons 0 words)))
+                          (align))))))
+      (align))
     (assert (eqv? 0 (remainder start-address (len all-signals)))
-            (string-append "RAM segment start must be aligned to "
+            (string-append "ROM segment start must be aligned to "
                            (number->string (len all-signals)) " word intervals."))
     (let* ((num-words (len words))
            (num-signals (len all-signals))
@@ -248,7 +251,7 @@
                                 ,data-wire
                                 ,(for chunk-of-words-and-signals
                                    (lambda+ (word signal)
-                                     `(,signal ,word)))))))))))
+                                     `(,signal ,(unsigned-literal-if-pos word))))))))))))
 
            ; Mux data-out from the constant combinators.
            (,dual-mux-all-signals-n-circuits-offset-by-m

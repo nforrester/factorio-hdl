@@ -59,4 +59,5 @@ cc_binary(
     srcs = ["memory-test.cpp"],
     copts = common_cppopts,
     linkopts = common_linkopts,
+    visibility = ["//visibility:public"],
 )

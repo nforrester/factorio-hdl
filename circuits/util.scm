@@ -145,3 +145,13 @@
                          (list->string hex)
                          (loop (cons next-digit hex) (arithmetic-shift remaining -4)))))))
       (loop () n))))
+
+(define sym-for-idx
+  (lambda (base-symbol index)
+    (strings->symbol (symbol->string base-symbol) (number->string index))))
+
+(define unsigned-literal-if-pos
+  (lambda (n)
+    (if (< 0 n)
+      (strings->symbol (number->string n) "u")
+      n)))
