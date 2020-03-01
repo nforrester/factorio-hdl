@@ -98,24 +98,28 @@
 
 (define defpart-mux-all-signals
   (lambda ()
-    `(defpart mux-all-signals
-       ((in yellow i)
-        (out yellow o)
-        (in yellow control)
-        (signal control-sig)
-        (signal output-sig))
+    `(begin
+       (defpart-mux-n-signals ,(len all-signals))
+       (defpart mux-all-signals
+         ((in yellow i)
+          (out yellow o)
+          (in yellow control)
+          (signal control-sig)
+          (signal output-sig))
 
-       (,(strings->symbol "mux-" (number->string (len all-signals)) "-signals")
-        i o control control-sig output-sig ,@all-signals))))
+         (,(strings->symbol "mux-" (number->string (len all-signals)) "-signals")
+          i o control control-sig output-sig ,@all-signals)))))
 
 (define defpart-demux-all-signals
   (lambda ()
-    `(defpart demux-all-signals
-       ((in yellow i)
-        (out yellow o)
-        (in yellow control)
-        (signal control-sig)
-        (signal input-sig))
+    `(begin
+       (defpart-demux-n-signals ,(len all-signals))
+       (defpart demux-all-signals
+         ((in yellow i)
+          (out yellow o)
+          (in yellow control)
+          (signal control-sig)
+          (signal input-sig))
 
-       (,(strings->symbol "demux-" (number->string (len all-signals)) "-signals")
-        i o control control-sig input-sig ,@all-signals))))
+         (,(strings->symbol "demux-" (number->string (len all-signals)) "-signals")
+          i o control control-sig input-sig ,@all-signals)))))

@@ -43,13 +43,41 @@ Fdl::ast_to_defparts(S::PtrV const & ast)
         std::string const & name = defpart.at(1)->as_symbol()->s;
         if (defparts.count(name) > 0)
         {
-            throw S::ParseError(
-                s->file,
-                s->line,
-                "Duplicate defintion for " + name + ".");
+            S::PtrV const & old_defpart = *defparts.at(name);
+            bool same = true;
+            if (same)
+            {
+                same = old_defpart.size() == defpart.size();
+            }
+            if (same)
+            {
+                auto old_it = old_defpart.begin();
+                auto new_it = defpart.begin();
+                while (old_it != old_defpart.end())
+                {
+                    if ((*old_it)->write() != (*new_it)->write())
+                    {
+                        same = false;
+                        break;
+                    }
+
+                    ++old_it;
+                    ++new_it;
+                }
+            }
+            if (!same)
+            {
+                throw S::ParseError(
+                    s->file,
+                    s->line,
+                    "Conflicting duplicate defintions for " + name + ".");
+            }
         }
-        // TODO check name against list of reserved words
-        defparts[name] = &defpart;
+        else
+        {
+            // TODO check name against list of reserved words
+            defparts[name] = &defpart;
+        }
     }
     return defparts;
 }

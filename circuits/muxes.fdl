@@ -1,26 +1,17 @@
 (load "circuits/util.fdl")
 
 (defmacro defpart-mux-n-circuits-offset-by-m "circuits/muxes.scm")
-(defpart-mux-n-circuits-offset-by-m 1 1)
-(defpart-mux-n-circuits-offset-by-m 3 0)
-(defpart-mux-n-circuits-offset-by-m 3 1)
-(defpart-mux-n-circuits-offset-by-m 6 0)
-
 (defmacro defpart-demux-n-circuits-offset-by-m "circuits/muxes.scm")
-(defpart-demux-n-circuits-offset-by-m 3 0)
-(defpart-demux-n-circuits-offset-by-m 3 1)
-(defpart-demux-n-circuits-offset-by-m 6 0)
-
 (defmacro defpart-mux-n-signals "circuits/muxes.scm")
-(defpart-mux-n-signals 6)
-(defpart-mux-n-signals 258)
-
 (defmacro defpart-demux-n-signals "circuits/muxes.scm")
-(defpart-demux-n-signals 6)
-(defpart-demux-n-signals 258)
 
 (defmacro defpart-mux-all-signals "circuits/muxes.scm")
 (defpart-mux-all-signals)
 
 (defmacro defpart-demux-all-signals "circuits/muxes.scm")
 (defpart-demux-all-signals)
+
+(defpart-mux-n-signals 6)
+(defpart-demux-n-signals 6)
+(defpart-mux-n-circuits-offset-by-m 6 0)
+(defpart-demux-n-circuits-offset-by-m 6 0)

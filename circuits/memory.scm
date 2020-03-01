@@ -10,52 +10,54 @@
             (string-append "RAM address offset must be aligned to "
                            (number->string (len all-signals)) " word intervals."))
     (let ((circuit-offset (quotient address-offset (len all-signals))))
-      `(defpart ,(strings->symbol "dual-mux-all-signals-" (number->string num-circuits)
-                                  "-circuits-offset-by-" (number->string address-offset))
-         ((in yellow address)
-          ,@(for (range num-circuits)
-              (lambda (index)
-                `(in yellow ,(sym-for-idx 'input index))))
-          (out yellow output)
-          (signal address-signal)
-          (signal output-signal))
-  
-         ; delay 1
-         (green which-circuit)
-         (arithmetic address which-circuit address-signal / ,(len all-signals) address-signal)
-  
-         ; delay 1
-         (green which-signal)
-         (arithmetic address which-signal address-signal % ,(len all-signals) address-signal)
-  
-         ; delay 2
-         (green which-signal-delayed1)
-         (buffer which-signal which-signal-delayed1)
-  
-         ; delay 3
-         (green which-signal-delayed2)
-         (buffer which-signal-delayed1 which-signal-delayed2)
-  
-         ; delay 1
-         ,@(apply append
-            (for (range num-circuits)
-              (lambda (index)
-                `((green ,(sym-for-idx 'input-delayed index))
-                  (buffer ,(sym-for-idx 'input index) ,(sym-for-idx 'input-delayed index))))))
-  
-         ; delay 3
-         (green muxed-circuit)
-         (,(strings->symbol "mux-" (number->string num-circuits)
-                            "-circuits-offset-by-" (number->string circuit-offset))
+      `(begin
+         (defpart-mux-n-circuits-offset-by-m ,num-circuits ,circuit-offset)
+         (defpart ,(strings->symbol "dual-mux-all-signals-" (number->string num-circuits)
+                                    "-circuits-offset-by-" (number->string address-offset))
+           ((in yellow address)
             ,@(for (range num-circuits)
                 (lambda (index)
-                  (sym-for-idx 'input-delayed index)))
-            muxed-circuit
-            which-circuit
-            address-signal)
+                  `(in yellow ,(sym-for-idx 'input index))))
+            (out yellow output)
+            (signal address-signal)
+            (signal output-signal))
   
-         ; delay 6
-         (mux-all-signals muxed-circuit output which-signal-delayed2 address-signal output-signal)))))
+           ; delay 1
+           (green which-circuit)
+           (arithmetic address which-circuit address-signal / ,(len all-signals) address-signal)
+  
+           ; delay 1
+           (green which-signal)
+           (arithmetic address which-signal address-signal % ,(len all-signals) address-signal)
+  
+           ; delay 2
+           (green which-signal-delayed1)
+           (buffer which-signal which-signal-delayed1)
+  
+           ; delay 3
+           (green which-signal-delayed2)
+           (buffer which-signal-delayed1 which-signal-delayed2)
+  
+           ; delay 1
+           ,@(apply append
+              (for (range num-circuits)
+                (lambda (index)
+                  `((green ,(sym-for-idx 'input-delayed index))
+                    (buffer ,(sym-for-idx 'input index) ,(sym-for-idx 'input-delayed index))))))
+  
+           ; delay 3
+           (green muxed-circuit)
+           (,(strings->symbol "mux-" (number->string num-circuits)
+                              "-circuits-offset-by-" (number->string circuit-offset))
+              ,@(for (range num-circuits)
+                  (lambda (index)
+                    (sym-for-idx 'input-delayed index)))
+              muxed-circuit
+              which-circuit
+              address-signal)
+  
+           ; delay 6
+           (mux-all-signals muxed-circuit output which-signal-delayed2 address-signal output-signal))))))
 
 (define defpart-dual-demux-all-signals-n-circuits-offset-by-m
   (lambda (num-circuits address-offset)
@@ -63,49 +65,51 @@
             (string-append "RAM address offset must be aligned to "
                            (number->string (len all-signals)) " word intervals."))
     (let ((circuit-offset (quotient address-offset (len all-signals))))
-      `(defpart ,(strings->symbol "dual-demux-all-signals-" (number->string num-circuits)
-                                  "-circuits-offset-by-" (number->string address-offset))
-         ((in yellow address)
-          (in yellow input)
-          ,@(for (range num-circuits)
-              (lambda (index)
-                `(out yellow ,(sym-for-idx 'output index))))
-          (signal address-signal)
-          (signal input-signal))
-
-         ; delay 1
-         (green which-signal)
-         (arithmetic address which-signal address-signal % ,(len all-signals) address-signal)
-
-         ; delay 1
-         (green which-circuit)
-         (arithmetic address which-circuit address-signal / ,(len all-signals) address-signal)
-
-         ; delay 2
-         (green which-circuit-delayed1)
-         (buffer which-circuit which-circuit-delayed1)
-
-         ; delay 3
-         (green which-circuit-delayed2)
-         (buffer which-circuit-delayed1 which-circuit-delayed2)
-
-         ; delay 1
-         (green input-delayed)
-         (buffer input input-delayed)
-
-         ; delay 3
-         (green input-on-sig)
-         (demux-all-signals input-delayed input-on-sig which-signal address-signal input-signal)
-
-         ; delay 5
-         (,(strings->symbol "demux-" (number->string num-circuits)
-                            "-circuits-offset-by-" (number->string circuit-offset))
-            input-on-sig
+      `(begin
+         (defpart-demux-n-circuits-offset-by-m ,num-circuits ,circuit-offset)
+         (defpart ,(strings->symbol "dual-demux-all-signals-" (number->string num-circuits)
+                                    "-circuits-offset-by-" (number->string address-offset))
+           ((in yellow address)
+            (in yellow input)
             ,@(for (range num-circuits)
                 (lambda (index)
-                  (sym-for-idx 'output index)))
-            which-circuit-delayed2
-            address-signal)))))
+                  `(out yellow ,(sym-for-idx 'output index))))
+            (signal address-signal)
+            (signal input-signal))
+
+           ; delay 1
+           (green which-signal)
+           (arithmetic address which-signal address-signal % ,(len all-signals) address-signal)
+
+           ; delay 1
+           (green which-circuit)
+           (arithmetic address which-circuit address-signal / ,(len all-signals) address-signal)
+
+           ; delay 2
+           (green which-circuit-delayed1)
+           (buffer which-circuit which-circuit-delayed1)
+
+           ; delay 3
+           (green which-circuit-delayed2)
+           (buffer which-circuit-delayed1 which-circuit-delayed2)
+
+           ; delay 1
+           (green input-delayed)
+           (buffer input input-delayed)
+
+           ; delay 3
+           (green input-on-sig)
+           (demux-all-signals input-delayed input-on-sig which-signal address-signal input-signal)
+
+           ; delay 5
+           (,(strings->symbol "demux-" (number->string num-circuits)
+                              "-circuits-offset-by-" (number->string circuit-offset))
+              input-on-sig
+              ,@(for (range num-circuits)
+                  (lambda (index)
+                    (sym-for-idx 'output index)))
+              which-circuit-delayed2
+              address-signal))))))
 
 ; Define a memory with a specified number of signed 32 bit int registers.
 ; To write the value of a register:
@@ -146,67 +150,70 @@
            (dual-demux-all-signals-n-circuits
              (strings->symbol "dual-demux-all-signals-" (number->string num-cells)
                               "-circuits-offset-by-" (number->string start-address))))
-      `(defpart ,(strings->symbol "memory-start-" (number->string start-address)
-                                  "-width-" (number->string width))
-         ((in yellow address)
-          (in yellow write)
-          (in yellow data-in)
-          (out yellow data-out)
-          (signal address-signal)
-          (signal write-signal)
-          (signal data-in-signal)
-          (signal data-out-signal))
+      `(begin
+         (defpart-dual-mux-all-signals-n-circuits-offset-by-m ,num-cells ,start-address)
+         (defpart-dual-demux-all-signals-n-circuits-offset-by-m ,num-cells ,start-address)
+         (defpart ,(strings->symbol "memory-start-" (number->string start-address)
+                                    "-width-" (number->string width))
+           ((in yellow address)
+            (in yellow write)
+            (in yellow data-in)
+            (out yellow data-out)
+            (signal address-signal)
+            (signal write-signal)
+            (signal data-in-signal)
+            (signal data-out-signal))
 
-         ; Demux data-in to the registers.
-         ,@(for (range num-cells)
-             (lambda (index)
-               `(green ,(sym-for-idx 'data-in-cell index))))
-         (,dual-demux-all-signals-n-circuits
-            address
-            data-in
-            ,@(for (range num-cells)
-                (lambda (index)
-                  (sym-for-idx 'data-in-cell index)))
-            address-signal
-            data-in-signal)
-
-         ; Demux write to the registers.
-         ,@(for (range num-cells)
-             (lambda (index)
-               `(green ,(sym-for-idx 'write-cell index))))
-         (,dual-demux-all-signals-n-circuits
-            address
-            write
-            ,@(for (range num-cells)
-                (lambda (index)
-                  (sym-for-idx 'write-cell index)))
-            address-signal
-            write-signal)
-
-         ; Helper for latch*
-         (red all-ones)
-         (constant-all-ones all-ones)
-
-         ; The registers.
-         ,@(apply append
-             (for (range num-cells)
+           ; Demux data-in to the registers.
+           ,@(for (range num-cells)
                (lambda (index)
-                 `((green ,(sym-for-idx 'data-out-cell index))
-                   (latch*
-                    ,(sym-for-idx 'data-in-cell index)
-                    ,(sym-for-idx 'data-out-cell index)
-                    ,(sym-for-idx 'write-cell index)
-                    all-ones)))))
+                 `(green ,(sym-for-idx 'data-in-cell index))))
+           (,dual-demux-all-signals-n-circuits
+              address
+              data-in
+              ,@(for (range num-cells)
+                  (lambda (index)
+                    (sym-for-idx 'data-in-cell index)))
+              address-signal
+              data-in-signal)
 
-         ; Mux data-out from the registers.
-         (,dual-mux-all-signals-n-circuits
-            address
-            ,@(for (range num-cells)
-                (lambda (index)
-                  (sym-for-idx 'data-out-cell index)))
-            data-out
-            address-signal
-            data-out-signal)))))
+           ; Demux write to the registers.
+           ,@(for (range num-cells)
+               (lambda (index)
+                 `(green ,(sym-for-idx 'write-cell index))))
+           (,dual-demux-all-signals-n-circuits
+              address
+              write
+              ,@(for (range num-cells)
+                  (lambda (index)
+                    (sym-for-idx 'write-cell index)))
+              address-signal
+              write-signal)
+
+           ; Helper for latch*
+           (red all-ones)
+           (constant-all-ones all-ones)
+
+           ; The registers.
+           ,@(apply append
+               (for (range num-cells)
+                 (lambda (index)
+                   `((green ,(sym-for-idx 'data-out-cell index))
+                     (latch*
+                      ,(sym-for-idx 'data-in-cell index)
+                      ,(sym-for-idx 'data-out-cell index)
+                      ,(sym-for-idx 'write-cell index)
+                      all-ones)))))
+
+           ; Mux data-out from the registers.
+           (,dual-mux-all-signals-n-circuits
+              address
+              ,@(for (range num-cells)
+                  (lambda (index)
+                    (sym-for-idx 'data-out-cell index)))
+              data-out
+              address-signal
+              data-out-signal))))))
 
 (define defpart-rom
   (lambda (part-name start-address words)
@@ -220,33 +227,35 @@
            (dual-mux-all-signals-n-circuits-offset-by-m
              (strings->symbol "dual-mux-all-signals-" (number->string num-cells)
                               "-circuits-offset-by-" (number->string start-address))))
-      `(defpart ,part-name
-         ((in yellow address)
-          (out yellow data-out)
-          (signal address-signal)
-          (signal data-out-signal))
+      `(begin
+         (defpart-dual-mux-all-signals-n-circuits-offset-by-m ,num-cells ,start-address)
+         (defpart ,part-name
+           ((in yellow address)
+            (out yellow data-out)
+            (signal address-signal)
+            (signal data-out-signal))
 
-         ; The constant combinators storing data.
-         ,@(apply append
-             (for (zip (chunks-of num-signals words) (range num-cells))
-               (lambda+ (chunk-of-words chunk-number)
-                 (let ((data-wire (sym-for-idx 'data-out-cell chunk-number)))
-                   `((green ,data-wire)
-                     ,@(for (chunks-of max-signals-per-constant-combinator
-                                       (zip chunk-of-words all-signals))
-                         (lambda (chunk-of-words-and-signals)
-                           `(constant
-                              ,data-wire
-                              ,(for chunk-of-words-and-signals
-                                 (lambda+ (word signal)
-                                   `(,signal ,word)))))))))))
+           ; The constant combinators storing data.
+           ,@(apply append
+               (for (zip (chunks-of num-signals words) (range num-cells))
+                 (lambda+ (chunk-of-words chunk-number)
+                   (let ((data-wire (sym-for-idx 'data-out-cell chunk-number)))
+                     `((green ,data-wire)
+                       ,@(for (chunks-of max-signals-per-constant-combinator
+                                         (zip chunk-of-words all-signals))
+                           (lambda (chunk-of-words-and-signals)
+                             `(constant
+                                ,data-wire
+                                ,(for chunk-of-words-and-signals
+                                   (lambda+ (word signal)
+                                     `(,signal ,word)))))))))))
 
-         ; Mux data-out from the constant combinators.
-         (,dual-mux-all-signals-n-circuits-offset-by-m
-            address
-            ,@(for (range num-cells)
-                (lambda (index)
-                  (sym-for-idx 'data-out-cell index)))
-            data-out
-            address-signal
-            data-out-signal)))))
+           ; Mux data-out from the constant combinators.
+           (,dual-mux-all-signals-n-circuits-offset-by-m
+              address
+              ,@(for (range num-cells)
+                  (lambda (index)
+                    (sym-for-idx 'data-out-cell index)))
+              data-out
+              address-signal
+              data-out-signal))))))

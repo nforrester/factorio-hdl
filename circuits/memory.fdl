@@ -2,16 +2,11 @@
 (load "circuits/latch.fdl")
 
 (defmacro defpart-dual-mux-all-signals-n-circuits-offset-by-m "circuits/memory.scm")
-(defpart-dual-mux-all-signals-n-circuits-offset-by-m 1 258)
-(defpart-dual-mux-all-signals-n-circuits-offset-by-m 3 0)
-(defpart-dual-mux-all-signals-n-circuits-offset-by-m 3 258)
-
 (defmacro defpart-dual-demux-all-signals-n-circuits-offset-by-m "circuits/memory.scm")
-(defpart-dual-demux-all-signals-n-circuits-offset-by-m 3 0)
-(defpart-dual-demux-all-signals-n-circuits-offset-by-m 3 258)
-
 (defmacro defpart-memory-start-n-width-m "circuits/memory.scm")
-(defpart-memory-start-n-width-m 258 774)
-
 (defmacro defpart-rom "circuits/memory.scm")
+
+(defpart-dual-mux-all-signals-n-circuits-offset-by-m 3 0)
+(defpart-dual-demux-all-signals-n-circuits-offset-by-m 3 0)
+(defpart-memory-start-n-width-m 258 774)
 (defpart-rom rom-test-data 258 (8 6 7 5 3 0 9))

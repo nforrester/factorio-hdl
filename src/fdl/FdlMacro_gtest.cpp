@@ -7,9 +7,12 @@ TEST(MacroTest, Test)
     std::string const fdl =
         "(some unrelated stuff)\n"
         "(defmacro test-macro \"src/fdl/FdlMacro_gtest.scm\")\n"
+        "(defmacro test-macro2 \"src/fdl/FdlMacro_gtest.scm\")\n"
         "(more unrelated things)\n"
         "(test-macro 3)\n"
         "(test-macro many)\n"
+        "(begin (x) (y))\n"
+        "(test-macro2)\n"
         "(blah blah blah)\n";
 
     S::PtrV ast = S::consume(fdl, "<test-stimulus>", 1);
@@ -22,6 +25,10 @@ TEST(MacroTest, Test)
         "(more unrelated things) "
         "(hello 3 worlds) "
         "(hello many worlds) "
+        "(x) "
+        "(y) "
+        "(stuff) "
+        "(more-stuff) "
         "(blah blah blah)"
         ")";
 

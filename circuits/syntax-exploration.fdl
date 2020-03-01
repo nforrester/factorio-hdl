@@ -22,6 +22,7 @@
 ;   * decpart ?
 ;   * defpart
 ;   * defmacro
+;   * begin
 ;   * signal
 ;   * symbol
 ;   * red

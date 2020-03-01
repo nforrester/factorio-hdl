@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <random>
 #include <fstream>
+#include <list>
 
 namespace
 {
@@ -119,14 +120,39 @@ void Fdl::expand_all_macros(S::PtrV & ast, std::string const & filepath)
 {
     MacroMap macros;
 
-    auto it = ast.begin();
-    while (it != ast.end())
+    /* Transform to a list to we can insert without fear of triggering
+     * iterator invalidation. */
+    std::list<S::Ptr> ast_list;
+    for (auto & s : ast)
+    {
+        ast_list.push_back(std::move(s));
+    }
+
+    auto it = ast_list.begin();
+    while (it != ast_list.end())
     {
         expand_these_macros(macros, *it);
 
         S::List * l = (*it)->as_list();
         auto & ll = l->l;
-        if (ll.front()->as_symbol() && ll.front()->as_symbol()->s == "defmacro")
+        if (ll.front()->as_symbol() && ll.front()->as_symbol()->s == "begin")
+        {
+            auto insert_pos = std::next(it);
+            bool first = true;
+            for (auto & s : ll)
+            {
+                if (first)
+                {
+                    first = false;
+                    continue;
+                }
+                assert(s);
+                check_valid_top_level_form(*s);
+                ast_list.insert(insert_pos, std::move(s));
+            }
+            it = ast_list.erase(it);
+        }
+        else if (ll.front()->as_symbol() && ll.front()->as_symbol()->s == "defmacro")
         {
             if (ll.size() != 3 || !ll.at(1)->as_symbol() || !ll.at(2)->as_string())
             {
@@ -147,11 +173,17 @@ void Fdl::expand_all_macros(S::PtrV & ast, std::string const & filepath)
                     "Redefinition of macro " + macro.scheme_function + ".");
             }
             macros[macro.scheme_function] = macro;
-            it = ast.erase(it);
+            it = ast_list.erase(it);
         }
         else
         {
             ++it;
         }
+    }
+
+    ast.clear();
+    for (auto & s : ast_list)
+    {
+        ast.push_back(std::move(s));
     }
 }
