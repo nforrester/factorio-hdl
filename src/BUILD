@@ -6,6 +6,7 @@ cc_library(
     srcs = glob(["**/*.cpp"], exclude = ["**/*_bin.cpp", "**/*_gtest.cpp"]),
     copts = common_copts,
     linkopts = ['-lz'],
+    tags = ["manual"],
 )
 
 bins(deps = [":factorio_lib"])
