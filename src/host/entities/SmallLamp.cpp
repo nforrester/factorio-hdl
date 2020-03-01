@@ -1,6 +1,6 @@
 #include "SmallLamp.h"
-#include "src/blueprint/Blueprint.h"
-#include "src/debug.h"
+#include "src/host/blueprint/Blueprint.h"
+#include "src/host/debug.h"
 
 SmallLamp::SmallLamp(
         Factorio & factorio,

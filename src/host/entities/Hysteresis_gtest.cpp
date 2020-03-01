@@ -1,11 +1,11 @@
 #include "gtest/gtest.h"
 
-#include "src/Factorio.h"
+#include "src/host/Factorio.h"
 #include "ConstantCombinator.h"
 #include "Hysteresis.h"
 
 // TODO NOT NEEDED
-#include "src/blueprint/Blueprint.h"
+#include "src/host/blueprint/Blueprint.h"
 
 TEST(CircuitTest, HysteresisGreenDeadBandHalf3)
 {

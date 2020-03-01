@@ -2,8 +2,8 @@
 #include "Base64.h"
 #include "zlib_easy.h"
 #include "JsonDigester.h"
-#include "src/util.h"
-#include "src/debug.h"
+#include "src/host/util.h"
+#include "src/host/debug.h"
 
 #include <algorithm>
 

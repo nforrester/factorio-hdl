@@ -1,6 +1,6 @@
 #include "util.h"
-#include "src/util.h"
-#include "src/blueprint/util.h"
+#include "src/host/util.h"
+#include "src/host/blueprint/util.h"
 
 #include <list>
 

@@ -6,8 +6,8 @@ TEST(MacroTest, Test)
 {
     std::string const fdl =
         "(some unrelated stuff)\n"
-        "(defmacro test-macro \"src/fdl/FdlMacro_gtest.scm\")\n"
-        "(defmacro test-macro2 \"src/fdl/FdlMacro_gtest.scm\")\n"
+        "(defmacro test-macro \"src/host/fdl/FdlMacro_gtest.scm\")\n"
+        "(defmacro test-macro2 \"src/host/fdl/FdlMacro_gtest.scm\")\n"
         "(more unrelated things)\n"
         "(test-macro 3)\n"
         "(test-macro many)\n"

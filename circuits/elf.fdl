@@ -2,7 +2,7 @@
 
 (defmacro defpart-rom-of-elf "circuits/elf.scm")
 
-(defpart-rom-of-elf memory-test-elf "target/memory-test")
+(defpart-rom-of-elf memory-test-elf "src/target/memory-test")
 
 (defpart memory-test-elf-byte-addressable
   ((in yellow address-bytes)

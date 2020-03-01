@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "src/Factorio.h"
+#include "src/host/Factorio.h"
 #include "Counter.h"
 
 TEST(CircuitTest, Counter1Green)

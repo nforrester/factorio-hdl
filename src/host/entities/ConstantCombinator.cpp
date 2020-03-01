@@ -1,5 +1,5 @@
 #include "ConstantCombinator.h"
-#include "src/blueprint/Blueprint.h"
+#include "src/host/blueprint/Blueprint.h"
 
 int ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
 {

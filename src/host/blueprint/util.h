@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/signals.h"
+#include "src/host/signals.h"
 
 /* This is a header file for blueprint stuff that wants to see more common use
  * by things that don't want json.hpp. These things are implemented in

@@ -9,5 +9,5 @@ http_archive(
 )
 
 register_toolchains(
-    "//target:rv32i-freestanding-toolchain",
+    "//src/target:rv32i-freestanding-toolchain",
 )

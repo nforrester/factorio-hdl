@@ -7,7 +7,7 @@
 #include "entities/Hysteresis.h"
 #include "blueprint/Blueprint.h"
 #include "util.h"
-#include "src/debug.h"
+#include "src/host/debug.h"
 
 #include <sstream>
 

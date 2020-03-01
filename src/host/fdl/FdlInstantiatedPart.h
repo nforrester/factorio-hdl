@@ -1,7 +1,7 @@
 #pragma once
 
 #include "util.h"
-#include "src/Composite.h"
+#include "src/host/Composite.h"
 
 class Entity;
 

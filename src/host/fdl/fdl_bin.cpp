@@ -1,5 +1,5 @@
-#include "src/Factorio.h"
-#include "src/debug.h"
+#include "src/host/Factorio.h"
+#include "src/host/debug.h"
 #include "FdlEntity.h"
 
 #include <sstream>

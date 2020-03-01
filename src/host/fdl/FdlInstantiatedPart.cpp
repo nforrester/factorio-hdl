@@ -1,8 +1,8 @@
 #include "FdlInstantiatedPart.h"
 #include "FdlEntity.h"
-#include "src/entities/ConstantCombinator.h"
-#include "src/util.h"
-#include "src/debug.h"
+#include "src/host/entities/ConstantCombinator.h"
+#include "src/host/util.h"
+#include "src/host/debug.h"
 
 #include <unordered_set>
 #include <functional>

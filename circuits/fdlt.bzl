@@ -8,6 +8,6 @@ def fdlt_tests(extra_data = dict()):
         if name in extra_data.keys():
             data = extra_data[name]
         native.sh_test(name = name,
-                       srcs = ["//src:circuit_tester"],
+                       srcs = ["//src/host:circuit_tester"],
                        data = data + [fdlt] + fdls + scms,
                        args = ["$(location " + fdlt + ")"])

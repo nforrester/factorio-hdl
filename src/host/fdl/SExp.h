@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/signals.h"
+#include "src/host/signals.h"
 
 #include <string>
 #include <string_view>

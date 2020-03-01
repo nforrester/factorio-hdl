@@ -1,8 +1,8 @@
 #pragma once
 
 #include "SExp.h"
-#include "src/entities/ArithmeticCombinator.h"
-#include "src/entities/DeciderCombinator.h"
+#include "src/host/entities/ArithmeticCombinator.h"
+#include "src/host/entities/DeciderCombinator.h"
 
 #include <unordered_map>
 #include <unordered_set>

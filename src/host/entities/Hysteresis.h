@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/Composite.h"
+#include "src/host/Composite.h"
 
 class Hysteresis: public Composite
 {

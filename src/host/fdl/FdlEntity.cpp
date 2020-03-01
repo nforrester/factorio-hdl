@@ -2,7 +2,7 @@
 #include "FdlMacro.h"
 #include "FdlInstantiatedPart.h"
 #include "SExp.h"
-#include "src/util.h"
+#include "src/host/util.h"
 #include "util.h"
 
 #include <sstream>

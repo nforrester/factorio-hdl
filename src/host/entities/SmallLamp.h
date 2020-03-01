@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/Entity.h"
+#include "src/host/Entity.h"
 #include "DeciderCombinator.h"
 
 class SmallLamp: public Entity

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "SExp.h"
-#include "src/util.h"
+#include "src/host/util.h"
 
 TEST(SExpTest, Empty)
 {

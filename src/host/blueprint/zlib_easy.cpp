@@ -1,7 +1,7 @@
 /* Adapted from https://zlib.net/zlib_how.html */
 
 #include "zlib_easy.h"
-#include "src/util.h"
+#include "src/host/util.h"
 
 #include <cstring>
 #include <array>

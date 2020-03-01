@@ -5,7 +5,7 @@
 #include "fdl/util.h"
 #include "blueprint/util.h"
 #include "entities/ConstantCombinator.h"
-#include "src/debug.h"
+#include "src/host/debug.h"
 
 #include <sstream>
 #include <filesystem>

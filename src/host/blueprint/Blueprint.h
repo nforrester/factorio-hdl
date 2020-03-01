@@ -1,10 +1,10 @@
 #pragma once
 
-#include "src/util.h"
+#include "src/host/util.h"
 #include "json.hpp"
 #include "util.h"
-#include "src/entities/ArithmeticCombinator.h"
-#include "src/entities/DeciderCombinator.h"
+#include "src/host/entities/ArithmeticCombinator.h"
+#include "src/host/entities/DeciderCombinator.h"
 
 #include <string>
 #include <optional>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "src/Entity.h"
-#include "src/debug.h"
+#include "src/host/Entity.h"
+#include "src/host/debug.h"
 
 class ConstantCombinator: public Entity
 {
