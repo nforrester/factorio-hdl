@@ -4,6 +4,6 @@
   (lambda ()
     `(defpart constant-all-ones
        ((out yellow o))
-       ,@(for (chunks-of 18 all-signals)
+       ,@(for (chunks-of max-signals-per-constant-combinator all-signals)
            (lambda (chunk-of-sigs)
              `(constant o ,(for chunk-of-sigs (lambda (sig) `(,sig 1)))))))))

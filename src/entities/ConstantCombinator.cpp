@@ -15,7 +15,7 @@ int ConstantCombinator::to_blueprint_entity(Blueprint::Entity & bpe) const
         f.filters.emplace_back(iv.second, i, iv.first);
         ++i;
     }
-    assert(f.filters.size() <= 18);
+    assert(f.filters.size() <= max_signals_per_constant_combinator);
 
     return 1;
 }

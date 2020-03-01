@@ -4,7 +4,7 @@
 (green input i2)
 (green input i3)
 (green output o)
-(part-under-test (dual-mux-all-signals-3-circuits
+(part-under-test (dual-mux-all-signals-3-circuits-offset-by-0
                    address
                    i1
                    i2

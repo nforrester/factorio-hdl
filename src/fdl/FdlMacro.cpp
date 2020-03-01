@@ -55,6 +55,9 @@ S::Ptr Fdl::Macro::execute(S::List const & orig_form) const
             autogen << " sig:" << get_signal_name_lower_case(s);
         }
         autogen << ")))\n";
+
+        autogen << "(define max-signals-per-constant-combinator "
+                << max_signals_per_constant_combinator << ")\n";
     }
 
     /* Feed it to scheme. */

@@ -7,7 +7,7 @@
 (green input f)
 (green output o)
 (green input control)
-(part-under-test (mux-6-circuits a b c d e f o control sig:signal-c))
+(part-under-test (mux-6-circuits-offset-by-0 a b c d e f o control sig:signal-c))
 (test-type fixed-latency 2)
 
 (test (((a sig:signal-a)

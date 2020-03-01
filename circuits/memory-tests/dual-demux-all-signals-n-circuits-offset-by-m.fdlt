@@ -4,7 +4,7 @@
 (green output o1)
 (green output o2)
 (green output o3)
-(part-under-test (dual-demux-all-signals-3-circuits
+(part-under-test (dual-demux-all-signals-3-circuits-offset-by-0
                    address
                    i
                    o1

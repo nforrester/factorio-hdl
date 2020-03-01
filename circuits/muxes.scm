@@ -1,22 +1,24 @@
 (load "circuits/util.scm")
 
-(define defpart-mux-n-circuits
-  (lambda (n)
+(define defpart-mux-n-circuits-offset-by-m
+  (lambda (n offset)
     (let ((in-wires (list-of-n-symbols 'in n)))
-      `(defpart ,(strings->symbol "mux-" (number->string n) "-circuits")
+      `(defpart ,(strings->symbol "mux-" (number->string n)
+                                  "-circuits-offset-by-" (number->string offset))
          (,@(for in-wires (lambda (wire) `(in yellow ,wire)))
           (out yellow o)
           (in yellow control)
           (signal control-sig))
 
          ,@(for (zip in-wires (range n))
-             (lambda+ (in-wire i)
-               `(relay-equal ,in-wire o control control-sig ,i)))))))
+             (lambda+ (in-wire index)
+               `(relay-equal ,in-wire o control control-sig ,(+ index offset))))))))
 
-(define defpart-demux-n-circuits
-  (lambda (n)
+(define defpart-demux-n-circuits-offset-by-m
+  (lambda (n offset)
     (let ((out-wires (list-of-n-symbols 'out n)))
-      `(defpart ,(strings->symbol "demux-" (number->string n) "-circuits")
+      `(defpart ,(strings->symbol "demux-" (number->string n)
+                                  "-circuits-offset-by-" (number->string offset))
          ((in yellow i)
           ,@(for out-wires (lambda (wire) `(out yellow ,wire)))
           (in yellow control)
@@ -24,7 +26,7 @@
 
          ,@(for (zip out-wires (range n))
              (lambda+ (out-wire index)
-               `(relay-equal i ,out-wire control control-sig ,index)))))))
+               `(relay-equal i ,out-wire control control-sig ,(+ index offset))))))))
 
 (define defpart-mux-n-signals
   (lambda (n)

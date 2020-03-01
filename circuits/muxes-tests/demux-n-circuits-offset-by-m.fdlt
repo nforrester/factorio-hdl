@@ -7,7 +7,7 @@
 (green output e)
 (green output f)
 (green input control)
-(part-under-test (demux-6-circuits i a b c d e f control sig:signal-c))
+(part-under-test (demux-6-circuits-offset-by-0 i a b c d e f control sig:signal-c))
 (test-type fixed-latency 2)
 
 (test (((i sig:signal-a)

@@ -23,6 +23,7 @@
     (letrec ((f (lambda (i) (if (< i n) (cons i (f (+ 1 i))) ()))))
       (f 0))))
 
+; The first list has to run out first
 (define zip
   (lambda lists
     (if (equal? (car lists) ())
