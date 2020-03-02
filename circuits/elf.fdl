@@ -1,8 +1,8 @@
 (load "circuits/memory.fdl")
 
-(defmacro defpart-rom-of-elf "circuits/elf.scm")
+(defmacro defpart-dense-rom-of-elf "circuits/elf.scm")
 
-(defpart-rom-of-elf memory-test-elf "src/target/memory-test")
+(defpart-dense-rom-of-elf memory-test-elf "src/target/memory-test")
 
 (defpart memory-test-elf-byte-addressable
   ((in yellow address-bytes)

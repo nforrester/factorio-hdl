@@ -2,7 +2,7 @@
 (green input i)
 (green output o)
 (green input control)
-(part-under-test (latch i o control))
+(part-under-test (dense-latch i o control))
 (test-type fixed-latency 6)
 
 (test (((i sig:signal-a) (control sig:signal-a) (i sig:signal-b) (control sig:signal-b) (i sig:signal-c) (control sig:signal-c))

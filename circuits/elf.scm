@@ -206,7 +206,7 @@
                        (assert (not (memq 'w (lookup segment 'p-flags))) "You need to add support for writable program segments.")))))
       (loop program-segments))))
 
-(define defpart-rom-of-elf
+(define defpart-dense-rom-of-elf
   (lambda (part-name filepath)
     (letrec ((program-segments (read-elf-program-segments filepath))
              (seg-part-name (lambda (index)
@@ -217,7 +217,7 @@
                  (if (eq? () remaining-segments)
                    parts
                    (let ((segment (car remaining-segments)))
-                     (rom-segments (cons `(defpart-rom
+                     (rom-segments (cons `(defpart-dense-rom
                                             ,(seg-part-name index)
                                             ,(/ (lookup segment 'start-address) 4)
                                             ,(map unsigned-literal-if-pos (lookup segment 'words)))

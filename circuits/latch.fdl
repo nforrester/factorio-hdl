@@ -73,18 +73,18 @@
 ; When setting values, you MUST keep the input values and the
 ; set signals stable for 5 ticks.
 ; latch is somewhat larger than latch*.
-(defpart latch
+(defpart dense-latch
   ((in yellow values-in)
    (out red values-out)
    (in red take-new-values))
   (green all-ones)
   (constant-all-ones all-ones)
-  (latch* values-in values-out take-new-values all-ones))
+  (dense-latch* values-in values-out take-new-values all-ones))
 
 ; just like latch, except that
 ; all-ones is the output of constant-all-ones
 ; (a big part we can deduplicate).
-(defpart latch*
+(defpart dense-latch*
   ((in yellow values-in)
    (out red values-out)
    (in red take-new-values)

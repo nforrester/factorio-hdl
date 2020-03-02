@@ -131,7 +131,7 @@
 ; (their processing is pipelined).
 ; You may read a register and then immediately write it.
 ; If you write a register you must wait 5 ticks before trying to read it again.
-(define defpart-memory-start-n-width-m
+(define defpart-dense-memory-start-n-width-m
   (lambda (start-address width)
     (assert (eqv? 0 (remainder start-address (len all-signals)))
             (string-append "RAM segment start must be aligned to "
@@ -149,7 +149,7 @@
       `(begin
          (defpart-dual-mux-all-signals-n-circuits-offset-by-m ,num-cells ,start-address)
          (defpart-dual-demux-all-signals-n-circuits-offset-by-m ,num-cells ,start-address)
-         (defpart ,(strings->symbol "memory-start-" (number->string start-address)
+         (defpart ,(strings->symbol "dense-memory-start-" (number->string start-address)
                                     "-width-" (number->string width))
            ((in yellow address)
             (in yellow write)
@@ -195,7 +195,7 @@
                (for (range num-cells)
                  (lambda (index)
                    `((green ,(sym-for-idx 'data-out-cell index))
-                     (latch*
+                     (dense-latch*
                       ,(sym-for-idx 'data-in-cell index)
                       ,(sym-for-idx 'data-out-cell index)
                       ,(sym-for-idx 'write-cell index)
@@ -211,7 +211,7 @@
               address-signal
               data-out-signal))))))
 
-(define defpart-rom
+(define defpart-dense-rom
   (lambda (part-name start-address words)
     (letrec ((align (lambda ()
                       (if (not (eqv? 0 (remainder start-address (len all-signals))))

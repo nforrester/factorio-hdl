@@ -3,10 +3,10 @@
 
 (defmacro defpart-dual-mux-all-signals-n-circuits-offset-by-m "circuits/memory.scm")
 (defmacro defpart-dual-demux-all-signals-n-circuits-offset-by-m "circuits/memory.scm")
-(defmacro defpart-memory-start-n-width-m "circuits/memory.scm")
-(defmacro defpart-rom "circuits/memory.scm")
+(defmacro defpart-dense-memory-start-n-width-m "circuits/memory.scm")
+(defmacro defpart-dense-rom "circuits/memory.scm")
 
 (defpart-dual-mux-all-signals-n-circuits-offset-by-m 3 0)
 (defpart-dual-demux-all-signals-n-circuits-offset-by-m 3 0)
-(defpart-memory-start-n-width-m 258 774)
-(defpart-rom rom-test-data 260 (8 6 7 5 3 0 9))
+(defpart-dense-memory-start-n-width-m 258 774)
+(defpart-dense-rom rom-test-data 260 (8 6 7 5 3 0 9))
