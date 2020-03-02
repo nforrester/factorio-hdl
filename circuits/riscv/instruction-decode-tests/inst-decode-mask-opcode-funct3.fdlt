@@ -1,0 +1,34 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output masked)
+(part-under-test (inst-decode-mask-opcode-funct3 inst masked sig:signal-i sig:signal-o))
+(test-type fixed-latency 1)
+
+(test (((inst sig:signal-i))
+       ((masked sig:signal-o)))
+
+  ((0x00008067u) (0x0067)) ;          	ret
+  ((0x00008293u) (0x0013)) ;          	mv	t0,ra
+  ((0x00028067u) (0x0067)) ;          	jr	t0
+  ((0x00050593u) (0x0013)) ;          	mv	a1,a0
+  ((0x00050793u) (0x0013)) ;          	mv	a5,a0
+  ((0x00054c63u) (0x4063)) ;          	bltz	a0,10288 <__modsi3+0x20>
+  ((0x00058513u) (0x0013)) ;          	mv	a0,a1
+  ((0x00058613u) (0x0013)) ;          	mv	a2,a1
+  ((0x0005ca63u) (0x4063)) ;          	bltz	a1,10280 <__modsi3+0x18>
+  ((0x0005d863u) (0x5063)) ;          	bgez	a1,10258 <__umodsi3+0x24>
+  ((0x00078513u) (0x0013)) ;          	mv	a0,a5
+  ((0x00078663u) (0x0063)) ;          	beqz	a5,101ac <main+0x158>
+  ((0x00078a63u) (0x0063)) ;          	beqz	a5,101ac <main+0x158>
+  ((0x00078e63u) (0x0063)) ;          	beqz	a5,101ac <main+0x158>
+  ((0x00079663u) (0x1063)) ;          	bnez	a5,101b4 <main+0x160>
+  ((0x00112623u) (0x2023)) ;          	sw	ra,12(sp)
+  ((0x00161613u) (0x1013)) ;          	slli	a2,a2,0x1
+  ((0x00165613u) (0x5013)) ;          	srli	a2,a2,0x1
+  ((0x00169693u) (0x1013)) ;          	slli	a3,a3,0x1
+  ((0x0016d693u) (0x5013)) ;          	srli	a3,a3,0x1
+  ((0x00178793u) (0x0013)) ;          	addi	a5,a5,1
+  ((0x0017b793u) (0x3013)) ;          	seqz	a5,a5
+  ((0x00812423u) (0x2023)) ;          	sw	s0,8(sp)
+  ((0x00b67a63u) (0x7063)) ;          	bgeu	a2,a1,10214 <__udivsi3+0x28>
+  )

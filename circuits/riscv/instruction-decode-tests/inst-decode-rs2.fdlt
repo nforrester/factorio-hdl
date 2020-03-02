@@ -1,0 +1,18 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output rs2)
+(part-under-test (inst-decode-rs2 inst rs2 sig:signal-i sig:signal-o))
+(test-type fixed-latency 2)
+
+(test (((inst sig:signal-i))
+       ((rs2 sig:signal-o)))
+
+  ((0x00b67a63u) (11)) ;          	bgeu	a2,a1,10214 <__udivsi3+0x28>
+  ((0x00c5e663u) (12)) ;          	bltu	a1,a2,10224 <__udivsi3+0x38>
+  ((0x00d56533u) (13)) ;          	or	a0,a0,a3
+  ((0x00f687b3u) (15)) ;          	add	a5,a3,a5
+  ((0x04e7e263u) (14)) ;          	bltu	a5,a4,100bc <main+0x68>
+  ((0x40c585b3u) (12)) ;          	sub	a1,a1,a2
+  ((0x40f707b3u) (15)) ;          	sub	a5,a4,a5
+  ((0xfeb66ae3u) (11)) ;          	bltu	a2,a1,10204 <__udivsi3+0x18>
+  )

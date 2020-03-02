@@ -1,0 +1,21 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output imm)
+(part-under-test (inst-decode-imm-j inst imm sig:signal-i sig:signal-o))
+(test-type fixed-latency 2)
+
+(test (((inst sig:signal-i))
+       ((imm sig:signal-o)))
+
+
+  ((0x0000006fu) (   0)) ; 0x101e0u          	j	101e0 <_start+0x14>
+  ((0x0080006fu) (   8)) ; 0x101b0u          	j	101b8 <main+0x164>
+  ((0x1ac000efu) ( 428)) ; 0x10088u          	jal	ra,10234 <__umodsi3>
+  ((0xe79ff0efu) (-392)) ; 0x101dcu          	jal	ra,10054 <main>
+  ((0xf61ff0efu) (-160)) ; 0x1028cu          	jal	ra,101ec <__udivsi3>
+  ((0xf79ff0efu) (-136)) ; 0x10274u          	jal	ra,101ec <__udivsi3>
+  ((0xf91ff0efu) (-112)) ; 0x1025cu          	jal	ra,101ec <__udivsi3>
+  ((0xf9dff06fu) (-100)) ; 0x10250u          	j	101ec <__udivsi3>
+  ((0xfb5ff0efu) ( -76)) ; 0x10238u          	jal	ra,101ec <__udivsi3>
+  ((0xfb9ff06fu) ( -72)) ; 0x100b8u          	j	10070 <main+0x1c>
+  )

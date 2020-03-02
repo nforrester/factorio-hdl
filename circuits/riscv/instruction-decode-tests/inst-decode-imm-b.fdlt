@@ -1,0 +1,29 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output imm)
+(part-under-test (inst-decode-imm-b inst imm sig:signal-i sig:signal-o))
+(test-type fixed-latency 2)
+
+(test (((inst sig:signal-i))
+       ((imm sig:signal-o)))
+
+  ((0x00054c63u) ( 24)) ; 0x10270u         	bltz	a0,10288 <__modsi3+0x20>
+  ((0x0005ca63u) ( 20)) ; 0x1026cu         	bltz	a1,10280 <__modsi3+0x18>
+  ((0x0005d863u) ( 16)) ; 0x10248u         	bgez	a1,10258 <__umodsi3+0x24>
+  ((0x00078663u) ( 12)) ; 0x101a0u         	beqz	a5,101ac <main+0x158>
+  ((0x00078a63u) ( 20)) ; 0x10198u         	beqz	a5,101ac <main+0x158>
+  ((0x00078e63u) ( 28)) ; 0x10190u         	beqz	a5,101ac <main+0x158>
+  ((0x00079663u) ( 12)) ; 0x101a8u         	bnez	a5,101b4 <main+0x160>
+  ((0x00b67a63u) ( 20)) ; 0x10200u         	bgeu	a2,a1,10214 <__udivsi3+0x28>
+  ((0x00c05863u) ( 16)) ; 0x10204u         	blez	a2,10214 <__udivsi3+0x28>
+  ((0x00c5e663u) ( 12)) ; 0x10218u         	bltu	a1,a2,10224 <__udivsi3+0x38>
+  ((0x02060c63u) ( 56)) ; 0x101f8u         	beqz	a2,10230 <__udivsi3+0x44>
+  ((0x02078263u) ( 36)) ; 0x10188u         	beqz	a5,101ac <main+0x158>
+  ((0x02078663u) ( 44)) ; 0x10180u         	beqz	a5,101ac <main+0x158>
+  ((0x04e7e263u) ( 68)) ; 0x10078u         	bltu	a5,a4,100bc <main+0x68>
+  ((0x06054063u) ( 96)) ; 0x101e4u         	bltz	a0,10244 <__umodsi3+0x10>
+  ((0x0605c663u) (108)) ; 0x101e8u         	bltz	a1,10254 <__umodsi3+0x20>
+  ((0xfe0558e3u) (-16)) ; 0x10284u         	bgez	a0,10274 <__modsi3+0xc>
+  ((0xfe0696e3u) (-20)) ; 0x1022cu         	bnez	a3,10218 <__udivsi3+0x2c>
+  ((0xfeb66ae3u) (-12)) ; 0x10210u         	bltu	a2,a1,10204 <__udivsi3+0x18>
+  )

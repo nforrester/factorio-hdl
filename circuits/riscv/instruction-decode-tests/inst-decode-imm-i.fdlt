@@ -1,0 +1,55 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output imm)
+(part-under-test (inst-decode-imm-i inst imm sig:signal-i sig:signal-o))
+(test-type fixed-latency 2)
+
+(test (((inst sig:signal-i))
+       ((imm sig:signal-o)))
+
+  ((0x00008293u) (    0)) ;          	mv	t0,ra
+  ((0x00050593u) (    0)) ;          	mv	a1,a0
+  ((0x00050793u) (    0)) ;          	mv	a5,a0
+  ((0x00058513u) (    0)) ;          	mv	a0,a1
+  ((0x00058613u) (    0)) ;          	mv	a2,a1
+  ((0x00078513u) (    0)) ;          	mv	a0,a5
+  ((0x00178793u) (    1)) ;          	addi	a5,a5,1
+  ((0x0017b793u) (    1)) ;          	seqz	a5,a5
+  ((0x01010413u) (   16)) ;          	addi	s0,sp,16
+  ((0x06178793u) (   97)) ;          	addi	a5,a5,97
+  ((0x0ff7f713u) (  255)) ;          	andi	a4,a5,255
+  ((0x0ff7f793u) (  255)) ;          	andi	a5,a5,255
+  ((0x43812403u) ( 1080)) ;          	lw	s0,1080(sp)
+  ((0x43c12083u) ( 1084)) ;          	lw	ra,1084(sp)
+  ((0x44010113u) ( 1088)) ;          	addi	sp,sp,1088
+  ((0x44010413u) ( 1088)) ;          	addi	s0,sp,1088
+  ((0xbc010113u) (-1088)) ;          	addi	sp,sp,-1088
+  ((0xbc844783u) (-1080)) ;          	lbu	a5,-1080(s0)
+  ((0xbc944783u) (-1079)) ;          	lbu	a5,-1079(s0)
+  ((0xbca44783u) (-1078)) ;          	lbu	a5,-1078(s0)
+  ((0xbcb44783u) (-1077)) ;          	lbu	a5,-1077(s0)
+  ((0xbcc44783u) (-1076)) ;          	lbu	a5,-1076(s0)
+  ((0xbcd44783u) (-1075)) ;          	lbu	a5,-1075(s0)
+  ((0xccc44783u) ( -820)) ;          	lbu	a5,-820(s0)
+  ((0xcd644783u) ( -810)) ;          	lbu	a5,-810(s0)
+  ((0xce044783u) ( -800)) ;          	lbu	a5,-800(s0)
+  ((0xcea44783u) ( -790)) ;          	lbu	a5,-790(s0)
+  ((0xcf444783u) ( -780)) ;          	lbu	a5,-780(s0)
+  ((0xcfe44783u) ( -770)) ;          	lbu	a5,-770(s0)
+  ((0xfc842783u) (  -56)) ;          	lw	a5,-56(s0)
+  ((0xfcc42783u) (  -52)) ;          	lw	a5,-52(s0)
+  ((0xfd042783u) (  -48)) ;          	lw	a5,-48(s0)
+  ((0xfd442783u) (  -44)) ;          	lw	a5,-44(s0)
+  ((0xfd842783u) (  -40)) ;          	lw	a5,-40(s0)
+  ((0xfdc42783u) (  -36)) ;          	lw	a5,-36(s0)
+  ((0xfe244703u) (  -30)) ;          	lbu	a4,-30(s0)
+  ((0xfe344703u) (  -29)) ;          	lbu	a4,-29(s0)
+  ((0xfe444703u) (  -28)) ;          	lbu	a4,-28(s0)
+  ((0xfe544703u) (  -27)) ;          	lbu	a4,-27(s0)
+  ((0xfe644703u) (  -26)) ;          	lbu	a4,-26(s0)
+  ((0xfe744703u) (  -25)) ;          	lbu	a4,-25(s0)
+  ((0xfec42703u) (  -20)) ;          	lw	a4,-20(s0)
+  ((0xfec42783u) (  -20)) ;          	lw	a5,-20(s0)
+  ((0xff010113u) (  -16)) ;          	addi	sp,sp,-16
+  ((0xff040693u) (  -16)) ;          	addi	a3,s0,-16
+  )

@@ -1,0 +1,173 @@
+; R-type   | funct7              | rs2            | rs1   | funct3 | rd                 | opcode  |
+; I-type   | imm[11:0]                            | rs1   | funct3 | rd                 | opcode  |
+; S-type   | imm[11:5]           | rs2            | rs1   | funct3 | imm[4:0]           | opcode  |
+; B-type   | imm[12] | imm[10:5] | rs2            | rs1   | funct3 | imm[4:1] | imm[11] | opcode  |
+; U-type   | imm[31:12]                                            | rd                 | opcode  |
+; J-type   | imm[20] | imm[10:1]        | imm[11] | imm[19:12]     | rd                 | opcode  |
+;            X         XXXXXX      XXXX   X         XXXXX   XXX      XXXX       X         XXXXXXX
+
+; delay 1
+(defpart inst-decode-opcode
+  ((in yellow inst)
+   (out yellow opcode)
+   (signal inst-sig)
+   (signal opcode-sig))
+  (arithmetic inst opcode inst-sig & 0x7fu opcode-sig))
+
+; delay 2
+(defpart inst-decode-rd
+  ((in yellow inst)
+   (out yellow rd)
+   (signal inst-sig)
+   (signal rd-sig))
+  (green masked)
+  (arithmetic inst masked inst-sig & 0xf80u rd-sig)
+  (arithmetic masked rd rd-sig >> 7 rd-sig))
+
+; delay 2
+(defpart inst-decode-rs1
+  ((in yellow inst)
+   (out yellow rs1)
+   (signal inst-sig)
+   (signal rs1-sig))
+  (green masked)
+  (arithmetic inst masked inst-sig & 0xf8000u rs1-sig)
+  (arithmetic masked rs1 rs1-sig >> 15 rs1-sig))
+
+; delay 2
+(defpart inst-decode-rs2
+  ((in yellow inst)
+   (out yellow rs2)
+   (signal inst-sig)
+   (signal rs2-sig))
+  (green masked)
+  (arithmetic inst masked inst-sig & 0x1f00000u rs2-sig)
+  (arithmetic masked rs2 rs2-sig >> 20 rs2-sig))
+
+; delay 2
+(defpart inst-decode-funct3
+  ((in yellow inst)
+   (out yellow funct3)
+   (signal inst-sig)
+   (signal funct3-sig))
+  (green masked)
+  (arithmetic inst masked inst-sig & 0x7000u funct3-sig)
+  (arithmetic masked funct3 funct3-sig >> 12 funct3-sig))
+
+; delay 2
+(defpart inst-decode-funct7
+  ((in yellow inst)
+   (out yellow funct7)
+   (signal inst-sig)
+   (signal funct7-sig))
+  (green masked)
+  (arithmetic inst masked inst-sig & 0xfe000000u funct7-sig)
+  (arithmetic masked funct7 funct7-sig >> 25 funct7-sig))
+
+; delay 1
+(defpart inst-decode-mask-opcode-funct3
+  ((in yellow inst)
+   (out yellow masked)
+   (signal inst-sig)
+   (signal masked-sig))
+  (arithmetic inst masked inst-sig & 0x0000707fu masked-sig))
+
+; delay 1
+(defpart inst-decode-mask-opcode-funct3-funct7
+  ((in yellow inst)
+   (out yellow masked)
+   (signal inst-sig)
+   (signal masked-sig))
+  (arithmetic inst masked inst-sig & 0xfe00707fu masked-sig))
+
+; R-type   | funct7  | rs2   | rs1   | funct3 | rd    | opcode  |
+;            XXXXXXX   XXXXX   XXXXX   XXX      XXXXX   XXXXXXX
+; R-type instructions have no immediate values.
+
+
+; I-type   | imm[11:0]    | rs1   | funct3 | rd    | opcode  |
+;            XXXXXXXXXXXX   XXXXX   XXX      XXXXX   XXXXXXX
+; delay 2
+(defpart inst-decode-imm-i
+  ((in yellow inst)
+   (out yellow imm)
+   (signal inst-sig)
+   (signal imm-sig))
+  (green masked)
+  (arithmetic inst masked inst-sig & 0xfff00000u imm-sig)
+  (arithmetic masked imm imm-sig >> 20 imm-sig))
+  ; Sign extension happens implicitly because we're shifting from the top bits.
+
+
+; S-type   | imm[11:5] | rs2   | rs1   | funct3 | imm[4:0] | opcode  |
+;            XXXXXXX     XXXXX   XXXXX   XXX      XXXXX      XXXXXXX
+; delay 2
+(defpart inst-decode-imm-s
+  ((in yellow inst)
+   (out yellow imm)
+   (signal inst-sig)
+   (signal imm-sig))
+  (green masked0)
+  (arithmetic inst masked0 inst-sig & 0x00000f80u imm-sig)
+  (arithmetic masked0 imm imm-sig >> 7 imm-sig)
+  (green masked1)
+  (arithmetic inst masked1 inst-sig & 0xfe000000u imm-sig)
+  (arithmetic masked1 imm imm-sig >> 20 imm-sig))
+  ; Sign extension happens implicitly because we're shifting from the top bits.
+
+
+; B-type   | imm[12] | imm[10:5] | rs2   | rs1   | funct3 | imm[4:1] | imm[11] | opcode  |
+;            X         XXXXXX      XXXXX   XXXXX   XXX      XXXX       X         XXXXXXX
+; delay 2
+(defpart inst-decode-imm-b
+  ((in yellow inst)
+   (out yellow imm)
+   (signal inst-sig)
+   (signal imm-sig))
+  (green masked0)
+  (arithmetic inst masked0 inst-sig & 0x00000080u imm-sig)
+  (arithmetic masked0 imm imm-sig << 4 imm-sig)
+  (green masked1)
+  (arithmetic inst masked1 inst-sig & 0x00000f00u imm-sig)
+  (arithmetic masked1 imm imm-sig >> 7 imm-sig)
+  (green masked2)
+  (arithmetic inst masked2 inst-sig & 0x7e000000u imm-sig)
+  (arithmetic masked2 imm imm-sig >> 20 imm-sig)
+  (green masked3)
+  (arithmetic inst masked3 inst-sig & 0x80000000u imm-sig)
+  (arithmetic masked3 imm imm-sig >> 19 imm-sig))
+  ; Sign extension happens implicitly because we're shifting from the top bit.
+
+
+; U-type   | imm[31:12]           | rd    | opcode  |
+;            XXXXXXXXXXXXXXXXXXXX   XXXXX   XXXXXXX
+; delay 1
+(defpart inst-decode-imm-u
+  ((in yellow inst)
+   (out yellow imm)
+   (signal inst-sig)
+   (signal imm-sig))
+  (arithmetic inst imm inst-sig & 0xfffff000u imm-sig))
+
+
+; J-type   | imm[20] | imm[10:1]  | imm[11] | imm[19:12] | rd    | opcode  |
+;            X         XXXXXXXXXX   X         XXXXXXXX     XXXXX   XXXXXXX
+; delay 2
+(defpart inst-decode-imm-j
+  ((in yellow inst)
+   (out yellow imm)
+   (signal inst-sig)
+   (signal imm-sig))
+  (green masked0)
+  (arithmetic inst masked0 inst-sig & 0x000ff000u imm-sig)
+  (arithmetic masked0 imm imm-sig >> 0 imm-sig)
+  (green masked1)
+  (arithmetic inst masked1 inst-sig & 0x00100000u imm-sig)
+  (arithmetic masked1 imm imm-sig >> 9 imm-sig)
+  (green masked2)
+  (arithmetic inst masked2 inst-sig & 0x7fe00000u imm-sig)
+  (arithmetic masked2 imm imm-sig >> 20 imm-sig)
+  (green masked3)
+  (arithmetic inst masked3 inst-sig & 0x80000000u imm-sig)
+  (arithmetic masked3 imm imm-sig >> 11 imm-sig))
+  ; Sign extension happens implicitly because we're shifting from the top bit.

@@ -1,0 +1,16 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output funct7)
+(part-under-test (inst-decode-funct7 inst funct7 sig:signal-i sig:signal-o))
+(test-type fixed-latency 2)
+
+(test (((inst sig:signal-i))
+       ((funct7 sig:signal-o)))
+
+  ((0x00161613u) (0x00)) ;          	slli	a2,a2,0x1
+  ((0x00165613u) (0x00)) ;          	srli	a2,a2,0x1
+  ((0x00d56533u) (0x00)) ;          	or	a0,a0,a3
+  ((0x00f687b3u) (0x00)) ;          	add	a5,a3,a5
+  ((0x40b005b3u) (0x20)) ;          	neg	a1,a1
+  ((0x40f707b3u) (0x20)) ;          	sub	a5,a4,a5
+  )

@@ -1,0 +1,17 @@
+(load "circuits/riscv/instruction-decode.fdl")
+(green input inst)
+(green output opcode)
+(part-under-test (inst-decode-opcode inst opcode sig:signal-i sig:signal-o))
+(test-type fixed-latency 1)
+
+(test (((inst sig:signal-i))
+       ((opcode sig:signal-o)))
+
+  ((0x0000006fu) (0x6fu)) ;          	j	101e0 <_start+0x14>
+  ((0x00000513u) (0x13u)) ;          	li	a0,0
+  ((0x00812423u) (0x23u)) ;          	sw	s0,8(sp)
+  ((0x00b67a63u) (0x63u)) ;          	bgeu	a2,a1,10214 <__udivsi3+0x28>
+  ((0x00d56533u) (0x33u)) ;          	or	a0,a0,a3
+  ((0xbc844783u) (0x03u)) ;          	lbu	a5,-1080(s0)
+  ((0x00008067u) (0x67u)) ;          	ret
+  )
