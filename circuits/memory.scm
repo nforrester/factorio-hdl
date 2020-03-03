@@ -262,3 +262,27 @@
               data-out
               address-signal
               data-out-signal))))))
+
+; Writes and reads can happen simultaneously.
+; You can write and read one register per cycle.
+; To choose not to write anything this cycle, give a write-address that is out of range.
+(define defpart-fast-memory-start-n-width-m
+  (lambda (start-address width)
+    `(defpart ,(strings->symbol "fast-memory-start-" (number->string start-address)
+                                "-width-" (number->string width))
+       ((in green data-in)
+        (out green data-out)
+        (in red write-address)
+        (in red read-address)
+        (signal sig-data)
+        (signal sig-write-address)
+        (signal sig-read-address))
+
+       ,@(apply append
+           (for (for (range width) (lambda (x) (+ x start-address)))
+                (lambda (address)
+                  (let ((state (strings->symbol "state" (number->string address))))
+                    `((green ,state)
+                      (decider (write-address data-in) ,state sig-write-address == ,address sig-data input-count)
+                      (decider (write-address ,state) ,state sig-write-address != ,address sig-data input-count)
+                      (decider (read-address ,state) data-out sig-read-address == ,address sig-data input-count)))))))))
