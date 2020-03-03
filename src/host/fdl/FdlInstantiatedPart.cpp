@@ -835,7 +835,7 @@ void Fdl::InstantiatedPart::connect_all(
             Port const & port = part._outside_ports.at(ippp.second);
             if (!first_port)
             {
-                debug(1) << _log_leader << "HUB   "
+                debug(1) << _log_leader << "HUB   " << wire_name << " "
                          << part._part_type << " " << ippp.first << " " << port.name
                          << "\n";
                 first_port = part.ports().at(port.name);
@@ -843,7 +843,7 @@ void Fdl::InstantiatedPart::connect_all(
             }
             for (WireColor color : final_wire_colors.at(wire_name))
             {
-                debug(1) << _log_leader << "SPOKE "
+                debug(1) << _log_leader << "SPOKE " << wire_name << " "
                          << part._part_type << " " << ippp.first << " " << port.name
                          << (color == ::Wire::green ? " (green)" : " (red)") << "\n";
                 _connect(color, *first_port, *part.ports().at(port.name));
@@ -851,7 +851,7 @@ void Fdl::InstantiatedPart::connect_all(
         }
     }
 
-    for (Port const & port : _outside_ports)
+    for (Port & port : _outside_ports)
     {
         size_t part_idx, port_idx;
         std::tie(part_idx, port_idx) = _inside_wires.at(port.name).inside_ports.front();
@@ -870,9 +870,19 @@ void Fdl::InstantiatedPart::connect_all(
             }
             else
             {
-                debug(1) << " (" << (*final_wire_colors.at(port.name).begin() ==
-                                     ::Wire::green ? "green" : "red") << ")\n";
-                _set_port(port.name, inside_port, *final_wire_colors.at(port.name).begin());
+                assert(final_wire_colors.at(port.name).size() == 1);
+                WireColor color = *final_wire_colors.at(port.name).begin();
+                debug(1) << " (" << (color == ::Wire::green ? "green" : "red") << ")\n";
+                _set_port(port.name, inside_port, color);
+                if (color == ::Wire::green)
+                {
+                    port.color = Color::green;
+                }
+                else
+                {
+                    assert(color == ::Wire::red);
+                    port.color = Color::red;
+                }
             }
         }
         else if (port.color == Color::red)
@@ -881,6 +891,7 @@ void Fdl::InstantiatedPart::connect_all(
             {
                 debug(1) << " (green)\n";
                 _set_port(port.name, inside_port, ::Wire::green);
+                port.color = Color::green;
             }
             else
             {
@@ -895,6 +906,7 @@ void Fdl::InstantiatedPart::connect_all(
             {
                 debug(1) << " (red)\n";
                 _set_port(port.name, inside_port, ::Wire::red);
+                port.color = Color::red;
             }
             else
             {
