@@ -281,8 +281,40 @@
        ,@(apply append
            (for (for (range width) (lambda (x) (+ x start-address)))
                 (lambda (address)
-                  (let ((state (strings->symbol "state" (number->string address))))
+                  (let ((state (sym-for-idx state address)))
                     `((green ,state)
                       (decider (write-address data-in) ,state sig-write-address == ,address sig-data input-count)
                       (decider (write-address ,state) ,state sig-write-address != ,address sig-data input-count)
                       (decider (read-address ,state) data-out sig-read-address == ,address sig-data input-count)))))))))
+
+; Writes and reads can happen simultaneously.
+; You can write one register per cycle.
+; You can read as many registers per cycle as there are read ports.
+; To choose not to write anything this cycle, give a write-address that is out of range.
+; TODO TEST ME
+(define defpart-fast-memory-r-read-ports-start-n-width-m
+  (lambda (num-read-ports start-address width)
+    `(defpart ,(strings->symbol "fast-memory-" (number->string num-read-ports)
+                                "-read-ports-start-" (number->string start-address)
+                                "-width-" (number->string width))
+       ((in green data-in)
+        (in red write-address)
+        ,@(apply append
+            (for (range num-read-ports)
+                 (lambda (port-idx)
+                   `((out green (sym-for-idx data-out port-idx))
+                     (in red (sym-for-idx read-address port-idx))))))
+        (signal sig-data)
+        (signal sig-write-address)
+        (signal sig-read-address))
+
+       ,@(apply append
+           (for (for (range width) (lambda (x) (+ x start-address)))
+                (lambda (address)
+                  (let ((state (sym-for-idx state address)))
+                    `((green ,state)
+                      (decider (write-address data-in) ,state sig-write-address == ,address sig-data input-count)
+                      (decider (write-address ,state) ,state sig-write-address != ,address sig-data input-count)
+                      ,@(for (range num-read-ports)
+                             (lambda (port-idx)
+                               `(decider (,(sym-for-idx read-address port-idx) ,state) ,(sym-for-idx data-out port-idx) sig-read-address == ,address sig-data input-count)))))))))))

@@ -1,0 +1,220 @@
+(load "circuits/elf.fdl")
+
+; Used for program memory
+(defpart-dense-rom-of-elf-byte-addressable program-memory   "src/target/j")
+(defpart-elf-metadata                      program-metadata "src/target/j")
+
+; Used for program counter.
+; pc goes up by 4 each cycle.
+; Set jump-trigger to 1 to trigger a jump to jump-address.
+; TODO TEST ME
+(defpart program-counter
+  ((in green jump-trigger) ; uses jump-signal
+   (in red jump-address)   ; uses pc-signal
+   (out red pc)            ; uses pc-signal
+   (signal jump-signal)
+   (signal pc-signal))
+
+  (red plus-4)
+  (constant plus-4 ((pc-signal 4)))
+
+  (decider (jump-trigger jump-address) pc jump-signal == 1 pc-signal input-count)
+  (decider (jump-trigger pc)           pc jump-signal == 0 pc-signal input-count)
+  (decider (jump-trigger plus-4)       pc jump-signal == 0 pc-signal input-count))
+
+; Used for register file
+(defpart-fast-memory-r-read-ports-start-n-width-m 2 1 31)
+
+; This computer uses a Harvard architecture.
+;
+; The number of stages in the pipeline is equal to the delay in cycles from the beginning to the end;
+; therefore the maximum possible instruction rate is 60Hz (though pipeline stalls will reduce this
+; in practice).
+;
+; Reset sets the program counter to the entry point. Reset clears the error counters.
+; Reset does NOT clear memory or register state. The program should not make any assumptions
+; about initial memory or register contents.
+;
+; TODO TEST ME
+(defpart computer
+  ((in red reset)
+   (signal reset-signal)
+   (out green errors)
+   (signal sig-error-invalid-opcode-or-functs))
+
+  ; The outputs of each major part will be labeled with their pipeline stage number
+  ; (i.e. the number of cycles delayed they are from the output of the program counter).
+
+  ; Preserve error counts, but allow reset.
+  (decider (reset errors) errors reset-signal == 0 each input-count)
+  (arithmetic reset errors reset-signal * -1 reset-signal)
+
+  ; Program counter
+  (red jump-trigger)
+  (green jump-address)
+  (green pc)
+  (signal jump-signal sig:signal-j)
+  (signal pc-signal (notsigs reset-signal))
+  (program-counter
+    jump-trigger
+    jump-address
+    pc ; stage 0
+    jump-signal
+    pc-signal)
+
+  ; Initialize pc to the program entry point.
+  (green pc-init)
+  (program-metadata pc-init pc-signal)
+  (decider (reset pc-init) pc reset-signal == 1 pc-signal input-count)
+
+  ; Program memory / Instruction fetch
+  (green fetched-instruction)
+  (signal instruction-signal sig:signal-i)
+  (program-memory
+    pc
+    fetched-instruction ; stage 7
+    pc-signal
+    data-signal)
+
+  ; TODO initialize the whole pipeline with NOPs on reset.
+
+  ; Instruction decode: opcode, funct3, funct7
+  (green opcode)
+  (green opcode-funct3)
+  (green opcode-funct3-funct7)
+  (signal opcode-functs-signal sig:signal-o)
+  (inst-decode-opcode
+    fetched-instruction
+    opcode ; stage 8
+    instruction-signal
+    opcode-functs-signal)
+  (inst-decode-mask-opcode-funct3
+    fetched-instruction
+    opcode-funct3 ; stage 8
+    instruction-signal
+    opcode-functs-signal)
+  (inst-decode-mask-opcode-funct3-funct7
+    fetched-instruction
+    opcode-funct3-funct7 ; stage 8
+    instruction-signal
+    opcode-functs-signal)
+
+  ; Instruction decode: registers
+  (signal register-write-address-signal sig:signal-w)
+  (signal register-read-address-signal sig:signal-r)
+  (green rd-addr)
+  (green rs1-addr)
+  (green rs2-addr)
+  (inst-decode-rd
+    fetched-instruction
+    rd-addr ; stage 9
+    instruction-signal
+    register-write-address-signal)
+  (buffer rd-addr         rd-addr-stage10)
+  (buffer rd-addr-stage10 rd-addr-stage11)
+  (inst-decode-rs1
+    fetched-instruction
+    rs1-addr ; stage 9
+    instruction-signal
+    register-read-address-signal)
+  (inst-decode-rs2
+    fetched-instruction
+    rs2-addr ; stage 9
+    instruction-signal
+    register-read-address-signal)
+
+  ; Instruction decode: immediates
+  (signal imm-signal)
+  (green imm-i)
+  (green imm-s)
+  (green imm-b)
+  (green imm-u)
+  (green imm-j)
+  (inst-decode-imm-i
+    fetched-instruction
+    imm-i ; stage 9
+    instruction-signal
+    imm-signal)
+  (buffer imm-i imm-i-stage10)
+  (inst-decode-imm-s
+    fetched-instruction
+    imm-s ; stage 9
+    instruction-signal
+    imm-signal)
+  (inst-decode-imm-b
+    fetched-instruction
+    imm-b ; stage 9
+    instruction-signal
+    imm-signal)
+  (inst-decode-imm-u
+    fetched-instruction
+    imm-u ; stage 8
+    instruction-signal
+    imm-signal)
+  (inst-decode-imm-j
+    fetched-instruction
+    imm-j ; stage 9
+    instruction-signal
+    imm-signal)
+
+  ; If there wasn't exactly one instruction handler that recognized this combination
+  ; of opcode, funct3, and funct7, increment sig-error-invalid-opcode-or-functs.
+  (red opcode-and-functs-recognized)
+  (signal recognized-signal sig:signal-r)
+  (decider
+    opcode-and-functs-recognized errors
+    recognized-signal != 1
+    sig-error-invalid-opcode-or-functs one)
+
+  ; Register file / Register fetch
+  ;   Address  0: x0
+  ;   Address  1: x1
+  ;        ...
+  ;   Address 31: x31
+  ; Note that register x0 is technically out of range, so writes to it have no effect
+  ; and reads always produce 0! How serendipitous.
+  (signal register-data-signal sig:signal-d)
+  (green register-write-data)
+  (green register-write-address)
+  (green rs1-data)
+  (green rs2-data)
+  (fast-memory-2-read-ports-start-1-width-31
+    register-write-data
+    register-write-address
+    rs1-data ; stage 10
+    rs1-addr
+    rs2-data ; stage 10
+    rs2-addr
+    data-signal
+    register-write-address-signal
+    register-read-address-signal)
+
+  ; TODO if an instruction has gone past stage 10 that would write to a register X,
+  ;      and then another instruction comes along that reads from register X before
+  ;      that write to X would be accomplished, stall the pipeline.
+
+  ; ADDI
+  (green recognize-addi)
+  (decider
+    opcode-funct3
+    (recognize-addi opcode-and-functs-recognized) ; stage 9
+    opcode-functs-signal == 0x00000013u
+    recognized-signal one)
+  (buffer recognize-addi         recognize-addi-stage10)
+  (buffer recognize-addi-stage10 recognize-addi-stage11)
+  (green result-addi)
+  (arithmetic
+    (rs1-data imm-i-stage10)
+    result-addi ; stage 11
+    data-signal + imm-signal
+    data-signal)
+  (decider
+    (recognize-addi-stage11 result-addi)
+    register-write-data ; stage 12
+    recognize-addi == 1
+    data-signal input-count)
+  (decider
+    (recognize-addi-stage11 rd-addr-stage11)
+    register-write-address ; stage 12
+    recognize-addi == 1
+    register-write-address-signal input-count))

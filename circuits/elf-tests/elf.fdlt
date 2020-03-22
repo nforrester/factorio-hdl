@@ -1,7 +1,7 @@
 (load "circuits/elf.fdl")
 (green input address)
 (green output o)
-(part-under-test (memory-test-elf-byte-addressable address o sig:signal-a sig:signal-o))
+(part-under-test (memory-test-elf address o sig:signal-a sig:signal-o))
 (test-type fixed-latency 7)
 
 (test (((address sig:signal-a))

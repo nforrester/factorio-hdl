@@ -206,6 +206,15 @@
                        (assert (not (memq 'w (lookup segment 'p-flags))) "You need to add support for writable program segments.")))))
       (loop program-segments))))
 
+; TODO TEST ME
+(define defpart-elf-metadata
+  (lambda (part-name filepath)
+    (let ((header (read-elf-header filepath)))
+      `(defpart part-name
+         ((out entry-point)
+          (signal entry-point-signal))
+         (constant entry-point ((entry-point-signal (lookup header 'entry-point))))))))
+
 (define defpart-dense-rom-of-elf
   (lambda (part-name filepath)
     (letrec ((program-segments (read-elf-program-segments filepath))
@@ -236,3 +245,17 @@
                (lambda (index)
                  `(,(seg-part-name index) address data-out address-signal data-out-signal))))
          ,@(rom-segments () 0 program-segments)))))
+
+(define defpart-dense-rom-of-elf-byte-addressable
+  (lambda (part-name filepath)
+    (let ((impl (strings->symbol (symbol->string part-name) "-impl")))
+      `(begin
+         (defpart-dense-rom-of-elf ,impl ,filepath)
+         (defpart ,part-name
+           ((in yellow address-bytes)
+            (out yellow data-out)
+            (signal address-signal)
+            (signal data-out-signal))
+           (green address)
+           (arithmetic address-bytes address address-signal / 4 address-signal)
+           (,impl address data-out address-signal data-out-signal))))))
