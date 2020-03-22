@@ -1,2 +1,8 @@
+# Build output symlinks
 /bazel-*
+
+# Convenient symlink to riscv toolchain binaries.
+/tools/bin
+
+# Vim swp files
 *.swp
