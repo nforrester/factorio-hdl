@@ -55,6 +55,20 @@ cc_binary(
 )
 
 cc_binary(
+    name = "add-sub",
+    srcs = ["add-sub.c"],
+    copts = common_copts + ["-O1"],
+    linkopts = common_linkopts,
+)
+
+cc_binary(
+    name = "j",
+    srcs = ["j.c"],
+    copts = common_copts + ["-O3"],
+    linkopts = common_linkopts,
+)
+
+cc_binary(
     name = "memory-test",
     srcs = ["memory-test.cpp"],
     copts = common_cppopts,
