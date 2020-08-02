@@ -281,7 +281,7 @@
        ,@(apply append
            (for (for (range width) (lambda (x) (+ x start-address)))
                 (lambda (address)
-                  (let ((state (sym-for-idx state address)))
+                  (let ((state (sym-for-idx 'state address)))
                     `((green ,state)
                       (decider (write-address data-in) ,state sig-write-address == ,address sig-data input-count)
                       (decider (write-address ,state) ,state sig-write-address != ,address sig-data input-count)
