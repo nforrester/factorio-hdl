@@ -2,6 +2,7 @@
 
 ; TODO document
 ; TODO instead of popping when empty being an error, just make it a nop and keep returning the default value.
+; TODO detect pushing when full and flag that as an error
 (define defpart-fifo-n
   (lambda (size)
     `(defpart ,(strings->symbol "fifo-" (number->string size))
