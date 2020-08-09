@@ -13,4 +13,3 @@
 (defpart-dense-rom rom-test-data 260 (8 6 7 5 3 0 9))
 
 (defpart-fast-memory-start-n-width-m 10 5)
-(defpart-fast-memory-start-n-width-m 0 5)
