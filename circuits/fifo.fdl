@@ -1,0 +1,6 @@
+(load "circuits/util.fdl")
+(load "circuits/memory.fdl")
+
+(defmacro defpart-fifo-n "circuits/fifo.scm")
+
+(defpart-fifo-n 5)
