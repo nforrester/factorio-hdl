@@ -1,4 +1,4 @@
-common_copts = ["-Wall", "-Werror", "-std=c++2a"]
+common_copts = ["-Wall", "-Werror", "-std=c++2a", "-g"]
 
 def bins(deps = []):
     bin_srcs = native.glob(["**/*_bin.cpp"])
