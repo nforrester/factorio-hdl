@@ -1,7 +1,8 @@
 (load "circuits/util.scm")
 
-; TODO document
-; TODO detect pushing when full and flag that as an error
+; A FIFO. End to end latency is 4 cycles. Upon reset it is empty. When empty it emits default-value.
+; Popping when empty is not an error.
+; Overflow because you pushed too much and popped too little is an error.
 (define defpart-fifo-n
   (lambda (size)
     `(defpart ,(strings->symbol "fifo-" (number->string size))
@@ -93,10 +94,24 @@
          write-ptr-mod-maybe read-ptr-mod
          data-signal address-signal address-signal)
 
+       ; Delay default-value
+       (red default-value-delayed1)
+       (red default-value-delayed2)
+       (red default-value-delayed3)
+       (buffer default-value default-value-delayed1)
+       (buffer default-value-delayed1 default-value-delayed2)
+       (buffer default-value-delayed2 default-value-delayed3)
+
        ; delay 3
        (decider (data-out-raw empty-delayed1) data-out control-signal == 0 data-signal input-count)
-       (decider (default-value empty-delayed1) data-out control-signal == 1 data-signal input-count)
+       (decider (default-value-delayed3 empty-delayed1) data-out control-signal == 1 data-signal input-count)
 
-       (constant errors ((error-signal 0)))
-
-       )))
+       ; Detect buffer overflow
+       (red errors-early2)
+       (red errors-early1)
+       ; delay 1
+       (decider minus-fill-level errors-early2 address-signal == ,(- (* -1 size) 1) error-signal one)
+       ; delay 2
+       (buffer errors-early2 errors-early1)
+       ; delay 3
+       (buffer errors-early1 errors))))
