@@ -1,7 +1,6 @@
 (load "circuits/util.scm")
 
 ; TODO document
-; TODO instead of popping when empty being an error, just make it a nop and keep returning the default value.
 ; TODO detect pushing when full and flag that as an error
 (define defpart-fifo-n
   (lambda (size)
@@ -29,38 +28,47 @@
        (green read-ptr)
        (green write-ptr)
 
+       ; We track the fill level as a negative number so that we can exploit the everything
+       ; wildcard when popping to gate the pop on minus-fill-level being non-zero.
+       (green minus-fill-level)
+
        (red minus-size-red)
        (green minus-size-green)
        (constant (minus-size-red minus-size-green) ((address-signal ,(* -1 size))))
 
-       ; Preserve pointer values, but allow reset
-       (decider (reset read-ptr) read-ptr reset-signal == 0 address-signal input-count)
-       (decider (reset write-ptr) write-ptr reset-signal == 0 address-signal input-count)
+       ; Preserve pointer values and fill level, but allow reset
+       (decider (reset read-ptr)         read-ptr         reset-signal == 0 address-signal input-count)
+       (decider (reset write-ptr)        write-ptr        reset-signal == 0 address-signal input-count)
+       (decider (reset minus-fill-level) minus-fill-level reset-signal == 0 address-signal input-count)
 
        ; Increment pointers on push and pop
-       (decider pop read-ptr control-signal == 1 address-signal one)
+       ; Don't increment read-ptr if minus-fill-level == 0.
+       (decider (pop minus-fill-level) read-ptr control-signal == 1 everything one)
        (decider push write-ptr control-signal == 1 address-signal one)
+
+       ; Track fill level
+       (green minus1)
+       (constant minus1 ((address-signal -1)))
+       (decider (pop minus-fill-level) minus-fill-level control-signal == 1 everything one)
+       (arithmetic pop minus-fill-level control-signal * -1 control-signal)
+       (decider (push minus1) minus-fill-level control-signal == 1 address-signal input-count)
 
        ; Wrap around to prevent overflow. This doesn't guarantee anything about the
        ; timing of the wrapping, only that it will happen well before integer
        ; overflow and that at any given moment the pointer values will be correct
-       ; modulo the size of the fifo.
+       ; modulo the size of the fifo. It also guarantees that read-ptr is sensibly
+       ; ordered with respect to write-ptr at all times by wrapping them in lock step.
        (signal need-to-wrap-sig sig:signal-w)
-       (green need-to-wrap-write)
-       (green need-to-wrap-read)
-       (decider read-ptr  need-to-wrap-read  address-signal > ,(* 10 size) need-to-wrap-sig one)
-       (decider write-ptr need-to-wrap-write address-signal > ,(* 10 size) need-to-wrap-sig one)
-       (decider (need-to-wrap-read  minus-size-red) read-ptr  need-to-wrap-sig == 1 address-signal input-count)
-       (decider (need-to-wrap-write minus-size-red) write-ptr need-to-wrap-sig == 1 address-signal input-count)
+       (green need-to-wrap)
+       (decider write-ptr need-to-wrap address-signal > ,(* 3 size) need-to-wrap-sig one)
+       (decider (need-to-wrap minus-size-red) read-ptr  need-to-wrap-sig == 1 address-signal input-count)
+       (decider (need-to-wrap minus-size-red) write-ptr need-to-wrap-sig == 1 address-signal input-count)
 
        ; delay 1
-       ; 0 <= write-ptr-mod < size, unless push == 0
-       (signal address-check-signal (notsigs address-signal data-signal control-signal reset-signal error-signal))
+       ; 0 <= write-ptr-mod-maybe < size, unless push == 0
        (green read-ptr-mod)
-       (red write-ptr-mod-check)
        (green write-ptr-mod-maybe)
        (arithmetic read-ptr  read-ptr-mod  address-signal % ,size address-signal)
-       (arithmetic write-ptr write-ptr-mod-check address-signal % ,size address-check-signal)
        (arithmetic write-ptr write-ptr-mod-maybe address-signal % ,size address-signal)
        (decider (push minus-size-green) write-ptr-mod-maybe control-signal == 0 address-signal input-count)
 
@@ -68,10 +76,14 @@
        (red data-in-delayed1)
        (buffer data-in data-in-delayed1)
 
-       ; delay 2
+       ; delay 1
        ; Detect empty
        (green empty)
-       (decider (read-ptr-mod write-ptr-mod-check) empty address-signal == address-check-signal control-signal one)
+       (decider minus-fill-level empty address-signal == 0 control-signal one)
+
+       ; delay 2
+       (green empty-delayed1)
+       (buffer empty empty-delayed1)
 
        ; delay 2
        ; The buffer
@@ -82,17 +94,9 @@
          data-signal address-signal address-signal)
 
        ; delay 3
-       (decider (data-out-raw empty) data-out control-signal == 0 data-signal input-count)
-       (decider (default-value empty) data-out control-signal == 1 data-signal input-count)
+       (decider (data-out-raw empty-delayed1) data-out control-signal == 0 data-signal input-count)
+       (decider (default-value empty-delayed1) data-out control-signal == 1 data-signal input-count)
 
-       ; Detect FIFO overrun
-       ; empty is delayed 2
-       ; pop-plus-not-push is delayed 1
-       ; We are checking whether we are popping and not pushing when previously empty,
-       ; meaning that we're causing a FIFO overrun.
-       (red pop-plus-not-push)
-       (decider pop  pop-plus-not-push control-signal == 1 control-signal one)
-       (decider push pop-plus-not-push control-signal == 0 control-signal one)
-       (decider (pop-plus-not-push empty) errors control-signal == 3 error-signal one)
+       (constant errors ((error-signal 0)))
 
        )))
