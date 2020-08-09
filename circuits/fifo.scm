@@ -25,9 +25,9 @@
        ; It is still important to wrap them because otherwise they'd grow without bound
        ; and eventually overflow. Yes, that would require more than two years of continuous
        ; operation, but it's the principle of the thing.
-       (signal address-signal (notsigs data-signal control-signal reset-signal))
-       (green write-ptr)
+       (signal address-signal (notsigs data-signal control-signal reset-signal error-signal))
        (green read-ptr)
+       (green write-ptr)
 
        (red minus-size-red)
        (green minus-size-green)
@@ -38,8 +38,8 @@
        (decider (reset write-ptr) write-ptr reset-signal == 0 address-signal input-count)
 
        ; Increment pointers on push and pop
-       (decider push write-ptr control-signal == 1 address-signal one)
        (decider pop read-ptr control-signal == 1 address-signal one)
+       (decider push write-ptr control-signal == 1 address-signal one)
 
        ; Wrap around to prevent overflow. This doesn't guarantee anything about the
        ; timing of the wrapping, only that it will happen well before integer
@@ -48,14 +48,14 @@
        (signal need-to-wrap-sig sig:signal-w)
        (green need-to-wrap-write)
        (green need-to-wrap-read)
-       (decider write-ptr need-to-wrap-write address-signal > ,(* 10 size) need-to-wrap-sig one)
        (decider read-ptr  need-to-wrap-read  address-signal > ,(* 10 size) need-to-wrap-sig one)
-       (decider (need-to-wrap-write minus-size-red) write-ptr need-to-wrap-sig == 1 address-signal input-count)
+       (decider write-ptr need-to-wrap-write address-signal > ,(* 10 size) need-to-wrap-sig one)
        (decider (need-to-wrap-read  minus-size-red) read-ptr  need-to-wrap-sig == 1 address-signal input-count)
+       (decider (need-to-wrap-write minus-size-red) write-ptr need-to-wrap-sig == 1 address-signal input-count)
 
        ; delay 1
        ; 0 <= write-ptr-mod < size, unless push == 0
-       (signal address-check-signal (notsigs address-signal))
+       (signal address-check-signal (notsigs address-signal data-signal control-signal reset-signal error-signal))
        (green read-ptr-mod)
        (red write-ptr-mod-check)
        (green write-ptr-mod-maybe)
