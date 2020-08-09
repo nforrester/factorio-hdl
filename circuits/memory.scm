@@ -292,6 +292,8 @@
 ; You can read as many registers per cycle as there are read ports.
 ; To choose not to write anything this cycle, give a write-address that is out of range.
 ; TODO TEST ME
+; TODO REMOVE REDUNDANT 1 PORT IMPL
+; TODO ADD VARIABLE WRITE PORTS
 (define defpart-fast-memory-r-read-ports-start-n-width-m
   (lambda (num-read-ports start-address width)
     `(defpart ,(strings->symbol "fast-memory-" (number->string num-read-ports)

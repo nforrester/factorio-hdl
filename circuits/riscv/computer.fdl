@@ -22,6 +22,8 @@
   (decider (jump-trigger pc)           pc jump-signal == 0 pc-signal input-count)
   (decider (jump-trigger plus-4)       pc jump-signal == 0 pc-signal input-count))
 
+(int canonical-nop-instruction 0x00000013u)
+
 ; Used for register file
 (defpart-fast-memory-r-read-ports-start-n-width-m 2 1 31)
 
