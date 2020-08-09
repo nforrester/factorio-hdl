@@ -1,7 +1,6 @@
 (load "circuits/util.scm")
 
 ; TODO document
-; TODO add error detection (read overruns write)
 ; TODO add empty detection, with default value
 (define defpart-fifo-n
   (lambda (size)
@@ -11,12 +10,11 @@
         (in red push)
         (in red pop)
         (in red reset)
-;        (out yellow errors)
+        (out yellow errors)
         (signal data-signal)
         (signal control-signal)
         (signal reset-signal)
-        )
-;        (signal error-signal))
+        (signal error-signal))
 
        ; Write and read pointer addresses are modular.
        ; 0 is the same as size, 1 is the same as size + 1, etc.
@@ -34,8 +32,16 @@
        (constant (minus-size-red minus-size-green) ((address-signal ,(* -1 size))))
 
        ; Preserve pointer values, but allow reset
-       (decider (reset write-ptr) write-ptr reset-signal == 0 address-signal input-count)
        (decider (reset read-ptr) read-ptr reset-signal == 0 address-signal input-count)
+       (decider (reset write-ptr) write-ptr reset-signal == 0 address-signal input-count)
+       (decider (reset write-ptr) write-ptr reset-signal == 1 address-signal one)
+
+       ; Detect FIFO overrun
+       (red read-ptr-check)
+       (green write-ptr-check)
+       (arithmetic read-ptr read-ptr-check address-signal * 1 sig:signal-a)
+       (arithmetic write-ptr write-ptr-check address-signal * 1 sig:signal-b)
+       (decider (read-ptr-check write-ptr-check) errors sig:signal-a == sig:signal-b error-signal one)
 
        ; Increment pointers on push and pop
        (decider push write-ptr control-signal == 1 address-signal one)
