@@ -3,6 +3,8 @@
 #include "CircuitManager.h"
 #include "debug.h"
 
+#include <array>
+
 using WireColor = int_fast8_t;
 namespace Wire
 {

@@ -2,6 +2,7 @@
 #include "blueprint/util.h"
 
 #include <vector>
+#include <algorithm>
 
 SignalValue CircuitValues::get(SignalId signal) const
 {

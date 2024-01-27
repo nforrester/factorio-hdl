@@ -3,6 +3,7 @@
 #include "src/host/blueprint/util.h"
 
 #include <list>
+#include <algorithm>
 
 void Fdl::check_valid_top_level_form(S::Exp & form)
 {

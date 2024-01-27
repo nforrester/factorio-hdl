@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$1" == "--target-host" ]; then
-    CC=/usr/local/neil/gcc-10-20191208-experimental/bin/gcc bazel-real "${@:2}"
+    bazel-real "${@:2}"
 else
-    CC=/usr/local/neil/gcc-10-20191208-experimental/bin/gcc bazel-real "$@" --platforms=//src/target:factorio-riscv
+    bazel-real "$@" --platforms=//src/target:factorio-riscv
 fi
