@@ -26,9 +26,9 @@ def gtests(deps = [], extra_data = dict()):
             data = extra_data[name]
         native.cc_binary(name = bin_name + "_host",
                          srcs = [src],
-                         deps = deps + ["@gtest//:main"],
+                         deps = deps + ["@googletest//:gtest_main"],
                          data = data,
-                         copts = common_copts + ["-Iexternal/gtest/googletest/include"],
+                         copts = common_copts + ["-Iexternal/googletest/googletest/include"],
                          tags = ["manual"])
         native.genrule(name = "build_" + bin_name,
                        srcs = [],
